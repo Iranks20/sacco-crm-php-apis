@@ -1,0 +1,1 @@
+SELECT * FROM acc_ledger_account where disabled ='No' AND account_usage='Account' AND id!='15' AND  sacco_id = '1001' order by name 
