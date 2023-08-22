@@ -4,8 +4,10 @@ class login extends Controller{
 
 public function __construct(){
 	parent::__construct();
-	Auth::handlesession();
-	//Auth::handleSignin();	
+	// Auth::handlesession();
+    header('Access-Control-Allow-Origin: http://localhost:3000');
+	header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+	header('Access-Control-Allow-Headers: Content-Type');
 }
 
 function index(){
@@ -59,10 +61,18 @@ function forgotpass(){
 	$this->view->renders('passchangeform');	
 }
 
-function auth(){
-	$data=$_POST;
-	$rs = $this->model->authUser($data);
-	echo json_encode($rs);
+function auth() {
+    $json = file_get_contents('php://input');
+    $data = json_decode($json, true);
+    if ($data === null) {
+        $response = array('error' => 'Invalid JSON data');
+    } else {
+        $rs = $this->model->authUser($data);
+        $response = $rs;
+    }
+
+    echo json_encode($response);
+    exit;
 }
 
 function pass(){

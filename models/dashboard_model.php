@@ -16,6 +16,11 @@ class Dashboard_model extends Model{
 		return $results[0]['version'];
 
 	}
+	function getDashboard(){
+		$result = $this->db->SelectData("SELECT * FROM m_staff");
+		return $result;
+	}
+	
 
 	function getGlAccountsCount(){
 		$id = $_SESSION['office'];
@@ -33,7 +38,7 @@ class Dashboard_model extends Model{
 	function getMembersCount(){
 		$office_id = $_SESSION['office'];
 		$result= $this->db->SelectData("SELECT count(c_id) AS num FROM members WHERE office_id='".$office_id."'");
-		return  $result;
+		return  $result[0]['num'];
 	}
 
 	function getInstanceActiveMembersCount(){
@@ -93,6 +98,26 @@ class Dashboard_model extends Model{
 		$result= $this->db->SelectData("SELECT count(id) AS num FROM m_savings_account WHERE group_id != 0 AND office_id='".$office_id."'");
 		return  $result;
 	}
+
+	// function to display all dashboard data
+	public function getDashboardData() {
+        $dashboardData = array(
+			'getInstanceActiveMembersCount' => $this->getInstanceActiveMembersCount(),
+            'getInstanceRegisteredMembersCount' => $this->getInstanceRegisteredMembersCount(),
+            'glAccountsCount' => $this->getGlAccountsCount(),
+            'membersCount' => $this->getMembersCount(),
+            'saccosCount' => $this->getSaccosCount(),
+            'staffCount' => $this->getStaffCount(),
+            'loansCount' => $this->getLoansCount(),
+            'savingsCount' => $this->getSavingsCount(),
+            'sharesCount' => $this->getSharesCount(),
+            'memberAccountsCount' => $this->getMemberAccountsCount(),
+            'businessAccountsCount' => $this->getBusinessAccountsCount(),
+            'groupAccountsCount' => $this->getGroupAccountsCount(),
+        );
+
+        return $dashboardData;
+    }
 	
 	
 

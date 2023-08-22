@@ -1,14 +1,13 @@
 <?php
-error_reporting(0);
 class Model {
 
 	function __construct() {
 		$this->db = new Database();
-		$this->pushy = new PushyAPI();
+		// $this->pushy = new PushyAPI();
 		$this->val = new Validations();
-		$this->img = new ImageLoader();
-		$this->img2 = new ImageLoaderBack();
-		$this->pdfi = new PDFloader();
+		// $this->img = new ImageLoader();
+		// $this->img2 = new ImageLoaderBack();
+		// // $this->pdfi = new PDFloader();
 
 	}
 

@@ -1,19 +1,16 @@
 <?php
 
-class Equity extends Controller{
+class equity extends Controller{
 	
 public function __construct(){
-parent::__construct();
-Auth::handleSignin();
-Auth::CheckSession();
-Auth::CheckAuthorization();
- $_SESSION['timeout'] = time(); 
-
+ parent::__construct();
+// Auth::handleSignin();
+// Auth::CheckSession();
+// Auth::CheckAuthorization();
+//  $_SESSION['timeout'] = time();
 }
 function index(){
-	
-$this->view->shareholders = $this->model->ShareHoldersLists();
-$this->view->render('forms/shares/shares_account');
+	echo "clic is running";
 }
 /* share capital    */
 //shares

@@ -6,9 +6,7 @@ class Otp extends Controller{
         parent::__construct();
         Auth::handleSignin();
         Auth::CheckAuthorization();
-        $_SESSION['timeout'] = time(); 
-        // echo "am in otp";
-    
+        // $_SESSION['timeout'] = time();     
     }
     
     function index(){        
@@ -50,7 +48,7 @@ class Otp extends Controller{
     function submitotp(){
     
     	$data = $_POST;
-    	$email = $_SESSION['email'];
+    	$email = $data['email'];
     	$otpvalue = $data['otp'];
     	$rs = $this->model->verfy_otp($otpvalue, $email);
     

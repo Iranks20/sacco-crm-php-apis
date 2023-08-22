@@ -25,7 +25,7 @@ $data_collection = array(
 'op_status' => $op_status,
 'ip_address'=>$ip
 );
-$this->InsertData('tr_system_log', $data_collection);
+// $this->InsertData('tr_system_log', $data_collection);
 }
 
 

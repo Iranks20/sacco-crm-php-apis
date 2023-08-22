@@ -1389,3 +1389,167 @@ PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
 SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692278997,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
 Uname: "INNCERR"
 PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692682556,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "INNCERR"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692696240,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+Uname: "inncerr"
+PWD: "64c8882434ba878b710be138d5c41df68067688293b00c137b3242760d8381c1"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692696535,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692696600,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692696602,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692696626,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692697418,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692698218,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692702916,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692703022,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692703296,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692703466,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692703507,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692703510,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692703518,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692704952,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692706603,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692706661,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692706710,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692706711,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692706722,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692706725,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692706726,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692706740,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692707286,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692707289,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692707293,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692707373,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692710330,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692712843,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692723040,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692723044,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692723044,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692723064,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692723096,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692723196,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692723202,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692723204,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692723204,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692723215,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692723220,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692723254,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692723256,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692723256,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692723270,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692723273,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692723381,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692723383,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692724218,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692724218,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692724347,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692724349,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692724411,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"
+SESSION: {"user_id":122,"loggedin":true,"email":"irankundainnocent673@gmail.com","username":"inncerr","office":1001,"branchid":1001,"branch":"ABC UGANDA","Isheadoffice":"Yes","timeout":1692724436,"instance":"1001","access_level":"A","name":"IRANKUNDAA INNOOCENTT"}
+Uname: "inncerr"
+PWD: "15be3f2e12c4946c4ea866aec3f766d1eab67271f5d44b2281d616e0f5791edb"

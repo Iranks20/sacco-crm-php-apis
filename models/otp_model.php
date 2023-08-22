@@ -3,34 +3,42 @@ class otp_model extends Model{
 	
     public function __construct(){
         parent::__construct();
-        error_reporting(E_ALL);
-        ini_set('display_errors', 1);
+        // error_reporting(E_ALL);
+        // ini_set('display_errors', 1);
     }
 
     // creating otp
-    function create_otp($otpvalue, $email) {    
-        $table = 'otp';
-        $data = array(
-            'name' => $otpvalue,
-            'email' => $email
-        );
-        $id = $this->db->InsertData($table, $data, $return_id = true);
+    function create_otp($otpvalue, $email) {
+        try {
+            $table = 'otp';
+            $data = array(
+                'name' => $otpvalue,
+                'email' => $email
+            );
+            $id = $this->db->InsertData($table, $data, $return_id = true);
     
-        if ($id > 0) {
-            $message = "Clic Social Banking OTP ".$otpvalue;
-            $this->sendEmail($email, $message, $sub = 'Clic social banking OTP');
+            if ($id > 0) {
+                $message = "Clic Social Banking OTP " . $otpvalue;
+                $this->sendEmail($email, $message, $sub = 'Clic social banking OTP');
+                $response = array(
+                    'status' => 200,
+                    'message' => 'OTP has been successfully sent.'
+                );
+            } else {
+                $response = array(
+                    'status' => 500,
+                    'message' => 'Failed to send OTP.'
+                );
+            }
+    
+            echo json_encode($response);
+        } catch (PDOException $e) {
             $response = array(
-                'status' => 'success',
-                'message' => 'OTP has been successfully sent.'
+                'status' => 500,
+                'message' => 'An error occurred while sending OTP: ' . $e->getMessage()
             );
-        } else {
-            $response = array(
-                'status' => 'error',
-                'message' => 'Failed to send OTP.'
-            );
+            echo json_encode($response);
         }
-    
-        echo json_encode($response);
     }    
     
     function password(){
@@ -39,24 +47,38 @@ class otp_model extends Model{
         echo $pwd;
     }
     
-    function verfy_otp($otpvalue, $email){
+    function verfy_otp($otpvalue, $email) {
+        try {
+            $otp = $this->db->prepare("SELECT status FROM otp WHERE name = '$otpvalue' and email = '$email'");
+            $a = $otp->execute();
+            $b = $otp->fetch();
     
-        $otp = $this->db->prepare("SELECT status FROM otp WHERE name = '$otpvalue' and email = '$email'");
-        $a = $otp->execute();
-        $b = $otp->fetch();
+            if ($b['status'] == 'pending') {
+                $otpupdate = array(
+                    'status' => 'verified'
+                );
+                $this->db->UpdateData('otp', $otpupdate, "name = {$otpvalue} ");
+                $response = array(
+                    'status' => 200,
+                    'message' => 'OTP has been successfully verified.', $otpvalue
+                );
+            } else {
+                $response = array(
+                    'status' => 500,
+                    'message' => 'Failed to verify OTP.'
+                );
+            }
     
-        if ($b['status'] == 'pending'){
-            $otpupdate = array(
-                'status' => 'verified'
+            echo json_encode($response);
+        } catch (PDOException $e) {
+            $response = array(
+                'status' => 500,
+                'message' => 'An error occurred while verifying OTP: ' . $e->getMessage()
             );
-            $this->db->UpdateData('otp', $otpupdate, "name = {$otpvalue} ");
-            Session::set('verified_otp', $otpvalue);
-            header('Location: ' . URL);
-        }else{
-            header('Location: ' . URL . 'otp?msg=failed');
+            echo json_encode($response);
         }
-    
     }
+        
 
 	function getStaffDetails($id){
 		$office_id=$_SESSION['office'];
