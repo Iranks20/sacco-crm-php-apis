@@ -308,8 +308,7 @@ class Products_model extends Model {
     return $results[0]['idz'];
   }
 
-  function getAllCharges(){
-    $office = $_SESSION['office'];
+  function getAllCharges($office){
     $results =  $this->db->SelectData("SELECT * FROM m_charge WHERE status ='Active' AND is_active = 1 AND is_deleted = 0  AND office_id = '".$office."' AND transaction_type_id = 29 OR transaction_type_id = 39");
     return $results;
   }
@@ -320,14 +319,12 @@ class Products_model extends Model {
     return $results;
   }
 
-  function getAllSavings(){
-    $office = $_SESSION['office'];
+  function getAllSavings($office){
     $results =  $this->db->SelectData("SELECT * FROM m_savings_product WHERE product_status ='Active' AND office_id = '".$office."'");
     return $results;
   }
 
-  function getAllShares(){
-    $office = $_SESSION['office'];
+  function getAllShares($office){
     $results =  $this->db->SelectData("SELECT * FROM share_products WHERE product_status ='Active' AND office_id = '".$office."'");
     return $results;
   }
@@ -1446,9 +1443,7 @@ try{
 }
 }
 
-function chargeproductList() {
-  $office=$_SESSION['office'];  
-
+function chargeproductList($office) {
   $res = $this->db->SelectData("SELECT * FROM m_charge INNER JOIN products ON m_charge.charge_applies_to = products.p_id WHERE is_deleted != 1  AND m_charge.office_id = $office ORDER BY m_charge.id ");
 
 
@@ -1480,8 +1475,7 @@ function ApproveLoanProduct() {
 
 /* -------Savings products  ---- */
 
-function savingsProductsList() {
-  $office=$_SESSION['office'];  
+function savingsProductsList($office) {
   return $this->db->SelectData("SELECT * FROM m_savings_product  where office_id = '".$office."'");
 }
 
@@ -1553,8 +1547,7 @@ function getLoanStatement(){
 
 /* -------fixed deposit products  ---- */
 
-function fixedDepositProducts() {
- $office=$_SESSION['office'];
+function fixedDepositProducts($office) {
  return $this->db->SelectData("SELECT * FROM fixed_deposit_product where office_id = '".$office."' ");
 }
 
@@ -1911,10 +1904,8 @@ function amortization_Calculation() {
 
        }
 
-       function InsuranceList(){
-         $office=$_SESSION['office'];
+       function InsuranceList($office){
          return $this->db->SelectData("SELECT * FROM insurance_products  WHERE office_id = '".$office."'");
-
        }
 
 
@@ -2497,10 +2488,8 @@ function customersupportshedule($id,$p,$np,$d1) {
         header('Location: ' . URL . 'products/addglpointerstime/'.$data['pnumber']);
       }
 
-      function loanProvision(){
-       $office=$_SESSION['office'];
+      function loanProvision($office){
        return $this->db->SelectData("SELECT * FROM m_loan_ageing WHERE office_id = $office order by id");
-
      }   
 
      function createNewLoanAgeing(){
