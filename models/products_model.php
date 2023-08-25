@@ -267,22 +267,18 @@ class Products_model extends Model {
     return $results;
   }
 
-  function getShareProducts(){
-    $office = $_SESSION['office'];
+  function getShareProducts($office){
     $results =  $this->db->SelectData("SELECT count(id) AS idz FROM share_products WHERE product_status ='Active' AND office_id = '".$office."'");
-
     return $results[0]['idz'];
-  }   
+  }
 
-  function getLoanProducts(){
-    $office = $_SESSION['office'];
+  function getLoanProducts($office){
     $results =  $this->db->SelectData("SELECT count(id) AS idz FROM m_product_loan WHERE status ='open' AND office_id = '".$office."'");
 
     return $results[0]['idz'];
   }
 
-  function getSavingsProducts(){
-    $office = $_SESSION['office'];
+  function getSavingsProducts($office){
     $results =  $this->db->SelectData("SELECT count(id) AS idz FROM m_savings_product WHERE product_status ='Active' AND office_id = '".$office."'");
 
     return $results[0]['idz'];
@@ -300,15 +296,13 @@ class Products_model extends Model {
     die();
   }
 
-  function getFixedProducts(){
-    $office = $_SESSION['office'];
+  function getFixedProducts($office){
     $results =  $this->db->SelectData("SELECT count(id) AS idz FROM fixed_deposit_product WHERE product_status ='Active' AND office_id = '".$office."'");
 
     return $results[0]['idz'];
   }
 
-  function getChargeProducts(){
-    $office = $_SESSION['office'];
+  function getChargeProducts($office){
     $results =  $this->db->SelectData("SELECT count(id) AS idz FROM m_charge WHERE status ='Active' AND office_id = '".$office."'");
 
     return $results[0]['idz'];
@@ -423,9 +417,8 @@ class Products_model extends Model {
     $result = $this->db->InsertData('m_reg_settings', $postData);
   }
 
-  function getDefaultsCount(){
+  function getDefaultsCount($office){
 
-    $office = $_SESSION['office'];
     $results =  $this->db->SelectData("SELECT count(id) AS idz FROM m_reg_settings WHERE sacco_id = '".$office."'");
 
     if ($results[0]['idz'] > 0) {
@@ -435,22 +428,19 @@ class Products_model extends Model {
     }
   }
 
-  function getProvisioningProducts(){
-    $office = $_SESSION['office'];
+  function getProvisioningProducts($office){
     $results =  $this->db->SelectData("SELECT count(id) AS idz FROM m_loan_ageing WHERE office_id = '".$office."'");
 
     return $results[0]['idz'];
   }
 
-  function getThirdPartyProductCount(){
-    $office = $_SESSION['office'];
+  function getThirdPartyProductCount($office){
     $results =  $this->db->SelectData("SELECT count(id) AS idz FROM thirdparty_products WHERE product_status ='Active' AND office_id = '".$office."'");
 
     return $results[0]['idz'];
   }
 
-  function getInsuranceProductsCount(){
-    $office = $_SESSION['office'];
+  function getInsuranceProductsCount($office){
     $results =  $this->db->SelectData("SELECT count(id) AS idz FROM insurance_products WHERE product_status ='Active' AND office_id = '".$office."'");
 
     return $results[0]['idz'];
@@ -1917,8 +1907,7 @@ function amortization_Calculation() {
         
 
 
-       function SharesList(){
-         $office=$_SESSION['office'];
+       function SharesList($office){
          return $this->db->SelectData("SELECT * FROM share_products  WHERE office_id = '".$office."'");
 
        }

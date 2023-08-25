@@ -4,10 +4,6 @@ class Products extends Controller{
 
 	public function __construct(){
 		parent::__construct();
-		Auth::handleSignin();
-		Auth::CheckSession();
-		Auth::CheckAuthorization();
-		$_SESSION['timeout'] = time(); 
 	}
 
 	/********************  products menu  *******************************/
@@ -18,18 +14,59 @@ class Products extends Controller{
 	}
 
 	function index(){
-		$this->view->shares = $this->model->getShareProducts();
-		$this->view->loans = $this->model->getLoanProducts();
-		$this->view->savings = $this->model->getSavingsProducts();
-		$this->view->fixed = $this->model->getFixedProducts();
-		$this->view->charges = $this->model->getChargeProducts();
-		$this->view->defaults = $this->model->getDefaultsCount();
-		$this->view->provisioning = $this->model->getProvisioningProducts();
-		$this->view->thirdparty = $this->model->getThirdPartyProductCount();
-		$this->view->insurance = $this->model->getInsuranceProductsCount();
-		$this->view->render('forms/products/products');
+		try {
+			$jsonData = file_get_contents('php://input');
+			$data = json_decode($jsonData, true);
+	
+			if (isset($data['office'])) {
+				$office = $data['office'];
+	
+				$shares = $this->model->getShareProducts($office);
+				$loans = $this->model->getLoanProducts($office);
+				$savings = $this->model->getSavingsProducts($office);
+				$fixed = $this->model->getFixedProducts($office);
+				$charges = $this->model->getChargeProducts($office);
+				$defaults = $this->model->getDefaultsCount($office);
+				$provisioning = $this->model->getProvisioningProducts($office);
+				$thirdparty = $this->model->getThirdPartyProductCount($office);
+				$insurance = $this->model->getInsuranceProductsCount($office);
+	
+				$response = array(
+					'status' => 200, // Success status code
+					'message' => 'Product data fetched successfully.',
+					'data' => array(
+						'shares' => $shares,
+						'loans' => $loans,
+						'savings' => $savings,
+						'fixed' => $fixed,
+						'charges' => $charges,
+						'defaults' => $defaults,
+						'provisioning' => $provisioning,
+						'thirdparty' => $thirdparty,
+						'insurance' => $insurance
+					)
+				);
+	
+				echo json_encode($response);
+			} else {
+				$response = array(
+					'status' => 400, // Bad request status code
+					'message' => 'Office value is missing in JSON input.'
+				);
+	
+				http_response_code(400); // Set HTTP status code
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500, // Internal server error status code
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500); // Set HTTP status code
+			echo json_encode($response);
+		}
 	}
-
 	function chargeexemption($id=null){
 
 		$this->view->members = $this->model->getAllMembers();
@@ -1207,9 +1244,41 @@ class Products extends Controller{
 
 	/* Shares  */
 	function shares(){
-		$this->view->shares  = $this->model->SharesList();	
-		$this->view->render('forms/products/sharesconfig');
-	}
+		try {
+			$jsonData = file_get_contents('php://input');
+			$data = json_decode($jsonData, true);
+	
+			if (isset($data['office'])) {
+				$office = $data['office'];
+	
+				$sharesList = $this->model->SharesList($office);
+	
+				$response = array(
+					'status' => 200, // Success status code
+					'message' => 'Shares list fetched successfully.',
+					'data' => $sharesList
+				);
+	
+				echo json_encode($response);
+			} else {
+				$response = array(
+					'status' => 400, // Bad request status code
+					'message' => 'Office value is missing in JSON input.'
+				);
+	
+				http_response_code(400); // Set HTTP status code
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500, // Internal server error status code
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500); // Set HTTP status code
+			echo json_encode($response);
+		}
+	}	
 		
 	function newshareproduct(){
 		$this->view->assets=$this->model->getAssets();
