@@ -712,9 +712,41 @@ class Products extends Controller{
 
 	/* ----Loan products  ******************/
 	function loanproducts(){
-		$this->view->loanproductList = $this->model->loanproductList();
-		$this->view->render('forms/products/loanproducts');
-	}
+		try {
+			$jsonData = file_get_contents('php://input');
+			$data = json_decode($jsonData, true);
+	
+			if (isset($data['office'])) {
+				$office = $data['office'];
+	
+				$loanProductList = $this->model->loanproductList($office);
+	
+				$response = array(
+					'status' => 200, // Success status code
+					'message' => 'Loan products list fetched successfully.',
+					'data' => $loanProductList
+				);
+	
+				echo json_encode($response);
+			} else {
+				$response = array(
+					'status' => 400,
+					'message' => 'Office value is missing in JSON input.'
+				);
+	
+				http_response_code(400);
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500,
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500); // Set HTTP status code
+			echo json_encode($response);
+		}
+	}	
 
 	function newquickloanproduct(){
 		$this->view->loanproductList = $this->model->loanproductList();

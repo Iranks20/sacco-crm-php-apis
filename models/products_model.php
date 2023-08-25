@@ -799,8 +799,7 @@ function getstaffList($id) {
   return $this->db->SelectData("SELECT * FROM m_staff where id='" . $id . "' ");
 }
 
-function loanproductList() {
-  $office=$_SESSION['office'];
+function loanproductList($office) {
   return $this->db->SelectData("SELECT * FROM m_product_loan where status!='closed' AND office_id = '".$office."' ");
 }
 
