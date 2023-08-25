@@ -4,9 +4,12 @@
 class Otp extends Controller{
     public function __construct(){
         parent::__construct();
-        Auth::handleSignin();
-        Auth::CheckAuthorization();
-        // $_SESSION['timeout'] = time();     
+        // Auth::handleSignin();
+        // Auth::CheckAuthorization();
+        // $_SESSION['timeout'] = time();
+        header('Access-Control-Allow-Origin: http://localhost:3000');
+	    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+	    header('Access-Control-Allow-Headers: Content-Type');
     }
     
     function index(){        
@@ -46,20 +49,41 @@ class Otp extends Controller{
     }
     
     function submitotp(){
+        $data = json_decode(file_get_contents('php://input'), true);
     
-    	$data = $_POST;
-    	$email = $data['email'];
-    	$otpvalue = $data['otp'];
-    	$rs = $this->model->verfy_otp($otpvalue, $email);
-    
+        if (isset($data['email']) && isset($data['otp'])) {
+            $email = $data['email'];
+            $otpvalue = $data['otp'];
+            $rs = $this->model->verfy_otp($otpvalue, $email);
+            // Handle $rs if needed
+        } else {
+            $response = array(
+                'status' => 'error',
+                'message' => 'Email or OTP is missing in JSON input.'
+            );
+            echo json_encode($response);
+        }
     }
+    
     
     function sendotp(){
-    	$email = $_POST['email'];
-    	$otpnumber = rand(1231,7879);
-    	$message = "Clic Social Banking OTP ".$otpnumber;
-    	$createotp = $this->model->create_otp($otpnumber , $email);
+        $data = json_decode(file_get_contents('php://input'), true);
+    
+        if (isset($data['email'])) {
+            $email = $data['email'];
+            $otpnumber = rand(1231, 7879);
+            $message = "Clic Social Banking OTP " . $otpnumber;
+            $createotp = $this->model->create_otp($otpnumber, $email);
+            // Handle successful OTP creation if needed
+        } else {
+            $response = array(
+                'status' => 'error',
+                'message' => 'Email is missing in JSON input.'
+            );
+            echo json_encode($response);
+        }
     }
+    
     
 	function changePassword($id){
 	    if($id == $_SESSION['user_id']){
