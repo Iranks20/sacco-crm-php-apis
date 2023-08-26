@@ -1440,13 +1440,58 @@ class Products extends Controller{
 		$this->model->UpdateGlAccountCharge($_POST, $id);
 	}
 
+	// function getshareProduct($id){
+	// 	$this->view->hastransactions = $this->model->hastransacted();
+	// 	$product_type=1;
+	// 	$this->view->created= $this->model->getPointers($id,$product_type);	
+	// 	$this->view->product = $this->model->getshareProduct($id);
+	// 	$this->view->render('forms/products/viewshareproduct');
+	// }
+
 	function getshareProduct($id){
-		$this->view->hastransactions = $this->model->hastransacted();
-		$product_type=1;
-		$this->view->created= $this->model->getPointers($id,$product_type);	
-		$this->view->product = $this->model->getshareProduct($id);
-		$this->view->render('forms/products/viewshareproduct');
-	}
+		try {
+			$jsonData = file_get_contents('php://input');
+			$data = json_decode($jsonData, true);
+	
+			if (isset($data['office'])) {
+				$office = $data['office'];
+	
+				// Fetch share product details using $id and $office
+				$hastransactions = $this->model->hastransacted($office);
+				$product_type = 1;
+				$created = $this->model->getPointers($id, $office, $product_type);
+				$product = $this->model->getshareProduct($id);
+	
+				$response = array(
+					'status' => 200,
+					'message' => 'Share product details fetched successfully.',
+					'data' => array(
+						'hastransactions' => $hastransactions,
+						'created' => $created,
+						'product' => $product
+					)
+				);
+	
+				echo json_encode($response);
+			} else {
+				$response = array(
+					'status' => 400, // Bad request status code
+					'message' => 'Office value is missing in JSON input.'
+				);
+	
+				http_response_code(400); // Set HTTP status code
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500, // Internal server error status code
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500); // Set HTTP status code
+			echo json_encode($response);
+		}
+	}	
 
 	function getinsuranceproduct($id){
 		$this->view->hastransactions = $this->model->hastransacted();

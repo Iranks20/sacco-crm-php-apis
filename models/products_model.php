@@ -719,13 +719,13 @@ function getModeofPayment($id){
 }
 
 
-function getPointers($id,$prodType, $charge=null) {
-  $parent_office =$_SESSION['office'];
+function getPointers($id,$product_type, $office, $charge=null) {
+  $parent_office =$office;
 
   if ($charge != NULL) {
     $result=$this->db->SelectData("SELECT * FROM acc_gl_pointers JOIN transaction_type ON transaction_type.transaction_type_id=acc_gl_pointers.transaction_type_id WHERE acc_gl_pointers.transaction_type_id = '$charge' AND acc_gl_pointers.sacco_id = '".$parent_office."' AND acc_gl_pointers.product_id = '".$id."'");
   } else {
-    $result=$this->db->SelectData("SELECT * FROM acc_gl_pointers JOIN transaction_type ON transaction_type.transaction_type_id=acc_gl_pointers.transaction_type_id where acc_gl_pointers.product_type_id='".$prodType."' AND sacco_id = '".$parent_office."' and product_id = '".$id."' ");  
+    $result=$this->db->SelectData("SELECT * FROM acc_gl_pointers JOIN transaction_type ON transaction_type.transaction_type_id=acc_gl_pointers.transaction_type_id where acc_gl_pointers.product_type_id='".$product_type."' AND sacco_id = '".$parent_office."' and product_id = '".$id."' ");  
   }
 
 
@@ -747,9 +747,9 @@ function getPointers($id,$prodType, $charge=null) {
   }
 }
 
-function hastransacted(){
+function hastransacted($office){
 
-  $office =$_SESSION['office'];
+  // $office =$_SESSION['office'];
 
   $result=$this->db->SelectData("SELECT * FROM acc_gl_journal_entry WHERE office_id = ".$office. " AND transaction_id NOT LIKE 'OP%'");
 
