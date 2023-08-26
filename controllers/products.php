@@ -1475,20 +1475,20 @@ class Products extends Controller{
 				echo json_encode($response);
 			} else {
 				$response = array(
-					'status' => 400, // Bad request status code
+					'status' => 400,
 					'message' => 'Office value is missing in JSON input.'
 				);
 	
-				http_response_code(400); // Set HTTP status code
+				http_response_code(400);
 				echo json_encode($response);
 			}
 		} catch (Exception $e) {
 			$response = array(
-				'status' => 500, // Internal server error status code
+				'status' => 500,
 				'message' => 'An error occurred: ' . $e->getMessage()
 			);
 	
-			http_response_code(500); // Set HTTP status code
+			http_response_code(500);
 			echo json_encode($response);
 		}
 	}	
