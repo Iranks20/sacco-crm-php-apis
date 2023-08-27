@@ -985,14 +985,58 @@ class Products extends Controller{
 		}
 	}	
 
-	function productdetails($id){
-		$this->view->hastransactions = $this->model->hastransacted();
-		$product_type=3;
-	 $this->view->created= $this->model->getPointers($id,$product_type);	
-		$this->view->savings = $this->model->productdetails($id);
-		$this->view->render('forms/products/savingspdt_details');
+	// function productdetails($id){
+	// 	$this->view->hastransactions = $this->model->hastransacted();
+	// 	$product_type=3;
+	//  $this->view->created= $this->model->getPointers($id,$product_type);	
+	// 	$this->view->savings = $this->model->productdetails($id);
+	// 	$this->view->render('forms/products/savingspdt_details');
 
-	}
+	// }
+	function productdetails($id){
+		try {
+			$jsonData = file_get_contents('php://input');
+			$data = json_decode($jsonData, true);
+	
+			if (isset($data['office'])) {
+				$office = $data['office'];
+	
+				// Fetch product details using $id and $office
+				$hastransactions = $this->model->hastransacted($office);
+				$product_type = 3;
+				$created = $this->model->getPointers($id, $office, $product_type);
+				$savings = $this->model->productdetails($id);
+	
+				$response = array(
+					'status' => 200, // Success status code
+					'message' => 'Product details fetched successfully.',
+					'data' => array(
+						'hastransactions' => $hastransactions,
+						'created' => $created,
+						'savings' => $savings
+					)
+				);
+	
+				echo json_encode($response);
+			} else {
+				$response = array(
+					'status' => 400, // Bad request status code
+					'message' => 'Office value is missing in JSON input.'
+				);
+	
+				http_response_code(400); // Set HTTP status code
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500, // Internal server error status code
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500); // Set HTTP status code
+			echo json_encode($response);
+		}
+	}	
 
 	function newSavingsProduct(){
 		$this->view->currency = $this->model->currency();
