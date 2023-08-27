@@ -1492,12 +1492,56 @@ class Products extends Controller{
 		$this->view->render('forms/products/editchargesproduct');	
 	}
 
+	// function viewCharge($product_type, $product_id){
+	// 	$this->view->hastransactions = $this->model->hastransacted();
+	// 	$this->view->charge = $this->model->getChargesDetails($product_id);
+	//  	$this->view->created= $this->model->getPointers($product_id,$product_type);
+	// 	$this->view->render('forms/products/viewcharge');
+	// }
 	function viewCharge($product_type, $product_id){
-		$this->view->hastransactions = $this->model->hastransacted();
-		$this->view->charge = $this->model->getChargesDetails($product_id);
-	 	$this->view->created= $this->model->getPointers($product_id,$product_type);
-		$this->view->render('forms/products/viewcharge');
-	}
+		try {
+			$jsonData = file_get_contents('php://input');
+			$data = json_decode($jsonData, true);
+	
+			if (isset($data['office'])) {
+				$office = $data['office'];
+	
+				// Fetch charge details using $product_type, $product_id, and $office
+				$hastransactions = $this->model->hastransacted($office);
+				$id = $product_id;
+				$charge = $this->model->getChargesDetails($id, $office);
+				$created = $this->model->getPointers($id, $office, $product_type);
+	
+				$response = array(
+					'status' => 200,
+					'message' => 'Charge details fetched successfully.',
+					'data' => array(
+						'hastransactions' => $hastransactions,
+						'charge' => $charge,
+						'created' => $created
+					)
+				);
+	
+				echo json_encode($response);
+			} else {
+				$response = array(
+					'status' => 400,
+					'message' => 'Office value is missing in JSON input.'
+				);
+	
+				http_response_code(400);
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500,
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500);
+			echo json_encode($response);
+		}
+	}	
 
 	function editglpointerscharge($product_id, $pointer_id){
 

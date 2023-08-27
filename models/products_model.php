@@ -1268,9 +1268,9 @@ function getExpenses() {
   return $this->db->selectData("SELECT * FROM acc_ledger_account where classification='Expenses' AND account_usage='Account' ");
 }
 
-function getChargesDetails($id) {
+function getChargesDetails($id, $office) {
 
-  $office = $_SESSION['office'];
+  // $office = $_SESSION['office'];
 
   $result = $this->db->selectData("SELECT * FROM m_charge INNER JOIN products ON m_charge.charge_applies_to = products.p_id WHERE m_charge.office_id = " . $office . " AND id= '" . $id . "' ORDER BY m_charge.id ");
 
