@@ -259,9 +259,8 @@ class Products_model extends Model {
     header('Location: ' . URL . 'products/chargeexemption?msg=success');
   }
 
-  function getThirdpartyTransactions($id){
+  function getThirdpartyTransactions($id, $office){
 
-    $office = $_SESSION['office'];
     $results =  $this->db->SelectData("SELECT * FROM thirdparty_account_transactions AS a JOIN thirdparty_products AS b ON a.thirdparty_account_no = b.thirdparty_accountno WHERE b.id = '$id' AND b.product_status ='Active' AND b.office_id = '".$office."'");
 
     return $results;
@@ -721,7 +720,6 @@ function getModeofPayment($id){
 
 function getPointers($id,$product_type, $office, $charge=null) {
   $parent_office =$office;
-
   if ($charge != NULL) {
     $result=$this->db->SelectData("SELECT * FROM acc_gl_pointers JOIN transaction_type ON transaction_type.transaction_type_id=acc_gl_pointers.transaction_type_id WHERE acc_gl_pointers.transaction_type_id = '$charge' AND acc_gl_pointers.sacco_id = '".$parent_office."' AND acc_gl_pointers.product_id = '".$id."'");
   } else {
@@ -748,9 +746,6 @@ function getPointers($id,$product_type, $office, $charge=null) {
 }
 
 function hastransacted($office){
-
-  // $office =$_SESSION['office'];
-
   $result=$this->db->SelectData("SELECT * FROM acc_gl_journal_entry WHERE office_id = ".$office. " AND transaction_id NOT LIKE 'OP%'");
 
   $count=count($result);         

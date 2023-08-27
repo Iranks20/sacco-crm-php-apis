@@ -1631,14 +1631,59 @@ class Products extends Controller{
 		}
 	}	
 
-	function getinsuranceproduct($id){
-		$this->view->hastransactions = $this->model->hastransacted();
-		$product_type=8;
-		$this->view->created= $this->model->getPointers($id,$product_type);	
-		$this->view->product = $this->model->getInsuranceProduct($id);
-		$this->view->render('forms/products/viewinsuranceproduct');
+	// function getinsuranceproduct($id){
+	// 	$this->view->hastransactions = $this->model->hastransacted();
+	// 	$product_type=8;
+	// 	$this->view->created= $this->model->getPointers($id,$product_type);	
+	// 	$this->view->product = $this->model->getInsuranceProduct($id);
+	// 	$this->view->render('forms/products/viewinsuranceproduct');
 
-	}
+	// }
+
+	function getinsuranceproduct($id){
+		try {
+			$jsonData = file_get_contents('php://input');
+			$data = json_decode($jsonData, true);
+	
+			if (isset($data['office'])) {
+				$office = $data['office'];
+	
+				// Fetch insurance product using $id
+				$hastransactions = $this->model->hastransacted($office);
+				$product_type = 8;
+				$created = $this->model->getPointers($id, $office, $product_type);
+				$product = $this->model->getInsuranceProduct($id);
+	
+				$response = array(
+					'status' => 200, // Success status code
+					'message' => 'Insurance product details fetched successfully.',
+					'data' => array(
+						'hastransactions' => $hastransactions,
+						'created' => $created,
+						'product' => $product
+					)
+				);
+	
+				echo json_encode($response);
+			} else {
+				$response = array(
+					'status' => 400, // Bad request status code
+					'message' => 'Office value is missing in JSON input.'
+				);
+	
+				http_response_code(400); // Set HTTP status code
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500, // Internal server error status code
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500); // Set HTTP status code
+			echo json_encode($response);
+		}
+	}	
 
 	function UpdateChargeProduct(){
 		$data=$_POST;
@@ -1780,24 +1825,109 @@ class Products extends Controller{
 			echo json_encode($response);
 		}
 	}	
+	// function thirdpartyProduct($id){
+
+	// 	$this->view->hastransactions = $this->model->hastransacted();
+	// 	$product_type=7;
+	// 	$this->view->created= $this->model->getPointers($id,$product_type);		
+	// 	$this->view->thirdparty = $this->model->getthirdpartyproduct($id);
+	// 	$this->view->collateral = $this->model->getcollateral($id);
+	// 	$this->view->charges = $this->model->getloanProductcharges($id);
+	// 	$this->view->curname = $this->model->currency();
+	// 	$this->view->render('forms/products/viewthirdpartyproduct');
+
+	// }
+
 	function thirdpartyProduct($id){
-
-		$this->view->hastransactions = $this->model->hastransacted();
-		$product_type=7;
-		$this->view->created= $this->model->getPointers($id,$product_type);		
-		$this->view->thirdparty = $this->model->getthirdpartyproduct($id);
-		$this->view->collateral = $this->model->getcollateral($id);
-		$this->view->charges = $this->model->getloanProductcharges($id);
-		$this->view->curname = $this->model->currency();
-		$this->view->render('forms/products/viewthirdpartyproduct');
-
-	}
+		try {
+			$jsonData = file_get_contents('php://input');
+			$data = json_decode($jsonData, true);
+	
+			if (isset($data['office'])) {
+				$office = $data['office'];
+	
+				// Fetch third-party product details using $id and $office
+				$hastransactions = $this->model->hastransacted($office);
+				$product_type = 7;
+				$created = $this->model->getPointers($id, $office, $product_type);
+				$thirdparty = $this->model->getthirdpartyproduct($id);
+				$collateral = $this->model->getcollateral($id);
+				$charges = $this->model->getloanProductcharges($id);
+				$curname = $this->model->currency();
+	
+				$response = array(
+					'status' => 200, // Success status code
+					'message' => 'Third-party product details fetched successfully.',
+					'data' => array(
+						'hastransactions' => $hastransactions,
+						'created' => $created,
+						'thirdparty' => $thirdparty,
+						'collateral' => $collateral,
+						'charges' => $charges,
+						'curname' => $curname
+					)
+				);
+	
+				echo json_encode($response);
+			} else {
+				$response = array(
+					'status' => 400, // Bad request status code
+					'message' => 'Office value is missing in JSON input.'
+				);
+	
+				http_response_code(400); // Set HTTP status code
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500, // Internal server error status code
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500); // Set HTTP status code
+			echo json_encode($response);
+		}
+	}	
 
 	function thirdpartyTransactions($id){
-		$this->view->transactions = $this->model->getThirdpartyTransactions($id);
-		$this->view->render('forms/products/thirdpartytransactions');
-
-	}
+		try {
+			$jsonData = file_get_contents('php://input');
+			$data = json_decode($jsonData, true);
+	
+			if (isset($data['office'])) {
+				$office = $data['office'];
+	
+				// Fetch third-party transactions using $id
+				$transactions = $this->model->getThirdpartyTransactions($id, $office);
+	
+				$response = array(
+					'status' => 200, // Success status code
+					'message' => 'Third-party transactions fetched successfully.',
+					'data' => array(
+						'transactions' => $transactions
+					)
+				);
+	
+				echo json_encode($response);
+			} else {
+				$response = array(
+					'status' => 400, // Bad request status code
+					'message' => 'Office value is missing in JSON input.'
+				);
+	
+				http_response_code(400); // Set HTTP status code
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500, // Internal server error status code
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500); // Set HTTP status code
+			echo json_encode($response);
+		}
+	}	
 
 	function NewthirdPartyProduct(){
 		
