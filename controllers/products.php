@@ -4,6 +4,8 @@ class Products extends Controller{
 
 	public function __construct(){
 		parent::__construct();
+		// error_reporting(E_ALL);
+        // ini_set('display_errors', 1);
 	}
 
 	/********************  products menu  *******************************/
@@ -1772,9 +1774,22 @@ class Products extends Controller{
 		$this->model->deleteInsuranceCategory($id);
 	}
 
+
 	function createShare(){
-		$this->model->saveShares();
-	}
+		$data = json_decode(file_get_contents("php://input"), true);
+	
+		if ($data && isset($data['user']) && isset($data['office'])) {
+			$this->model->saveShares($data);
+		} else {
+			$response = array(
+				'status' => 400,
+				'message' => 'Invalid or missing JSON input.'
+			);
+	
+			http_response_code(400);
+			echo json_encode($response);
+		}
+	}	
 
 	function createinsurance(){
 		$this->model->saveInsurance($_POST);

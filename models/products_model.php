@@ -1803,27 +1803,30 @@ function amortization_Calculation() {
 
 ///shares processing
 
-       function saveShares(){
-         $data =  $_POST;
-         $user=$_SESSION['user_id'];
-         $office=$_SESSION['office'];
-         $postData = array(
-          'office_id' =>  $office,
-          'share_name' => $data['sname'],
-          'description' => $data['description'],
-          'amount_per_share' => $data['samount'],
-          'created_by' =>$user,
-
+       function saveShares($data){
+        $user = $data['user'];
+        $office = $data['office'];
+    
+        $postData = array(
+            'office_id' =>  $office,
+            'share_name' => $data['sname'],
+            'description' => $data['description'],
+            'amount_per_share' => $data['samount'],
+            'created_by' => $user
         );
-
-         $result = $this->db->InsertData('share_products', $postData);
-
-
-    //    addglpointersequity/4
-//header('Location:'.URL.'products/shares??msg=success');
-         header('Location:'.URL.'products/addglpointersequity/'.$result.'?msg=success');
-
-       }
+    
+        $result = $this->db->InsertData('share_products', $postData);
+    
+        $response = array(
+            'status' => 200,
+            'message' => 'Share product created successfully.',
+            'data' => array(
+                'share_product_id' => $result
+            )
+        );
+    
+        echo json_encode($response);
+    }    
 
        function saveInsurance($data){
         $postData = array(
