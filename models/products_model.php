@@ -718,7 +718,7 @@ function getModeofPayment($id){
 }
 
 
-function getPointers($id,$product_type, $office, $charge=null) {
+function getPointers($id, $product_type, $office, $charge=null) {
   $parent_office =$office;
   if ($charge != NULL) {
     $result=$this->db->SelectData("SELECT * FROM acc_gl_pointers JOIN transaction_type ON transaction_type.transaction_type_id=acc_gl_pointers.transaction_type_id WHERE acc_gl_pointers.transaction_type_id = '$charge' AND acc_gl_pointers.sacco_id = '".$parent_office."' AND acc_gl_pointers.product_id = '".$id."'");
@@ -1004,8 +1004,8 @@ function createnewloanproduct($data) {
     
 	try{
 	    
-        $office = $_SESSION['office'];
-        $user_id = $_SESSION['user_id'];
+        $office = $data['office'];
+        $user_id = $data['user_id'];
         
         $product_name = $data['pname'];
         
@@ -1103,7 +1103,7 @@ function createnewloanproduct($data) {
                 $loan_product_collateral = $this->db->InsertData('loan_product_collateral', $postcollateral);
               }
             }
-            return $this->MakeJsonResponse(100,"success", URL."products/viewloanproducts/".$result."msg=success");
+            return $this->MakeJsonResponse(100,"success", $result);
         
         }else{
             return $this->MakeJsonResponse(103,$result, "");

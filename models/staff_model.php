@@ -13,31 +13,50 @@ class Staff_model extends Model{
 	}
 
 
-	function getGLAccounts(){
-		$id = $_SESSION['office'];
-		$result = $this->db->selectData("SELECT id, name FROM acc_ledger_account where sacco_id= $id ORDER BY name ASC");
-		return $result;
-	}
-
-	function getStaff(){
-		$office_id=$_SESSION['office'];
-		if ($_SESSION['Isheadoffice'] == 'Yes') {
-			$result =  $this->db->SelectData("SELECT * FROM m_staff WHERE `status` = 'Active' and office_id = '".$office_id."' ");
-		} else {
-			$result =  $this->db->SelectData("SELECT * FROM m_staff WHERE `status` = 'Active' and office_id = '".$_SESSION['branchid']."' ");
+	function getGLAccounts($office) {
+		try {
+			$id = $office;
+			$result = $this->db->selectData("SELECT id, name FROM acc_ledger_account where sacco_id= $id ORDER BY name ASC");
+			return $result;
+		} catch (Exception $e) {
+			return null;
 		}
-		return $result;
-	}
+	}	
 
-	function getStaffDetails($id){
-		$office_id=$_SESSION['office'];
-		if ($_SESSION['Isheadoffice'] == 'Yes') {
-			$result =  $this->db->SelectData("SELECT * FROM m_staff WHERE id='".$id."'");
-		} else {
-			$result =  $this->db->SelectData("SELECT * FROM m_staff WHERE id='".$id."' and office_id = '".$office_id."' ");
+	function getStaff($sessionData) {
+		try {
+			$office_id = $sessionData['office_id'];
+			$isHeadOffice = $sessionData['Isheadoffice'];
+			$branchId = $sessionData['branchid'];
+	
+			if ($isHeadOffice == 'Yes') {
+				$result =  $this->db->SelectData("SELECT * FROM m_staff WHERE `status` = 'Active' and office_id = '".$office_id."' ");
+			} else {
+				$result =  $this->db->SelectData("SELECT * FROM m_staff WHERE `status` = 'Active' and office_id = '".$branchId."' ");
+			}
+			return $result;
+		} catch (Exception $e) {
+			return array(
+				'status' => 500,
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
 		}
-		return $result;
-	}
+	}	
+    
+	// changed function name from getStaffDetails to getStaffDetail due to  incompatibility issues
+	function getStaffDetail($id, $office, $Isheadoffice) {
+		try {
+			$office_id = $office;
+			if ($Isheadoffice == 'Yes') {
+				$result = $this->db->SelectData("SELECT * FROM m_staff WHERE id='" . $id . "'");
+			} else {
+				$result = $this->db->SelectData("SELECT * FROM m_staff WHERE id='" . $id . "' and office_id = '" . $office_id . "' ");
+			}
+			return $result;
+		} catch (Exception $e) {
+			return $this->MakeJsonResponse(500, "An error occurred while fetching staff details.");
+		}
+	}	
 
 	function getStaffAccountDetails($id){
 		$office_id=$_SESSION['office'];
@@ -233,11 +252,11 @@ class Staff_model extends Model{
 
 	} 
 
-	function ResetPassword($id){
+	function uu($id, $office){
 	    
         $user = $this->GetStaffDetails($id);
         $email = $user[0]['email'];
-        $reset_by = $_SESSION['office'];
+        $reset_by = $office;
     	$rand = strtoupper(trim(substr(md5(uniqid(mt_rand(), true)), 0, 10)));
     	$password = Hash::create('sha256',$rand, HASH_ENCRIPT_PASS_KEYS);	 
            

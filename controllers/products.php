@@ -885,25 +885,89 @@ class Products extends Controller{
 			http_response_code(500);
 			echo json_encode($response);
 		}
+	}
+
+	function newloanProduct(){
+		try {
+			$jsonData = file_get_contents('php://input');
+			$data = json_decode($jsonData, true);
+	
+			if (isset($data['office'])) {
+				$office = $data['office'];
+	
+				$currency = $this->model->currency();
+				$officeList = $this->model->officeList();
+				$assets = $this->model->getAssets();
+				$liability = $this->model->getLiability();
+				$equity = $this->model->getEquity();
+				$income = $this->model->getIncome();
+				$expenses = $this->model->getExpenses();
+				$id = 2;
+				$charges = $this->model->getCharges($id, $office);
+	
+				$response = array(
+					'status' => 200, // Success status code
+					'message' => 'Loan product details fetched successfully.',
+					'data' => array(
+						'currency' => $currency,
+						'officeList' => $officeList,
+						'assets' => $assets,
+						'liability' => $liability,
+						'equity' => $equity,
+						'income' => $income,
+						'expenses' => $expenses,
+						'charges' => $charges
+					)
+				);
+	
+				echo json_encode($response);
+			} else {
+				$response = array(
+					'status' => 400, // Bad request status code
+					'message' => 'Office value is missing in JSON input.'
+				);
+	
+				http_response_code(400); // Set HTTP status code
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500, // Internal server error status code
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500); // Set HTTP status code
+			echo json_encode($response);
+		}
 	}	
 
-	function newloanProduct(){		
-		$this->view->currency  = $this->model->currency();
-		$this->view->office = $this->model->officeList();
-		$this->view->assets=$this->model->getAssets();
-		$this->view->liability=$this->model->getLiability();
-		$this->view->equity=$this->model->getEquity();
-		$this->view->income=$this->model->getIncome();
-		$this->view->expenses=$this->model->getExpenses();
-		$this->view->getcharges=$this->model->getCharges(2);
-		$this->view->render('forms/products/newloanproduct');
-	}
-
-	function createnewloanproduct(){	
-		$data = $_POST;	
-		$rs = $this->model->createnewloanproduct($data);		
-		echo json_encode($rs);
-	}
+	function createnewloanproduct(){
+		try {
+			$jsonData = file_get_contents('php://input');
+			$data = json_decode($jsonData, true);
+	
+			if (empty($data)) {
+				$response = array(
+					'status' => 400, // Bad request status code
+					'message' => 'Invalid JSON input.'
+				);
+	
+				http_response_code(400); // Set HTTP status code
+				echo json_encode($response);
+				return;
+			}
+			$rs = $this->model->createnewloanproduct($data);
+			echo json_encode($rs);
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500, // Internal server error status code
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500); // Set HTTP status code
+			echo json_encode($response);
+		}
+	}	
 
 	function editloanproduct($id){
 		$this->view->currency  = $this->model->currency();
@@ -1864,7 +1928,7 @@ class Products extends Controller{
 				// Fetch third-party product details using $id and $office
 				$hastransactions = $this->model->hastransacted($office);
 				$product_type = 7;
-				$created = $this->model->getPointers($id, $office, $product_type);
+				$created = $this->model->getPointers($id, $product_type, $office);
 				$thirdparty = $this->model->getthirdpartyproduct($id);
 				$collateral = $this->model->getcollateral($id);
 				$charges = $this->model->getloanProductcharges($id);
