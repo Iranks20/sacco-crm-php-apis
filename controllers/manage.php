@@ -11,10 +11,6 @@ class Manage extends Controller{
 
 	public function __construct(){
 		parent::__construct();
-		Auth::handleSignin();
-		Auth::CheckSession();
-		Auth::CheckAuthorization();
-		$_SESSION['timeout'] = time();
 	}
 
 	function socialmedia(){
@@ -40,16 +36,86 @@ class Manage extends Controller{
 	}
 
 	function logs(){
-		$this->view->details = $this->model->SaccoStaff();
-		$this->view->render('forms/manage/logs');
+		try {
+			$jsonData = file_get_contents('php://input');
+			$data = json_decode($jsonData, true);
+	
+			if (isset($data['office'])) {
+				$office = $data['office'];
+	
+				$logDetails = $this->model->SaccoStaff($office);
+	
+				$response = array(
+					'status' => 200,
+					'message' => 'Log details fetched successfully.',
+					'data' => array(
+						'logs' => $logDetails
+					)
+				);
+	
+				echo json_encode($response);
+			} else {
+				$response = array(
+					'status' => 400,
+					'message' => 'Office value is missing in JSON input.'
+				);
+	
+				http_response_code(400);
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500,
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500);
+			echo json_encode($response);
+		}
 	}
 
 	function viewstafflogs($id){
-		$this->view->currency = $this->model->getThisSaccoCurrency();
-		$this->view->staff = $this->model->getStaffDetails($id);
-		$this->view->details = $this->model->getStaffTransactions($id);
-		$this->view->render('forms/manage/stafflogs');
-	}
+		try {
+			$jsonData = file_get_contents('php://input');
+			$data = json_decode($jsonData, true);
+	
+			if (isset($data['office'])) {
+				$office = $data['office'];
+				// changed getStaffDetails name to getStaffDetailss due to this error Method in manage_model.php 'Manage_Model::getStaffDetails()' is not compatible with method 'Model::GetStaffDetails()'.
+				$staffDetails = $this->model->getStaffDetailss($office, $id);
+				$staffTransactions = $this->model->getStaffTransactions($id, $office);
+				$currency = $this->model->getThisSaccoCurrency();
+	
+				$response = array(
+					'status' => 200,
+					'message' => 'Staff log details fetched successfully.',
+					'data' => array(
+						'staff' => $staffDetails,
+						'transactions' => $staffTransactions,
+						'currency' => $currency
+					)
+				);
+	
+				echo json_encode($response);
+			} else {
+				$response = array(
+					'status' => 400,
+					'message' => 'Office value is missing in JSON input.'
+				);
+	
+				http_response_code(400);
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500,
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500);
+			echo json_encode($response);
+		}
+	}	
 	
 	function viewstaffactivities($id){
 		$this->view->currency = $this->model->getThisSaccoCurrency();
@@ -257,10 +323,49 @@ class Manage extends Controller{
 		$this->view->details = $this->model->getBranchStaff($id);
 		$this->view->render('forms/manage/branchestaff');
 	}
+	// function branches(){
+	// 	$this->view->office = $this->model->officeList();
+	// 	$this->view->render('forms/manage/brancheslist');
+	// }
 	function branches(){
-		$this->view->office = $this->model->officeList();
-		$this->view->render('forms/manage/brancheslist');
-	}
+		try {
+			$jsonData = file_get_contents('php://input');
+			$data = json_decode($jsonData, true);
+	
+			if (isset($data['office'])) {
+				$office = $data['office'];
+	
+				// Fetch office data
+				$officeData = $this->model->officeList($office);
+	
+				$response = array(
+					'status' => 200, // Success status code
+					'message' => 'Branches data fetched successfully.',
+					'data' => array(
+						'office' => $officeData
+					)
+				);
+	
+				echo json_encode($response);
+			} else {
+				$response = array(
+					'status' => 400, // Bad request status code
+					'message' => 'Office value is missing in JSON input.'
+				);
+	
+				http_response_code(400); // Set HTTP status code
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500, // Internal server error status code
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500); // Set HTTP status code
+			echo json_encode($response);
+		}
+	}	
 	function editoffice($id){
 		$this->view->branches = $this->model->getOfficeDetails($id);
 		$this->view->office = $this->model->getoffice($id);
@@ -406,8 +511,41 @@ class Manage extends Controller{
 	}	
 
 	function pointers(){
-		$this->view->pointers = $this->model->getAllPointers();
-		$this->view->render('forms/manage/pointers');
-	}
-
+		try {
+			$jsonData = file_get_contents('php://input');
+			$data = json_decode($jsonData, true);
+	
+			if (isset($data['office'])) {
+				$office = $data['office'];
+	
+				$pointers = $this->model->getAllPointers($office);
+	
+				$response = array(
+					'status' => 200,
+					'message' => 'Pointers fetched successfully.',
+					'data' => array(
+						'pointers' => $pointers
+					)
+				);
+	
+				echo json_encode($response);
+			} else {
+				$response = array(
+					'status' => 400,
+					'message' => 'Office value is missing in JSON input.'
+				);
+	
+				http_response_code(400);
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500,
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500);
+			echo json_encode($response);
+		}
+	}	
 }
