@@ -320,52 +320,57 @@ class login_model extends Model{
     }
 
     function authUser($data) {
-		try{
-        $uname = $data['username'];
-        
-        if(isset($data['hashed_password'])){
-            $pwd = $data['hashed_password'];
-        } else {
-            $pwd = Hash::create('sha256',$data['password'],HASH_ENCRIPT_PASS_KEYS);
-        }
-        
-        //print_r($data);
-        
-        //echo $pwd;
-        
-        $loginStatus = $this->checkLoginStatus($uname);
-
-        $lockOutTime = 15; //minutes 
-        if ($loginStatus == 'Active') {
-
-            $rs =$this->login($uname, $pwd, $lockOutTime);
-			return $rs;
-
-        } else if ($loginStatus == 'Inactive') {
-            $userDetails = $this->getUserNameDetails($uname);
-
-            $lastLogin = date_create($userDetails['login_timestamps']);
-            $now = date_create();
-
-            $diff = date_diff($lastLogin,$now);
-
-            $diff_minutes = $diff->format('%i');
-
-            if ($diff_minutes >= $lockOutTime) {
-                $this->unlockAccount($uname);
-                $rs = $this->login($uname, $pwd, $lockOutTime);
-				 return $rs;
+        try {
+            $uname = $data['username'];
+    
+            if (isset($data['hashed_password'])) {
+                $pwd = $data['hashed_password'];
             } else {
-            return $this->MakeJsonResponse(503,"Account is suspended, try again after ".$lockOutTime. " minutes");
+                $pwd = Hash::create('sha256', $data['password'], HASH_ENCRIPT_PASS_KEYS);
             }
-
-        } else {
-            return $this->MakeJsonResponse(404,"Invalid username or password" );
+    
+            $loginStatus = $this->checkLoginStatus($uname);
+    
+            $lockOutTime = 15; //minutes 
+            if ($loginStatus == 'Active') {
+                $rs = $this->login($uname, $pwd, $lockOutTime);
+    
+                // Get user details, including email
+                $userDetails = $this->getUserNameDetails($uname);
+    
+                // Add email to the response
+                $rs['email'] = $userDetails['email'];
+    
+                return $rs;
+    
+            } else if ($loginStatus == 'Inactive') {
+                $userDetails = $this->getUserNameDetails($uname);
+                $lastLogin = date_create($userDetails['login_timestamps']);
+                $now = date_create();
+                $diff = date_diff($lastLogin, $now);
+                $diff_minutes = $diff->format('%i');
+    
+                if ($diff_minutes >= $lockOutTime) {
+                    $this->unlockAccount($uname);
+                    $rs = $this->login($uname, $pwd, $lockOutTime);
+    
+                    // Get user details, including email
+                    $userDetails = $this->getUserNameDetails($uname);
+    
+                    // Add email to the response
+                    $rs['email'] = $userDetails['email'];
+    
+                    return $rs;
+                } else {
+                    return $this->MakeJsonResponse(503, "Account is suspended, try again after " . $lockOutTime . " minutes");
+                }
+            } else {
+                return $this->MakeJsonResponse(404, "Invalid username or password");
+            }
+        } catch (Exception $e) {
+            return $this->MakeJsonResponse(203, "unknown error");
         }
-        }catch(Exception $e){
-			return $this->MakeJsonResponse(203,"unknown error" );
-		}
-    }
+    }    
 
     function getrole($id){
         $result= $this->db->SelectData("SELECT * FROM m_role where role_id='".$id."' and is_disabled='Enabled' ");

@@ -11,20 +11,27 @@ class Manage_Model extends Model{
     	}
 	}
 
-	function getAllPointers(){
-		$id=$_SESSION['office'];
-		$result =  $this->db->SelectData("SELECT * FROM acc_gl_pointers AS a JOIN transaction_type AS b ON a.transaction_type_id = b.transaction_type_id WHERE a.sacco_id = '".$id."' ");
-
-		$new_result = array();
-		foreach ($result as $key => $value) {
-			$new_result[$key]['pointer_name'] = $value['pointer_name'];
-			$new_result[$key]['description'] = $value['description'];
-			$new_result[$key]['transaction_type_name'] = $value['transaction_type_name'];
-			$new_result[$key]['debit_account'] = $this->getAccountName($value['debit_account']);
-			$new_result[$key]['credit_account'] = $this->getAccountName($value['credit_account']);
+	function getAllPointers($office){
+		try {
+			$id = $office;
+			$result =  $this->db->SelectData("SELECT * FROM acc_gl_pointers AS a JOIN transaction_type AS b ON a.transaction_type_id = b.transaction_type_id WHERE a.sacco_id = '".$id."' ");
+	
+			$new_result = array();
+			foreach ($result as $key => $value) {
+				$new_result[$key]['pointer_name'] = $value['pointer_name'];
+				$new_result[$key]['description'] = $value['description'];
+				$new_result[$key]['transaction_type_name'] = $value['transaction_type_name'];
+				$new_result[$key]['debit_account'] = $this->getAccountName($value['debit_account']);
+				$new_result[$key]['credit_account'] = $this->getAccountName($value['credit_account']);
+			}
+	
+			return $new_result;
+		} catch (Exception $e) {
+			return array(
+				'error' => 'An error occurred: ' . $e->getMessage()
+			);
 		}
-		return $new_result;		
-	}
+	}	
 
 	function getAccountName($id){
 		$office=$_SESSION['office'];
@@ -256,26 +263,36 @@ class Manage_Model extends Model{
 		}
 	}
 
-	function officeList(){
-
-		$id=$_SESSION['office'];
-		$result =  $this->db->SelectData("SELECT * FROM m_branch where b_status='Active' AND parent_id = '".$id."' order by id ");
-		if(count($result)>0){
-			foreach ($result as $key => $value) {
-				$officename = $this->officeName($result[$key]['id']);
-				$parent_name = $this->officeName($result[$key]['parent_id']);
-				$rset[$key]['office_id'] = $result[$key]['id']; 
-				$rset[$key]['parent_name'] = $parent_name;
-				$rset[$key]['name'] = $officename;
-				$rset[$key]['admin'] = $result[$key]['admin'];
-				$rset[$key]['admin_name'] = $this->getAdmin($result[$key]['admin']);
-				$rset[$key]['opening_date'] = $value['opening_date'];
-				//$rset[$key]['currency'] = $value['currency'];
-				//$rset[$key]['country'] = $value['country'];
+	function officeList($office) {
+		try {
+			$id = $office;
+			$result = $this->db->SelectData("SELECT * FROM m_branch where b_status='Active' AND parent_id = '".$id."' order by id ");
+	
+			$rset = array();
+	
+			if (count($result) > 0) {
+				foreach ($result as $key => $value) {
+					$officename = $this->officeName($result[$key]['id']);
+					$parent_name = $this->officeName($result[$key]['parent_id']);
+					$rset[$key]['office_id'] = $result[$key]['id'];
+					$rset[$key]['parent_name'] = $parent_name;
+					$rset[$key]['name'] = $officename;
+					$rset[$key]['admin'] = $result[$key]['admin'];
+					$rset[$key]['admin_name'] = $this->getAdmin($result[$key]['admin']);
+					$rset[$key]['opening_date'] = $value['opening_date'];
+					//$rset[$key]['currency'] = $value['currency'];
+					//$rset[$key]['country'] = $value['country'];
+				}
+				return $rset;
+			} else {
+				return array();
 			}
-			return $rset;
+		} catch (Exception $e) {
+			return array(
+				'error' => 'An error occurred: ' . $e->getMessage()
+			);
 		}
-	}
+	}	
 	function officeName($id){
 		if($id!=''){
 			$results =  $this->db->SelectData("SELECT * FROM m_branch where id='".$id."'");
@@ -355,13 +372,32 @@ class Manage_Model extends Model{
 		return $this->db->SelectData("SELECT * FROM m_staff  where office_id='".$office."' and id!='".$id."' order by id desc");
 	}
 
-	function SaccoStaff(){
-		$office = $_SESSION['office'];
-		return $this->db->SelectData("SELECT * FROM m_staff  where office_id=".$office);
+	function SaccoStaff($office){
+		try {
+			$result = $this->db->SelectData("SELECT * FROM m_staff  where office_id=" . $office);
+	
+			$response = array(
+				'status' => 200,
+				'message' => 'Sacco staff fetched successfully.',
+				'data' => array(
+					'staff' => $result
+				)
+			);
+	
+			return $response;
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500,
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			return $response;
+		}
 	}
+	
 
-	function getStaffDetails($id){
-		$office = $_SESSION['office'];
+	function getStaffDetailss($office, $id){
+		// $office = $_SESSION['office'];
 		return $this->db->SelectData("SELECT * FROM m_staff  where office_id=".$office." AND id=".$id);		
 	}
 

@@ -4,32 +4,107 @@ class Products extends Controller{
 
 	public function __construct(){
 		parent::__construct();
-		Auth::handleSignin();
-		Auth::CheckSession();
-		Auth::CheckAuthorization();
-		$_SESSION['timeout'] = time(); 
+		// error_reporting(E_ALL);
+        // ini_set('display_errors', 1);
 	}
 
 	/********************  products menu  *******************************/
 
 	function insurance(){
-		$this->view->insurance  = $this->model->InsuranceList();	
-		$this->view->render('forms/products/insurancelist');
-	}
+		try {
+			$office = $_SERVER['HTTP_OFFICE'];
+			// $jsonData = file_get_contents('php://input');
+			// $data = json_decode($jsonData, true);
+	
+			if (!empty($office)) {
+				// $office = $data['office'];
+	
+				$insuranceList = $this->model->InsuranceList($office);
+	
+				$response = array(
+					'status' => 200, // Success status code
+					'message' => 'Insurance list fetched successfully.',
+					'data' => $insuranceList
+				);
+	
+				echo json_encode($response);
+			} else {
+				$response = array(
+					'status' => 400, // Bad request status code
+					'message' => 'Office value is missing in JSON input.'
+				);
+	
+				http_response_code(400); // Set HTTP status code
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500, // Internal server error status code
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500); // Set HTTP status code
+			echo json_encode($response);
+		}
+	}	
 
 	function index(){
-		$this->view->shares = $this->model->getShareProducts();
-		$this->view->loans = $this->model->getLoanProducts();
-		$this->view->savings = $this->model->getSavingsProducts();
-		$this->view->fixed = $this->model->getFixedProducts();
-		$this->view->charges = $this->model->getChargeProducts();
-		$this->view->defaults = $this->model->getDefaultsCount();
-		$this->view->provisioning = $this->model->getProvisioningProducts();
-		$this->view->thirdparty = $this->model->getThirdPartyProductCount();
-		$this->view->insurance = $this->model->getInsuranceProductsCount();
-		$this->view->render('forms/products/products');
+		try {
+			$office = null;
+	
+			// Check if 'office' header is set
+			if (isset($_SERVER['HTTP_OFFICE'])) {
+				$office = $_SERVER['HTTP_OFFICE'];
+			}
+	
+			if (!empty($office)) {
+				$shares = $this->model->getShareProducts($office);
+				$loans = $this->model->getLoanProducts($office);
+				$savings = $this->model->getSavingsProducts($office);
+				$fixed = $this->model->getFixedProducts($office);
+				$charges = $this->model->getChargeProducts($office);
+				$defaults = $this->model->getDefaultsCount($office);
+				$provisioning = $this->model->getProvisioningProducts($office);
+				$thirdparty = $this->model->getThirdPartyProductCount($office);
+				$insurance = $this->model->getInsuranceProductsCount($office);
+	
+				$response = array(
+					'status' => 200, // Success status code
+					'message' => 'Product data fetched successfully.',
+					'data' => array(
+						'shares' => $shares,
+						'loans' => $loans,
+						'savings' => $savings,
+						'fixed' => $fixed,
+						'charges' => $charges,
+						'defaults' => $defaults,
+						'provisioning' => $provisioning,
+						'thirdparty' => $thirdparty,
+						'insurance' => $insurance
+					)
+				);
+	
+				echo json_encode($response);
+			} else {
+				$response = array(
+					'status' => 400, // Bad request status code
+					'message' => 'Office value is missing in request header.'
+				);
+	
+				http_response_code(400); // Set HTTP status code
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500, // Internal server error status code
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500); // Set HTTP status code
+			echo json_encode($response);
+		}
 	}
-
+	
 	function chargeexemption($id=null){
 
 		$this->view->members = $this->model->getAllMembers();
@@ -67,23 +142,61 @@ class Products extends Controller{
 	}
 
 	function defaultproducts(){
-		$defaultsCount = $this->model->getDefaultsCount();
-		$this->view->defaults = $defaultsCount;
-	 	$this->view->charges = $this->model->getAllCharges();
-		$this->view->savings = $this->model->getAllSavings();
-		$this->view->shares = $this->model->getAllShares();
-		
-		if ($defaultsCount > 0) {
-			$this->view->groups = $this->model->getDefaultProducts(-1);
-			$this->view->charges = $this->model->getDefaultProducts(6);
-			$this->view->savings = $this->model->getDefaultProducts(3);
-			$this->view->shares = $this->model->getDefaultProducts(1);
-			$this->view->wallets = $this->model->getDefaultWalletDetails(5);
-			$this->view->render('forms/products/viewdefaultproducts');
-		} else {
-			$this->view->render('forms/products/defaultproducts');
+		try {
+			$office = $_SERVER['HTTP_OFFICE'];
+			// $jsonData = json_decode(file_get_contents('php://input'), true);
+	
+			if (!empty($office)) {
+				// $office = $jsonData['office'];
+	
+				$defaultsCount = $this->model->getDefaultsCount($office);
+				$charges = $this->model->getAllCharges($office);
+				$savings = $this->model->getAllSavings($office);
+				$shares = $this->model->getAllShares($office);
+	
+				$response = array(
+					'status' => 200, // Success status code
+					'message' => 'Default products data fetched successfully.',
+					'defaults' => $defaultsCount,
+					'charges' => $charges,
+					'savings' => $savings,
+					'shares' => $shares
+				);
+	
+				if ($defaultsCount > 0) {
+					$groups = $this->model->getDefaultProducts(-1);
+					$chargeGroups = $this->model->getDefaultProducts(6);
+					$savingsGroups = $this->model->getDefaultProducts(3);
+					$sharesGroups = $this->model->getDefaultProducts(1);
+					$wallets = $this->model->getDefaultWalletDetails(5);
+	
+					$response['groups'] = $groups;
+					$response['chargeGroups'] = $chargeGroups;
+					$response['savingsGroups'] = $savingsGroups;
+					$response['sharesGroups'] = $sharesGroups;
+					$response['wallets'] = $wallets;
+				}
+	
+				echo json_encode($response);
+			} else {
+				$response = array(
+					'status' => 400, // Bad request status code
+					'message' => 'Missing or invalid input data.'
+				);
+	
+				http_response_code(400); // Set HTTP status code
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500, // Internal server error status code
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500); // Set HTTP status code
+			echo json_encode($response);
 		}
-	}
+	}	
 
 	function editdefaults(){
 
@@ -675,9 +788,37 @@ class Products extends Controller{
 
 	/* ----Loan products  ******************/
 	function loanproducts(){
-		$this->view->loanproductList = $this->model->loanproductList();
-		$this->view->render('forms/products/loanproducts');
-	}
+		try {
+			$office = $_SERVER['HTTP_OFFICE'];	
+			if (!empty($office)) {	
+				$loanProductList = $this->model->loanproductList($office);
+	
+				$response = array(
+					'status' => 200,
+					'message' => 'Loan products list fetched successfully.',
+					'data' => $loanProductList
+				);
+	
+				echo json_encode($response);
+			} else {
+				$response = array(
+					'status' => 400,
+					'message' => 'Office value is missing in headers.'
+				);
+	
+				http_response_code(400);
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500,
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500); // Set HTTP status code
+			echo json_encode($response);
+		}
+	}	
 
 	function newquickloanproduct(){
 		$this->view->loanproductList = $this->model->loanproductList();
@@ -685,35 +826,135 @@ class Products extends Controller{
 	}
 
 	function viewLoanProducts($id){
-		$this->view->hastransactions = $this->model->hastransacted();
-		$product_type=2;
-		$this->view->created= $this->model->getPointers($id,$product_type);		
-		$this->view->loanproduct = $this->model->getloanproduct($id);
-		$this->view->collateral = $this->model->getcollateral($id);
-		$this->view->charges = $this->model->getloanProductcharges($id);
-		$this->view->curname = $this->model->currency();
-		
-		$this->view->render('forms/products/viewloanproduct');
-
+		try {
+			$office = $_SERVER['HTTP_OFFICE'];
+	
+			if (!empty($office)) {
+	
+				$hastransactions = $this->model->hastransacted($office);
+				$product_type = 2;
+				$created = $this->model->getPointers($id, $office, $product_type);
+				$loanproduct = $this->model->getloanproduct($id);
+				$collateral = $this->model->getcollateral($id);
+				$charges = $this->model->getloanProductcharges($id);
+				$curname = $this->model->currency();
+	
+				$response = array(
+					'status' => 200,
+					'message' => 'Loan product details fetched successfully.',
+					'data' => array(
+						'hastransactions' => $hastransactions,
+						'created' => $created,
+						'loanproduct' => $loanproduct,
+						'collateral' => $collateral,
+						'charges' => $charges,
+						'curname' => $curname
+					)
+				);
+	
+				echo json_encode($response);
+			} else {
+				$response = array(
+					'status' => 400,
+					'message' => 'Office value is missing in JSON input.'
+				);
+	
+				http_response_code(400);
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500,
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500);
+			echo json_encode($response);
+		}
 	}
 
-	function newloanProduct(){		
-		$this->view->currency  = $this->model->currency();
-		$this->view->office = $this->model->officeList();
-		$this->view->assets=$this->model->getAssets();
-		$this->view->liability=$this->model->getLiability();
-		$this->view->equity=$this->model->getEquity();
-		$this->view->income=$this->model->getIncome();
-		$this->view->expenses=$this->model->getExpenses();
-		$this->view->getcharges=$this->model->getCharges(2);
-		$this->view->render('forms/products/newloanproduct');
-	}
+	function newloanProduct(){
+		try {
+			$office = $_SERVER['HTTP_OFFICE'];
+			// $jsonData = file_get_contents('php://input');
+			// $data = json_decode($jsonData, true);
+	
+			if (!empty($office)) {
+				// $office = $data['office'];
+	
+				$currency = $this->model->currency();
+				$officeList = $this->model->officeList();
+				$assets = $this->model->getAssets();
+				$liability = $this->model->getLiability();
+				$equity = $this->model->getEquity();
+				$income = $this->model->getIncome();
+				$expenses = $this->model->getExpenses();
+				$id = 2;
+				$charges = $this->model->getCharges($id, $office);
+	
+				$response = array(
+					'status' => 200,
+					'message' => 'Loan product details fetched successfully.',
+					'data' => array(
+						'currency' => $currency,
+						'officeList' => $officeList,
+						'assets' => $assets,
+						'liability' => $liability,
+						'equity' => $equity,
+						'income' => $income,
+						'expenses' => $expenses,
+						'charges' => $charges
+					)
+				);
+	
+				echo json_encode($response);
+			} else {
+				$response = array(
+					'status' => 400,
+					'message' => 'Office value is missing in JSON input.'
+				);
+	
+				http_response_code(400);
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500,
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500);
+			echo json_encode($response);
+		}
+	}	
 
-	function createnewloanproduct(){	
-		$data = $_POST;	
-		$rs = $this->model->createnewloanproduct($data);		
-		echo json_encode($rs);
-	}
+	function createnewloanproduct(){
+		try {
+			$jsonData = file_get_contents('php://input');
+			$data = json_decode($jsonData, true);
+	
+			if (empty($data)) {
+				$response = array(
+					'status' => 400, // Bad request status code
+					'message' => 'Invalid JSON input.'
+				);
+	
+				http_response_code(400); // Set HTTP status code
+				echo json_encode($response);
+				return;
+			}
+			$rs = $this->model->createnewloanproduct($data);
+			echo json_encode($rs);
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500, // Internal server error status code
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500); // Set HTTP status code
+			echo json_encode($response);
+		}
+	}	
 
 	function editloanproduct($id){
 		$this->view->currency  = $this->model->currency();
@@ -761,18 +1002,80 @@ class Products extends Controller{
 
 	/********************  Savings products  *******************************/
 	function savingsProducts(){
-		$this->view->savings = $this->model->savingsProductsList();
-		$this->view->render('forms/products/savingsproducts');
-	}
+		try {
+			$office = $_SERVER['HTTP_OFFICE'];	
+			if (!empty($office)) {
+
+				$savingsProductsList = $this->model->savingsProductsList($office);
+	
+				$response = array(
+					'status' => 200,
+					'message' => 'Savings products list fetched successfully.',
+					'data' => $savingsProductsList
+				);
+	
+				echo json_encode($response);
+			} else {
+				$response = array(
+					'status' => 400,
+					'message' => 'Office value is missing in headers.'
+				);
+	
+				http_response_code(400);
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500,
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500);
+			echo json_encode($response);
+		}
+	}	
 
 	function productdetails($id){
-		$this->view->hastransactions = $this->model->hastransacted();
-		$product_type=3;
-	 $this->view->created= $this->model->getPointers($id,$product_type);	
-		$this->view->savings = $this->model->productdetails($id);
-		$this->view->render('forms/products/savingspdt_details');
-
-	}
+		try {
+			$office = $_SERVER['HTTP_OFFICE'];
+	
+			if (!empty($office)) {
+	
+				$hastransactions = $this->model->hastransacted($office);
+				$product_type = 3;
+				$created = $this->model->getPointers($id, $office, $product_type);
+				$savings = $this->model->productdetails($id);
+	
+				$response = array(
+					'status' => 200,
+					'message' => 'Product details fetched successfully.',
+					'data' => array(
+						'hastransactions' => $hastransactions,
+						'created' => $created,
+						'savings' => $savings
+					)
+				);
+	
+				echo json_encode($response);
+			} else {
+				$response = array(
+					'status' => 400,
+					'message' => 'Office value is missing in JSON input.'
+				);
+	
+				http_response_code(400);
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500,
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500);
+			echo json_encode($response);
+		}
+	}	
 
 	function newSavingsProduct(){
 		$this->view->currency = $this->model->currency();
@@ -991,10 +1294,40 @@ class Products extends Controller{
 		$this->model->createNewLoanAgeing(); 	
 	}
 
-	function loanProvision(){	
-		$this->view->lonageing = $this->model->loanProvision();
-		$this->view->render('forms/products/loan_ageing');
-	}
+	function loanProvision(){
+		try {
+			$office = $_SERVER['HTTP_OFFICE'];
+	
+			if (!empty($office)) {
+	
+				$loanAgeingList = $this->model->loanProvision($office);
+	
+				$response = array(
+					'status' => 200,
+					'message' => 'Loan provisioning data fetched successfully.',
+					'data' => $loanAgeingList
+				);
+	
+				echo json_encode($response);
+			} else {
+				$response = array(
+					'status' => 400,
+					'message' => 'Office value is missing in JSON input.'
+				);
+	
+				http_response_code(400);
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500,
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500);
+			echo json_encode($response);
+		}
+	}	
 
 	function updateloanageing(){
 		$this->model->updateloanageing();
@@ -1055,9 +1388,38 @@ class Products extends Controller{
 
 	/********************  Fixed Deposit Products *******************************/
 	function fixedDepositProducts(){
-		$this->view->fixed = $this->model->fixedDepositProducts();
-		$this->view->render('forms/products/fixeddepositproducts');
-	}
+		try {
+			$office = $_SERVER['HTTP_OFFICE'];
+			if (!empty($office)) {
+	
+				$fixedDepositProducts = $this->model->fixedDepositProducts($office);
+	
+				$response = array(
+					'status' => 200,
+					'message' => 'Fixed deposit products fetched successfully.',
+					'data' => $fixedDepositProducts
+				);
+	
+				echo json_encode($response);
+			} else {
+				$response = array(
+					'status' => 400,
+					'message' => 'Office value is missing in headers.'
+				);
+	
+				http_response_code(400);
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500,
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500);
+			echo json_encode($response);
+		}
+	}	
 
 	function newfixedDepositProducts(){
 		$this->view->assets=$this->model->getAssets();
@@ -1105,11 +1467,39 @@ class Products extends Controller{
 	}
 
 	/********************Charges Products *******************************/
-	function chargeProducts(){	
-		$this->view->charge = $this->model->chargeproductList();
-		$this->view->product_type = 6;
-		$this->view->render('forms/products/chargeproducts');
-	}
+	function chargeProducts(){
+		try {
+			$office = $_SERVER['HTTP_OFFICE'];	
+			if (!empty($office)) {
+	
+				$chargeProducts = $this->model->chargeproductList($office);
+	
+				$response = array(
+					'status' => 200,
+					'message' => 'Charge products fetched successfully.',
+					'data' => $chargeProducts
+				);
+	
+				echo json_encode($response);
+			} else {
+				$response = array(
+					'status' => 400,
+					'message' => 'Office value is missing in JSON input.'
+				);
+	
+				http_response_code(400);
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500,
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500);
+			echo json_encode($response);
+		}
+	}	
 
 	function newChargesProduct(){
 		$this->view->currency  = $this->model->currency();
@@ -1133,12 +1523,56 @@ class Products extends Controller{
 		$this->view->render('forms/products/editchargesproduct');	
 	}
 
+	// function viewCharge($product_type, $product_id){
+	// 	$this->view->hastransactions = $this->model->hastransacted();
+	// 	$this->view->charge = $this->model->getChargesDetails($product_id);
+	//  	$this->view->created= $this->model->getPointers($product_id,$product_type);
+	// 	$this->view->render('forms/products/viewcharge');
+	// }
 	function viewCharge($product_type, $product_id){
-		$this->view->hastransactions = $this->model->hastransacted();
-		$this->view->charge = $this->model->getChargesDetails($product_id);
-	 	$this->view->created= $this->model->getPointers($product_id,$product_type);
-		$this->view->render('forms/products/viewcharge');
-	}
+		try {
+			$jsonData = file_get_contents('php://input');
+			$data = json_decode($jsonData, true);
+	
+			if (isset($data['office'])) {
+				$office = $data['office'];
+	
+				// Fetch charge details using $product_type, $product_id, and $office
+				$hastransactions = $this->model->hastransacted($office);
+				$id = $product_id;
+				$charge = $this->model->getChargesDetails($id, $office);
+				$created = $this->model->getPointers($id, $office, $product_type);
+	
+				$response = array(
+					'status' => 200,
+					'message' => 'Charge details fetched successfully.',
+					'data' => array(
+						'hastransactions' => $hastransactions,
+						'charge' => $charge,
+						'created' => $created
+					)
+				);
+	
+				echo json_encode($response);
+			} else {
+				$response = array(
+					'status' => 400,
+					'message' => 'Office value is missing in JSON input.'
+				);
+	
+				http_response_code(400);
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500,
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500);
+			echo json_encode($response);
+		}
+	}	
 
 	function editglpointerscharge($product_id, $pointer_id){
 
@@ -1176,21 +1610,89 @@ class Products extends Controller{
 	}
 
 	function getshareProduct($id){
-		$this->view->hastransactions = $this->model->hastransacted();
-		$product_type=1;
-		$this->view->created= $this->model->getPointers($id,$product_type);	
-		$this->view->product = $this->model->getshareProduct($id);
-		$this->view->render('forms/products/viewshareproduct');
-	}
+		try {
+			$office = $_SERVER['HTTP_OFFICE'];
+	
+			if (!empty($office)) {
+	
+				$hastransactions = $this->model->hastransacted($office);
+				$product_type = 1;
+				$created = $this->model->getPointers($id, $office, $product_type);
+				$product = $this->model->getshareProduct($id);
+	
+				$response = array(
+					'status' => 200,
+					'message' => 'Share product details fetched successfully.',
+					'data' => array(
+						'hastransactions' => $hastransactions,
+						'created' => $created,
+						'product' => $product
+					)
+				);
+	
+				echo json_encode($response);
+			} else {
+				$response = array(
+					'status' => 400,
+					'message' => 'Office value is missing in JSON input.'
+				);
+	
+				http_response_code(400);
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500,
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500);
+			echo json_encode($response);
+		}
+	}	
+
 
 	function getinsuranceproduct($id){
-		$this->view->hastransactions = $this->model->hastransacted();
-		$product_type=8;
-		$this->view->created= $this->model->getPointers($id,$product_type);	
-		$this->view->product = $this->model->getInsuranceProduct($id);
-		$this->view->render('forms/products/viewinsuranceproduct');
-
-	}
+		try {
+			$office = $_SERVER['HTTP_OFFICE'];
+	
+			if (!empty($office)) {
+	
+				$hastransactions = $this->model->hastransacted($office);
+				$product_type = 8;
+				$created = $this->model->getPointers($id, $office, $product_type);
+				$product = $this->model->getInsuranceProduct($id);
+	
+				$response = array(
+					'status' => 200,
+					'message' => 'Insurance product details fetched successfully.',
+					'data' => array(
+						'hastransactions' => $hastransactions,
+						'created' => $created,
+						'product' => $product
+					)
+				);
+	
+				echo json_encode($response);
+			} else {
+				$response = array(
+					'status' => 400,
+					'message' => 'Office value is missing in JSON input.'
+				);
+	
+				http_response_code(400);
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500,
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500);
+			echo json_encode($response);
+		}
+	}	
 
 	function UpdateChargeProduct(){
 		$data=$_POST;
@@ -1207,8 +1709,37 @@ class Products extends Controller{
 
 	/* Shares  */
 	function shares(){
-		$this->view->shares  = $this->model->SharesList();	
-		$this->view->render('forms/products/sharesconfig');
+		try {
+			$office = $_SERVER['HTTP_OFFICE'];	
+			if (!empty($office)) {
+	
+				$sharesList = $this->model->SharesList($office);
+	
+				$response = array(
+					'status' => 200,
+					'message' => 'Shares list fetched successfully.',
+					'data' => $sharesList
+				);
+	
+				echo json_encode($response);
+			} else {
+				$response = array(
+					'status' => 400,
+					'message' => 'Office value is missing in Headers.'
+				);
+	
+				http_response_code(400);
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500,
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500);
+			echo json_encode($response);
+		}
 	}
 		
 	function newshareproduct(){
@@ -1247,9 +1778,28 @@ class Products extends Controller{
 		$this->model->deleteInsuranceCategory($id);
 	}
 
+
 	function createShare(){
-		$this->model->saveShares();
-	}
+		$user = $_SERVER['HTTP_USER'];
+		$office = $_SERVER['HTTP_OFFICE'];
+	
+		$jsonData = file_get_contents("php://input");
+		$data = json_decode($jsonData, true);
+	
+		if ($data && isset($user) && isset($office)) {
+			$data['user'] = $user;
+			$data['office'] = $office;
+			$this->model->saveShares($data);
+		} else {
+			$response = array(
+				'status' => 400,
+				'message' => 'Invalid or missing JSON input.'
+			);
+	
+			http_response_code(400);
+			echo json_encode($response);
+		}
+	}		
 
 	function createinsurance(){
 		$this->model->saveInsurance($_POST);
@@ -1261,33 +1811,130 @@ class Products extends Controller{
 
 	/* ----ThirdParty products  ******************/
 	function thirdpartyproducts(){
-		if ($_SESSION['access_level'] == 'SA') {
-	 		$this->view->thirdpartyProductlist = $this->model->getThirdPartySAProducts();
-		} else {
-	 		$this->view->thirdpartyProductlist = $this->model->getThirdPartyProducts();
+		try {
+			$jsonData = file_get_contents('php://input');
+			$data = json_decode($jsonData, true);
+	
+			if (isset($data['access_level'])) {
+				$accessLevel = $data['access_level'];
+	
+				if ($accessLevel == 'SA') {
+					$thirdPartyProducts = $this->model->getThirdPartySAProducts();
+				} else {
+					$thirdPartyProducts = $this->model->getThirdPartyProducts();
+				}
+	
+				$response = array(
+					'status' => 200,
+					'message' => 'Third-party products fetched successfully.',
+					'data' => $thirdPartyProducts
+				);
+	
+				echo json_encode($response);
+			} else {
+				$response = array(
+					'status' => 400,
+					'message' => 'Access level value is missing in JSON input.'
+				);
+	
+				http_response_code(400);
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500,
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500);
+			echo json_encode($response);
 		}
-		$this->view->clic = array();//$this->model->getClicThirdPartyProducts();
-		$this->view->render('forms/products/thirdpartyproducts');
 	}
 
 	function thirdpartyProduct($id){
-
-		$this->view->hastransactions = $this->model->hastransacted();
-		$product_type=7;
-		$this->view->created= $this->model->getPointers($id,$product_type);		
-		$this->view->thirdparty = $this->model->getthirdpartyproduct($id);
-		$this->view->collateral = $this->model->getcollateral($id);
-		$this->view->charges = $this->model->getloanProductcharges($id);
-		$this->view->curname = $this->model->currency();
-		$this->view->render('forms/products/viewthirdpartyproduct');
-
-	}
+		try {
+			$office = $_SERVER['HTTP_OFFICE'];
+	
+			if (!empty($office)) {
+	
+				$hastransactions = $this->model->hastransacted($office);
+				$product_type = 7;
+				$created = $this->model->getPointers($id, $product_type, $office);
+				$thirdparty = $this->model->getthirdpartyproduct($id);
+				$collateral = $this->model->getcollateral($id);
+				$charges = $this->model->getloanProductcharges($id);
+				$curname = $this->model->currency();
+	
+				$response = array(
+					'status' => 200,
+					'message' => 'Third-party product details fetched successfully.',
+					'data' => array(
+						'hastransactions' => $hastransactions,
+						'created' => $created,
+						'thirdparty' => $thirdparty,
+						'collateral' => $collateral,
+						'charges' => $charges,
+						'curname' => $curname
+					)
+				);
+	
+				echo json_encode($response);
+			} else {
+				$response = array(
+					'status' => 400,
+					'message' => 'Office value is missing in  Headers.'
+				);
+	
+				http_response_code(400);
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500,
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500);
+			echo json_encode($response);
+		}
+	}	
 
 	function thirdpartyTransactions($id){
-		$this->view->transactions = $this->model->getThirdpartyTransactions($id);
-		$this->view->render('forms/products/thirdpartytransactions');
-
-	}
+		try {
+			$office = $_SERVER['HTTP_OFFICE'];
+	
+			if (!empty($office)) {
+	
+				$transactions = $this->model->getThirdpartyTransactions($id, $office);
+	
+				$response = array(
+					'status' => 200,
+					'message' => 'Third-party transactions fetched successfully.',
+					'data' => array(
+						'transactions' => $transactions
+					)
+				);
+	
+				echo json_encode($response);
+			} else {
+				$response = array(
+					'status' => 400,
+					'message' => 'Office value is missing in JSON input.'
+				);
+	
+				http_response_code(400);
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500,
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code(500);
+			echo json_encode($response);
+		}
+	}	
 
 	function NewthirdPartyProduct(){
 		

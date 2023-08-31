@@ -259,30 +259,25 @@ class Products_model extends Model {
     header('Location: ' . URL . 'products/chargeexemption?msg=success');
   }
 
-  function getThirdpartyTransactions($id){
+  function getThirdpartyTransactions($id, $office){
 
-    $office = $_SESSION['office'];
     $results =  $this->db->SelectData("SELECT * FROM thirdparty_account_transactions AS a JOIN thirdparty_products AS b ON a.thirdparty_account_no = b.thirdparty_accountno WHERE b.id = '$id' AND b.product_status ='Active' AND b.office_id = '".$office."'");
 
     return $results;
   }
 
-  function getShareProducts(){
-    $office = $_SESSION['office'];
+  function getShareProducts($office){
     $results =  $this->db->SelectData("SELECT count(id) AS idz FROM share_products WHERE product_status ='Active' AND office_id = '".$office."'");
-
     return $results[0]['idz'];
-  }   
+  }
 
-  function getLoanProducts(){
-    $office = $_SESSION['office'];
+  function getLoanProducts($office){
     $results =  $this->db->SelectData("SELECT count(id) AS idz FROM m_product_loan WHERE status ='open' AND office_id = '".$office."'");
 
     return $results[0]['idz'];
   }
 
-  function getSavingsProducts(){
-    $office = $_SESSION['office'];
+  function getSavingsProducts($office){
     $results =  $this->db->SelectData("SELECT count(id) AS idz FROM m_savings_product WHERE product_status ='Active' AND office_id = '".$office."'");
 
     return $results[0]['idz'];
@@ -300,22 +295,19 @@ class Products_model extends Model {
     die();
   }
 
-  function getFixedProducts(){
-    $office = $_SESSION['office'];
+  function getFixedProducts($office){
     $results =  $this->db->SelectData("SELECT count(id) AS idz FROM fixed_deposit_product WHERE product_status ='Active' AND office_id = '".$office."'");
 
     return $results[0]['idz'];
   }
 
-  function getChargeProducts(){
-    $office = $_SESSION['office'];
+  function getChargeProducts($office){
     $results =  $this->db->SelectData("SELECT count(id) AS idz FROM m_charge WHERE status ='Active' AND office_id = '".$office."'");
 
     return $results[0]['idz'];
   }
 
-  function getAllCharges(){
-    $office = $_SESSION['office'];
+  function getAllCharges($office){
     $results =  $this->db->SelectData("SELECT * FROM m_charge WHERE status ='Active' AND is_active = 1 AND is_deleted = 0  AND office_id = '".$office."' AND transaction_type_id = 29 OR transaction_type_id = 39");
     return $results;
   }
@@ -326,14 +318,12 @@ class Products_model extends Model {
     return $results;
   }
 
-  function getAllSavings(){
-    $office = $_SESSION['office'];
+  function getAllSavings($office){
     $results =  $this->db->SelectData("SELECT * FROM m_savings_product WHERE product_status ='Active' AND office_id = '".$office."'");
     return $results;
   }
 
-  function getAllShares(){
-    $office = $_SESSION['office'];
+  function getAllShares($office){
     $results =  $this->db->SelectData("SELECT * FROM share_products WHERE product_status ='Active' AND office_id = '".$office."'");
     return $results;
   }
@@ -423,9 +413,8 @@ class Products_model extends Model {
     $result = $this->db->InsertData('m_reg_settings', $postData);
   }
 
-  function getDefaultsCount(){
+  function getDefaultsCount($office){
 
-    $office = $_SESSION['office'];
     $results =  $this->db->SelectData("SELECT count(id) AS idz FROM m_reg_settings WHERE sacco_id = '".$office."'");
 
     if ($results[0]['idz'] > 0) {
@@ -435,22 +424,19 @@ class Products_model extends Model {
     }
   }
 
-  function getProvisioningProducts(){
-    $office = $_SESSION['office'];
+  function getProvisioningProducts($office){
     $results =  $this->db->SelectData("SELECT count(id) AS idz FROM m_loan_ageing WHERE office_id = '".$office."'");
 
     return $results[0]['idz'];
   }
 
-  function getThirdPartyProductCount(){
-    $office = $_SESSION['office'];
+  function getThirdPartyProductCount($office){
     $results =  $this->db->SelectData("SELECT count(id) AS idz FROM thirdparty_products WHERE product_status ='Active' AND office_id = '".$office."'");
 
     return $results[0]['idz'];
   }
 
-  function getInsuranceProductsCount(){
-    $office = $_SESSION['office'];
+  function getInsuranceProductsCount($office){
     $results =  $this->db->SelectData("SELECT count(id) AS idz FROM insurance_products WHERE product_status ='Active' AND office_id = '".$office."'");
 
     return $results[0]['idz'];
@@ -732,13 +718,12 @@ function getModeofPayment($id){
 }
 
 
-function getPointers($id,$prodType, $charge=null) {
-  $parent_office =$_SESSION['office'];
-
+function getPointers($id, $product_type, $office, $charge=null) {
+  $parent_office =$office;
   if ($charge != NULL) {
     $result=$this->db->SelectData("SELECT * FROM acc_gl_pointers JOIN transaction_type ON transaction_type.transaction_type_id=acc_gl_pointers.transaction_type_id WHERE acc_gl_pointers.transaction_type_id = '$charge' AND acc_gl_pointers.sacco_id = '".$parent_office."' AND acc_gl_pointers.product_id = '".$id."'");
   } else {
-    $result=$this->db->SelectData("SELECT * FROM acc_gl_pointers JOIN transaction_type ON transaction_type.transaction_type_id=acc_gl_pointers.transaction_type_id where acc_gl_pointers.product_type_id='".$prodType."' AND sacco_id = '".$parent_office."' and product_id = '".$id."' ");  
+    $result=$this->db->SelectData("SELECT * FROM acc_gl_pointers JOIN transaction_type ON transaction_type.transaction_type_id=acc_gl_pointers.transaction_type_id where acc_gl_pointers.product_type_id='".$product_type."' AND sacco_id = '".$parent_office."' and product_id = '".$id."' ");  
   }
 
 
@@ -760,10 +745,7 @@ function getPointers($id,$prodType, $charge=null) {
   }
 }
 
-function hastransacted(){
-
-  $office =$_SESSION['office'];
-
+function hastransacted($office){
   $result=$this->db->SelectData("SELECT * FROM acc_gl_journal_entry WHERE office_id = ".$office. " AND transaction_id NOT LIKE 'OP%'");
 
   $count=count($result);         
@@ -809,8 +791,7 @@ function getstaffList($id) {
   return $this->db->SelectData("SELECT * FROM m_staff where id='" . $id . "' ");
 }
 
-function loanproductList() {
-  $office=$_SESSION['office'];
+function loanproductList($office) {
   return $this->db->SelectData("SELECT * FROM m_product_loan where status!='closed' AND office_id = '".$office."' ");
 }
 
@@ -1023,8 +1004,8 @@ function createnewloanproduct($data) {
     
 	try{
 	    
-        $office = $_SESSION['office'];
-        $user_id = $_SESSION['user_id'];
+        $office = $data['office'];
+        $user_id = $data['user_id'];
         
         $product_name = $data['pname'];
         
@@ -1122,7 +1103,7 @@ function createnewloanproduct($data) {
                 $loan_product_collateral = $this->db->InsertData('loan_product_collateral', $postcollateral);
               }
             }
-            return $this->MakeJsonResponse(100,"success", URL."products/viewloanproducts/".$result."msg=success");
+            return $this->MakeJsonResponse(100,"success", $result);
         
         }else{
             return $this->MakeJsonResponse(103,$result, "");
@@ -1282,9 +1263,9 @@ function getExpenses() {
   return $this->db->selectData("SELECT * FROM acc_ledger_account where classification='Expenses' AND account_usage='Account' ");
 }
 
-function getChargesDetails($id) {
+function getChargesDetails($id, $office) {
 
-  $office = $_SESSION['office'];
+  // $office = $_SESSION['office'];
 
   $result = $this->db->selectData("SELECT * FROM m_charge INNER JOIN products ON m_charge.charge_applies_to = products.p_id WHERE m_charge.office_id = " . $office . " AND id= '" . $id . "' ORDER BY m_charge.id ");
 
@@ -1457,9 +1438,7 @@ try{
 }
 }
 
-function chargeproductList() {
-  $office=$_SESSION['office'];  
-
+function chargeproductList($office) {
   $res = $this->db->SelectData("SELECT * FROM m_charge INNER JOIN products ON m_charge.charge_applies_to = products.p_id WHERE is_deleted != 1  AND m_charge.office_id = $office ORDER BY m_charge.id ");
 
 
@@ -1491,8 +1470,7 @@ function ApproveLoanProduct() {
 
 /* -------Savings products  ---- */
 
-function savingsProductsList() {
-  $office=$_SESSION['office'];  
+function savingsProductsList($office) {
   return $this->db->SelectData("SELECT * FROM m_savings_product  where office_id = '".$office."'");
 }
 
@@ -1564,8 +1542,7 @@ function getLoanStatement(){
 
 /* -------fixed deposit products  ---- */
 
-function fixedDepositProducts() {
- $office=$_SESSION['office'];
+function fixedDepositProducts($office) {
  return $this->db->SelectData("SELECT * FROM fixed_deposit_product where office_id = '".$office."' ");
 }
 
@@ -1826,27 +1803,30 @@ function amortization_Calculation() {
 
 ///shares processing
 
-       function saveShares(){
-         $data =  $_POST;
-         $user=$_SESSION['user_id'];
-         $office=$_SESSION['office'];
-         $postData = array(
-          'office_id' =>  $office,
-          'share_name' => $data['sname'],
-          'description' => $data['description'],
-          'amount_per_share' => $data['samount'],
-          'created_by' =>$user,
-
+       function saveShares($data){
+        $user = $data['user'];
+        $office = $data['office'];
+    
+        $postData = array(
+            'office_id' =>  $office,
+            'share_name' => $data['sname'],
+            'description' => $data['description'],
+            'amount_per_share' => $data['samount'],
+            'created_by' => $user
         );
-
-         $result = $this->db->InsertData('share_products', $postData);
-
-
-    //    addglpointersequity/4
-//header('Location:'.URL.'products/shares??msg=success');
-         header('Location:'.URL.'products/addglpointersequity/'.$result.'?msg=success');
-
-       }
+    
+        $result = $this->db->InsertData('share_products', $postData);
+    
+        $response = array(
+            'status' => 200,
+            'message' => 'Share product created successfully.',
+            'data' => array(
+                'share_product_id' => $result
+            )
+        );
+    
+        echo json_encode($response);
+    }    
 
        function saveInsurance($data){
         $postData = array(
@@ -1917,16 +1897,13 @@ function amortization_Calculation() {
         
 
 
-       function SharesList(){
-         $office=$_SESSION['office'];
+       function SharesList($office){
          return $this->db->SelectData("SELECT * FROM share_products  WHERE office_id = '".$office."'");
 
        }
 
-       function InsuranceList(){
-         $office=$_SESSION['office'];
+       function InsuranceList($office){
          return $this->db->SelectData("SELECT * FROM insurance_products  WHERE office_id = '".$office."'");
-
        }
 
 
@@ -2509,10 +2486,8 @@ function customersupportshedule($id,$p,$np,$d1) {
         header('Location: ' . URL . 'products/addglpointerstime/'.$data['pnumber']);
       }
 
-      function loanProvision(){
-       $office=$_SESSION['office'];
+      function loanProvision($office){
        return $this->db->SelectData("SELECT * FROM m_loan_ageing WHERE office_id = $office order by id");
-
      }   
 
      function createNewLoanAgeing(){
