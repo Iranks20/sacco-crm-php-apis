@@ -1438,34 +1438,31 @@ public function saveProduct($data) {
 
   return $result;
 }
+function UpdateSavingProduct($id, $data) {
+  try {
+      $resultcheckbox = $this->db->SelectData("SELECT * FROM m_savings_product where id='" . $id . "' order by id ");
 
-function UpdateSavingProduct($data) {
-try{
-  $id = $data['id'];
-  $resultcheckbox = $this->db->SelectData("SELECT * FROM m_savings_product where id='" . $id . "' order by id ");
+      $postData = array(
+          'name' => $data['product_name'],
+          'description' => $data['savings_description'],
+          'nominal_interest_rate' => $data['nominal_interest'],
+          'interest_posting_period' => $data['i_postingperiod'],
+          'interest_calculation_method' => $data['s_interestCalculationTypeMethod'],
+          'days_in_year' => $data['days_in_year'],
+          'min_required_opening_balance' => str_replace(',', '', $data['min_balance']),
+          'min_required_balance' => str_replace(',', '', $data['min_required_balance']),
+          'minimum_balance_for_interest_calculation' => str_replace(',', '', $data['min_balance_interst_cal']),
+      );
+      $this->db->UpdateData('m_savings_product', $postData, " `id` = '{$id}'");
 
-  $postData = array(
-    'name' => $data['product_name'],
-    'description' => $data['savings_description'],
-    'nominal_interest_rate' => $data['nominal_interest'],
-    'interest_posting_period' => $data['i_postingperiod'],
-    'interest_calculation_method' => $data['s_interestCalculationTypeMethod'],
-    'days_in_year' => $data['days_in_year'],
-    'min_required_opening_balance' => str_replace( ',', '',$data['min_balance']),
-    'min_required_balance' => str_replace( ',', '',$data['min_required_balance']),
-    'minimum_balance_for_interest_calculation' => str_replace( ',', '',$data['min_balance_interst_cal']),           
-  );
-  $this->db->UpdateData('m_savings_product', $postData, " `id` = '{$id}'");
-
-  $num_charge = count($_POST['s_charges']);
-  $num_charges = $_POST['s_charges'];
-
-
-  header('Location:' . URL . 'products/savingsproducts?add=true');
-}catch(Exception $e){
-    header('Location:' . URL . 'products/savingsproducts?add=false&message='.$e->getMessage());
+      $num_charge = count($data['s_charges']);
+      $num_charges = $data['s_charges'];
+      return true;
+  } catch (Exception $e) {
+      throw new Exception('An error occurred: ' . $e->getMessage());
+  }
 }
-}
+
 
 function chargeproductList($office) {
   $res = $this->db->SelectData("SELECT * FROM m_charge INNER JOIN products ON m_charge.charge_applies_to = products.p_id WHERE is_deleted != 1  AND m_charge.office_id = $office ORDER BY m_charge.id ");

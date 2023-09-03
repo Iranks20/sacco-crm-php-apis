@@ -1363,10 +1363,39 @@ class Products extends Controller{
 		}
 	}	
 
-	function UpdateSavingProduct(){
-		$data=$_POST;
-		$this->model->UpdateSavingProduct($data);
-	}
+	function UpdateSavingProduct($id) {
+		try {
+			$data = json_decode(file_get_contents("php://input"), true);
+			if (!$data) {
+				$response = array(
+					'status' => 400,
+					'message' => 'Invalid JSON input.'
+				);
+			} else {
+				$result = $this->model->UpdateSavingProduct($id, $data);
+				if ($result) {
+					$response = array(
+						'status' => 200,
+						'message' => 'Savings product updated successfully.'
+					);
+				} else {
+					$response = array(
+						'status' => 500,
+						'message' => 'An error occurred while updating the savings product.'
+					);
+				}
+			}
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500,
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+		}
+	
+		header('Content-Type: application/json');
+		http_response_code($response['status']);
+		echo json_encode($response);
+	}	
 
 	function loandetails($id){
 		$this->view->loan = $this->model->loandetails($id);
