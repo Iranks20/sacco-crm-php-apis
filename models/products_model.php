@@ -11,9 +11,8 @@ class Products_model extends Model {
       }
   }
 
-  function checkIfSaccoImportedAccounts(){
+  function checkIfSaccoImportedAccounts($id, $office){
 
-    $office = $_SESSION['office'];
     $template_accounts = $this->db->SelectData("SELECT name FROM acc_ledger_account_template");
     $sacco_accounts = $this->db->SelectData("SELECT name FROM acc_ledger_account WHERE sacco_id='".$office."'");
     
@@ -654,9 +653,8 @@ function getPartyProductdetails($id){
   return $this->db->SelectData("SELECT * FROM thirdparty_products WHERE id = '".$id."'");
 }
 
-function getMissingTransactionTypes($id, $product_type) {
-  $office=$_SESSION['office'];
-  $pointers =  $this->getPointers($id, $product_type);
+function getMissingTransactionTypes($id, $product_type, $office) {
+  $pointers =  $this->getPointers($id, $product_type, $office);
   
 
     $idz = '';
@@ -1075,11 +1073,11 @@ function createnewloanproduct($data) {
         
         );
         $result = $this->db->InsertData('m_product_loan', $postData);
-
+        // return $this->MakeJsonResponse(100,"success", $result);
 
         if(!empty($result)){
-            $num_charge = count($_POST['s_charges']);
-            $num_charges = $_POST['s_charges'];
+            $num_charge = count($data['s_charges']);
+            $num_charges = $data['s_charges'];
         
             for ($i = 0; $i <$num_charge; $i++) {
               if (!empty($num_charges[$i])) {
@@ -1091,8 +1089,8 @@ function createnewloanproduct($data) {
               }
             }
         
-            $collateral = count($_POST['collateral']);
-            $num_collateral = $_POST['collateral'];
+            $collateral = count($data['collateral']);
+            $num_collateral = $data['collateral'];
         
             for ($i = 0; $i <$collateral; $i++) {
               if (!empty($num_collateral[$i])) {
@@ -1342,8 +1340,8 @@ function m_savings_product_charge($savings_product_id, $charge_applies_to) {
   return $query;
 }
 
-function getCharges($id) {
-  $office=$_SESSION['office'];
+function getCharges($id, $office) {
+  // $office=$_SESSION['office'];
   return $this->db->selectData("SELECT * FROM m_charge WHERE charge_applies_to = '$id' AND status = 'Active' AND office_id = '$office' ORDER BY id ");
 }
 
@@ -1373,41 +1371,73 @@ function Updatenewshareproduct($id){
     
 }
 
-function saveProduct() {
-  $data = $_POST;
-  $office=$_SESSION['office'];
+// function saveProduct() {
+//   $data = $_POST;
+//   $office=$_SESSION['office'];
+//   $postData = array(
+//    'office_id' =>  $office,
+//    'name' => $data['product_name'],
+//    'created_by' => $_SESSION['user_id'],
+//    'description' => $data['savings_description'],
+//    'nominal_interest_rate' => str_replace( ',', '',$data['nominal_interest']),
+//    'interest_posting_period' => $data['i_postingperiod'],
+//    'interest_calculation_method' => $data['s_interestCalculationTypeMethod'],
+//    'days_in_year' => $data['days_in_year'],
+//    'min_required_opening_balance' => str_replace( ',', '',$data['min_open_balance']),
+//    'min_required_balance' => str_replace( ',', '',$data['min_required_balance']),
+//    'minimum_balance_for_interest_calculation' => str_replace( ',', '',$data['min_balance_interst_cal']),
+//  );
+
+//   $result = $this->db->InsertData('m_savings_product', $postData);
+
+//   $num_charge = count($_POST['s_charges']);
+//   $num_charges = $_POST['s_charges'];
+
+//   for ($i = 0; $i < $num_charge; $i++) {
+
+//     if (!empty($num_charges[$i])) {
+//       $postData1 = array(
+//         'savings_product_id' => $result,
+//         'charge_id' => $num_charges[$i],
+//       );
+//       $this->db->InsertData('m_savings_product_charge', $postData1);
+//     }
+//   }
+
+//   header('Location:'.URL.'products/addsavingsglpointers/'.$result.'?msg=success');
+//       //  header('Location:' . URL . 'products/newsavingsproduct?msg=added');
+// }
+public function saveProduct($data) {
   $postData = array(
-   'office_id' =>  $office,
-   'name' => $data['product_name'],
-   'created_by' => $_SESSION['user_id'],
-   'description' => $data['savings_description'],
-   'nominal_interest_rate' => str_replace( ',', '',$data['nominal_interest']),
-   'interest_posting_period' => $data['i_postingperiod'],
-   'interest_calculation_method' => $data['s_interestCalculationTypeMethod'],
-   'days_in_year' => $data['days_in_year'],
-   'min_required_opening_balance' => str_replace( ',', '',$data['min_open_balance']),
-   'min_required_balance' => str_replace( ',', '',$data['min_required_balance']),
-   'minimum_balance_for_interest_calculation' => str_replace( ',', '',$data['min_balance_interst_cal']),
- );
+      'office_id' => $data['office'],
+      'name' => $data['product_name'],
+      'created_by' => $data['user_id'],
+      'description' => $data['savings_description'],
+      'nominal_interest_rate' => str_replace(',', '', $data['nominal_interest']),
+      'interest_posting_period' => $data['i_postingperiod'],
+      'interest_calculation_method' => $data['s_interestCalculationTypeMethod'],
+      'days_in_year' => $data['days_in_year'],
+      'min_required_opening_balance' => str_replace(',', '', $data['min_open_balance']),
+      'min_required_balance' => str_replace(',', '', $data['min_required_balance']),
+      'minimum_balance_for_interest_calculation' => str_replace(',', '', $data['min_balance_interst_cal']),
+  );
 
   $result = $this->db->InsertData('m_savings_product', $postData);
 
-  $num_charge = count($_POST['s_charges']);
-  $num_charges = $_POST['s_charges'];
+  $num_charge = count($data['s_charges']);
+  $num_charges = $data['s_charges'];
 
   for ($i = 0; $i < $num_charge; $i++) {
-
-    if (!empty($num_charges[$i])) {
-      $postData1 = array(
-        'savings_product_id' => $result,
-        'charge_id' => $num_charges[$i],
-      );
-      $this->db->InsertData('m_savings_product_charge', $postData1);
-    }
+      if (!empty($num_charges[$i])) {
+          $postData1 = array(
+              'savings_product_id' => $result,
+              'charge_id' => $num_charges[$i],
+          );
+          $this->db->InsertData('m_savings_product_charge', $postData1);
+      }
   }
 
-  header('Location:'.URL.'products/addsavingsglpointers/'.$result.'?msg=success');
-      //  header('Location:' . URL . 'products/newsavingsproduct?msg=added');
+  return $result;
 }
 
 function UpdateSavingProduct($data) {
@@ -2343,30 +2373,33 @@ function customersupportshedule($id,$p,$np,$d1) {
         header('Location: ' . URL . 'products/addglpointersloan/'.$data['pnumber']);
       }
 
-      function createglequity() {
-        $data = $_POST;
-        $office =$_SESSION['office'];
-        $postData = array(
-         'sacco_id' =>$office,
-         'pointer_name' => $data['pname'],
-         'description' => $data['description'],
-         'product_type_id' => 1,
-		 'product_id' => $data['pnumber'],
-         'transaction_type_id' => $data['transaction_type'],
-         'transaction_mode' => $data['transaction_mode'],
-         'debit_account' => $data['source'],
-         'credit_account' => $data['destination'],
-       );
-
-        $this->db->InsertData('acc_gl_pointers', $postData);
-
-        $postData = array(         
-          'product_status' =>'Active'
-        );
-        $this->db->UpdateData('share_products', $postData,"`id` = '{$data['pnumber']}'");
-
-        header('Location: ' . URL . 'products/addglpointersequity/'.$data['pnumber']);
+    function createglequity($data) {
+      try {
+          $postData = array(
+              'sacco_id' => $data['office'],
+              'pointer_name' => $data['pname'],
+              'description' => $data['description'],
+              'product_type_id' => 1,
+              'product_id' => $data['pnumber'],
+              'transaction_type_id' => $data['transaction_type'],
+              'transaction_mode' => $data['transaction_mode'],
+              'debit_account' => $data['source'],
+              'credit_account' => $data['destination'],
+          );
+  
+          $this->db->InsertData('acc_gl_pointers', $postData);
+  
+          $postData = array(         
+              'product_status' => 'Active'
+          );
+  
+          $this->db->UpdateData('share_products', $postData, "`id` = '{$data['pnumber']}'");
+  
+          return true;
+      } catch (Exception $e) {
+          return false;
       }
+  }  
 
       function createglinsurance() {
         $data = $_POST;
@@ -2386,36 +2419,32 @@ function customersupportshedule($id,$p,$np,$d1) {
 
         $this->db->InsertData('acc_gl_pointers', $postData);
 
-        $postData = array(         
+        $postData = array(
           'product_status' =>'Active'
         );
         $this->db->UpdateData('insurance_products', $postData,"`id` = '{$data['pnumber']}'");
 
         header('Location: ' . URL . 'products/addglpointersinsurance/'.$data['pnumber']);
       }
-
-      function createglsaving() {
-        $data = $_POST;
-        $office =$_SESSION['office'];
-        $postData = array(
-         'sacco_id' =>$office,
-         'pointer_name' => $data['pname'],
-         'description' => $data['description'],
-         'product_id' => $data['pnumber'],
-		'product_type_id' => 3,
-		'transaction_type_id' => $data['transaction_type'],
-         'transaction_mode' => $data['transaction_mode'],
-         'debit_account' => $data['source'],
-         'credit_account' => $data['destination'],
-       );
-
-        $this->db->InsertData('acc_gl_pointers', $postData);
-        $NewData = array(         
-          'product_status' =>'Active'
+    function createglsaving($data) {
+      $postData = array(
+            'sacco_id' => $data['office'],
+            'pointer_name' => $data['pname'],
+            'description' => $data['description'],
+            'product_id' => $data['pnumber'],
+            'product_type_id' => 3,
+            'transaction_type_id' => $data['transaction_type'],
+            'transaction_mode' => $data['transaction_mode'],
+            'debit_account' => $data['source'],
+            'credit_account' => $data['destination'],
         );
-        $this->db->UpdateData('m_savings_product', $NewData,"`id` = '{$data['pnumber']}'");
-        header('Location: ' . URL . 'products/addsavingsglpointers/'.$data['pnumber']);
-      }
+    
+        $this->db->InsertData('acc_gl_pointers', $postData);
+        $NewData = array(
+            'product_status' => 'Active'
+        );
+        $this->db->UpdateData('m_savings_product', $NewData, "`id` = '{$data['pnumber']}'");
+    }  
 
 
       function createglother() {    
