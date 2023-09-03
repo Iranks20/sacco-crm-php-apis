@@ -1341,7 +1341,6 @@ function m_savings_product_charge($savings_product_id, $charge_applies_to) {
 }
 
 function getCharges($id, $office) {
-  // $office=$_SESSION['office'];
   return $this->db->selectData("SELECT * FROM m_charge WHERE charge_applies_to = '$id' AND status = 'Active' AND office_id = '$office' ORDER BY id ");
 }
 

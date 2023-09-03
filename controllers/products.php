@@ -13,16 +13,12 @@ class Products extends Controller{
 	function insurance(){
 		try {
 			$office = $_SERVER['HTTP_OFFICE'];
-			// $jsonData = file_get_contents('php://input');
-			// $data = json_decode($jsonData, true);
 	
-			if (!empty($office)) {
-				// $office = $data['office'];
-	
+			if (!empty($office)) {	
 				$insuranceList = $this->model->InsuranceList($office);
 	
 				$response = array(
-					'status' => 200, // Success status code
+					'status' => 200,
 					'message' => 'Insurance list fetched successfully.',
 					'data' => $insuranceList
 				);
@@ -30,20 +26,20 @@ class Products extends Controller{
 				echo json_encode($response);
 			} else {
 				$response = array(
-					'status' => 400, // Bad request status code
+					'status' => 400,
 					'message' => 'Office value is missing in JSON input.'
 				);
 	
-				http_response_code(400); // Set HTTP status code
+				http_response_code(400);
 				echo json_encode($response);
 			}
 		} catch (Exception $e) {
 			$response = array(
-				'status' => 500, // Internal server error status code
+				'status' => 500,
 				'message' => 'An error occurred: ' . $e->getMessage()
 			);
 	
-			http_response_code(500); // Set HTTP status code
+			http_response_code(500);
 			echo json_encode($response);
 		}
 	}	
@@ -1260,19 +1256,7 @@ class Products extends Controller{
 			http_response_code(500);
 			echo json_encode($response);
 		}
-	}	
-
-	// function newSavingsProduct(){
-	// 	$this->view->currency = $this->model->currency();
-	// 	$this->view->assets=$this->model->getAssets();
-	// 	$this->view->liability=$this->model->getLiability();
-	// 	$this->view->equity=$this->model->getEquity();
-	// 	$this->view->income=$this->model->getIncome();
-	// 	$this->view->expenses=$this->model->getExpenses();
-	// 	$this->view->getcharges=$this->model->getCharges(3);
-	// 	$this->view->render('forms/products/newsavingsproduct');
-
-	// }
+	}
 	function newSavingsProduct(){
 		try {
 			$headers = getallheaders();
@@ -1290,7 +1274,7 @@ class Products extends Controller{
 				$charges = $this->model->getCharges($id, $office);
 	
 				$response = array(
-					'status' => 200, // Success status code
+					'status' => 200,
 					'currency' => $currency,
 					'assets' => $assets,
 					'liability' => $liability,
@@ -1303,16 +1287,16 @@ class Products extends Controller{
 				echo json_encode($response);
 			} else {
 				$response = array(
-					'status' => 400, // Bad request status code
+					'status' => 400,
 					'message' => 'Office header is missing in the HTTP request.'
 				);
 	
-				http_response_code(400); // Set HTTP status code
+				http_response_code(400);
 				echo json_encode($response);
 			}
 		} catch (Exception $e) {
 			$response = array(
-				'status' => 500, // Internal server error status code
+				'status' => 500,
 				'message' => 'An error occurred: ' . $e->getMessage()
 			);
 	
@@ -1320,21 +1304,64 @@ class Products extends Controller{
 			echo json_encode($response);
 		}
 	}
+
+	function EditSavingProduct($id) {
+		try {
+			$headers = getallheaders();
+			$office = isset($headers['office']) ? $headers['office'] : null;
 	
-
-	function EditSavingProduct($id){
-		$this->view->currency  = $this->model->currency();
-		$this->view->assets=$this->model->getAssets();
-		$this->view->liability=$this->model->getLiability();
-		$this->view->equity=$this->model->getEquity();
-		$this->view->income=$this->model->getIncome();
-		$this->view->expenses=$this->model->getExpenses();
-		$this->view->currency  = $this->model->currency();
-		$this->view->getcharges=$this->model->getCharges(3);
-		$this->view->savings = $this->model->productdetails($id);
-		$this->view->render('forms/products/editsavingproduct');
-
-	}
+			if ($office === null) {
+				$response = array(
+					'status' => 400,
+					'message' => 'Required header (office_id) is missing.'
+				);
+			} else {
+				$currency = $this->model->currency();
+				$assets = $this->model->getAssets();
+				$liability = $this->model->getLiability();
+				$equity = $this->model->getEquity();
+				$income = $this->model->getIncome();
+				$expenses = $this->model->getExpenses();
+				$id = 3;
+				$charges = $this->model->getCharges($id, $office);
+	
+				$savingsProductDetails = $this->model->productdetails($id);
+	
+				if ($savingsProductDetails) {
+					$response = array(
+						'status' => 200,
+						'message' => 'Savings product details retrieved successfully.',
+						'data' => array(
+							'currency' => $currency,
+							'assets' => $assets,
+							'liability' => $liability,
+							'equity' => $equity,
+							'income' => $income,
+							'expenses' => $expenses,
+							'charges' => $charges,
+							'savings_product_details' => $savingsProductDetails
+						)
+					);
+				} else {
+					$response = array(
+						'status' => 404,
+						'message' => 'Savings product not found.'
+					);
+				}
+			}
+	
+			http_response_code($response['status']);
+			echo json_encode($response);
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500,
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code($response['status']);
+			echo json_encode($response);
+		}
+	}	
 
 	function UpdateSavingProduct(){
 		$data=$_POST;
