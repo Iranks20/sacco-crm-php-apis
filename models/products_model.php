@@ -1839,29 +1839,56 @@ function amortization_Calculation() {
           echo json_encode($response);
       }   
 
-      function saveInsurance($data){
-      $postData = array(
-        'office_id' =>  $_SESSION['office'],
-        'name' => $data['name'],
-        'description' => $data['description'],
-        'min_amount' => $data['min_amount'],
-        'max_amount' => $data['max_amount'],
-        'cover' => $data['cover'],
-        'reward' => $data['reward'],
-        'claim_penalty' => $data['claim_penalty'],
-        'claim_type' => $data['claim_type'],
-        'recovery_time' => $data['recovery_time'],
-        'recovery_time_type' => $data['recovery_time_type'],
-        'category' => $data['category'],
-        'product_type' => $data['product_type'],
-        'payment_freq' => $data['payment_freq'],
-        'payout_freq' => $data['payout_freq'],
-        'created_by' => $_SESSION['user_id']
-      );
+      // function saveInsurance($data){
+      // $postData = array(
+      //   'office_id' =>  $_SESSION['office'],
+      //   'name' => $data['name'],
+      //   'description' => $data['description'],
+      //   'min_amount' => $data['min_amount'],
+      //   'max_amount' => $data['max_amount'],
+      //   'cover' => $data['cover'],
+      //   'reward' => $data['reward'],
+      //   'claim_penalty' => $data['claim_penalty'],
+      //   'claim_type' => $data['claim_type'],
+      //   'recovery_time' => $data['recovery_time'],
+      //   'recovery_time_type' => $data['recovery_time_type'],
+      //   'category' => $data['category'],
+      //   'product_type' => $data['product_type'],
+      //   'payment_freq' => $data['payment_freq'],
+      //   'payout_freq' => $data['payout_freq'],
+      //   'created_by' => $_SESSION['user_id']
+      // );
 
-        $result = $this->db->InsertData('insurance_products', $postData);
-        header('Location:'.URL.'products/addglpointersinsurance/'.$result.'?msg=success');
+      //   $result = $this->db->InsertData('insurance_products', $postData);
+      //   header('Location:'.URL.'products/addglpointersinsurance/'.$result.'?msg=success');
 
+      // }
+      function saveInsurance($data) {
+          try {
+              $postData = array(
+                  'office_id' => $data['office'],
+                  'name' => $data['name'],
+                  'description' => $data['description'],
+                  'min_amount' => $data['min_amount'],
+                  'max_amount' => $data['max_amount'],
+                  'cover' => $data['cover'],
+                  'reward' => $data['reward'],
+                  'claim_penalty' => $data['claim_penalty'],
+                  'claim_type' => $data['claim_type'],
+                  'recovery_time' => $data['recovery_time'],
+                  'recovery_time_type' => $data['recovery_time_type'],
+                  'category' => $data['category'],
+                  'product_type' => $data['product_type'],
+                  'payment_freq' => $data['payment_freq'],
+                  'payout_freq' => $data['payout_freq'],
+                  'created_by' => $data['user_id']
+              );
+      
+              $result = $this->db->InsertData('insurance_products', $postData);
+          } catch (Exception $e) {
+              // Handle any exceptions if needed
+              throw new Exception("Failed to create insurance: " . $e->getMessage());
+          }
       }
 
       function saveInsuranceCategory($data, $office) {
@@ -1881,9 +1908,13 @@ function amortization_Calculation() {
               throw $e;
           }
       }
-      function getInsuranceCategories($office){
-          return $this->db->SelectData("SELECT * FROM insurance_categories WHERE office_id = '".$office."' AND status = 'Active'");
-      }
+      function getInsuranceCategories($office) {
+          try {
+              return $this->db->SelectData("SELECT * FROM insurance_categories WHERE office_id = '".$office."' AND status = 'Active'");
+          } catch (Exception $e) {
+              throw new Exception("Failed to fetch insurance categories: " . $e->getMessage());
+          }
+      }    
 	
       function getInsuranceCategory($id, $office) {
         try {

@@ -2243,11 +2243,22 @@ class Products extends Controller{
 		$this->view->render('forms/products/addshares');
 	}
 
-	function newinsuranceproduct(){
-		$this->view->categories = $this->model->getInsuranceCategories();
-		$this->view->render('forms/products/addinsurance');
-
-	}
+	function newinsuranceproduct() {
+		try {
+			$headers = getallheaders();
+			if (isset($headers['office'])) {
+				$office = $headers['office'];
+			} else {
+				throw new Exception("Office value missing in headers");
+			}
+	
+			$categories = $this->model->getInsuranceCategories($office);
+			echo json_encode($categories);
+		} catch (Exception $e) {
+			$errorResponse = array("error" => $e->getMessage());
+			echo json_encode($errorResponse);
+		}
+	}	
 
 	function insurancecategories(){
 		$headers = getallheaders();
@@ -2336,9 +2347,36 @@ class Products extends Controller{
 		}
 	}		
 
-	function createinsurance(){
-		$this->model->saveInsurance($_POST);
-	}
+	// function createinsurance(){
+	// 	$this->model->saveInsurance($_POST);
+	// }
+	function createinsurance() {
+		try {
+			// Retrieve JSON input
+			$jsonInput = file_get_contents('php://input');
+			$data = json_decode($jsonInput, true);
+	
+			// Fetch the office value from headers
+			$office = getallheaders()['office'];
+			$user_id = getallheaders()['user_id'];
+
+	
+			// Add office value to the data array
+			$data['office'] = $office;
+			$data['user-id'] = $user_id;
+	
+			// Call the model function to save insurance
+			$this->model->saveInsurance($data);
+	
+			// Return a JSON response indicating success
+			$response = array("status" => "Insurance created successfully");
+			echo json_encode($response);
+		} catch (Exception $e) {
+			// Handle any exceptions and return an error response
+			$errorResponse = array("error" => $e->getMessage());
+			echo json_encode($errorResponse);
+		}
+	}	
 
 	function createinsurancecategory() {
 		try {
