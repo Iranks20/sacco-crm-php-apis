@@ -2347,32 +2347,18 @@ class Products extends Controller{
 		}
 	}		
 
-	// function createinsurance(){
-	// 	$this->model->saveInsurance($_POST);
-	// }
 	function createinsurance() {
 		try {
-			// Retrieve JSON input
 			$jsonInput = file_get_contents('php://input');
-			$data = json_decode($jsonInput, true);
-	
-			// Fetch the office value from headers
+			$data = json_decode($jsonInput, true);	
 			$office = getallheaders()['office'];
 			$user_id = getallheaders()['user_id'];
-
-	
-			// Add office value to the data array
 			$data['office'] = $office;
-			$data['user-id'] = $user_id;
-	
-			// Call the model function to save insurance
+			$data['user_id'] = $user_id;
 			$this->model->saveInsurance($data);
-	
-			// Return a JSON response indicating success
 			$response = array("status" => "Insurance created successfully");
 			echo json_encode($response);
 		} catch (Exception $e) {
-			// Handle any exceptions and return an error response
 			$errorResponse = array("error" => $e->getMessage());
 			echo json_encode($errorResponse);
 		}

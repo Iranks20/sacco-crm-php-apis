@@ -1886,7 +1886,6 @@ function amortization_Calculation() {
       
               $result = $this->db->InsertData('insurance_products', $postData);
           } catch (Exception $e) {
-              // Handle any exceptions if needed
               throw new Exception("Failed to create insurance: " . $e->getMessage());
           }
       }
