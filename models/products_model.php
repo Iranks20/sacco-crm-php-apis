@@ -1875,8 +1875,7 @@ function amortization_Calculation() {
 
        }
 
-        function getInsuranceCategories(){
-            $office=$_SESSION['office'];
+        function getInsuranceCategories($office){
             return $this->db->SelectData("SELECT * FROM insurance_categories WHERE office_id = '".$office."' AND status = 'Active'");
         }
 	

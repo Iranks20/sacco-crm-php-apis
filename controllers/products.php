@@ -2250,9 +2250,19 @@ class Products extends Controller{
 	}
 
 	function insurancecategories(){
-		$this->view->insurance = $this->model->getInsuranceCategories();
-		$this->view->render('forms/products/insurancecategories');
-	}
+		$headers = getallheaders();
+		$office = isset($headers['office']) ? $headers['office'] : '';
+	
+		$insuranceCategories = $this->model->getInsuranceCategories($office);
+	
+		if ($insuranceCategories !== false) {
+			$response = array("status" => "Success", "insurance_categories" => $insuranceCategories);
+			echo json_encode($response);
+		} else {
+			$response = array("status" => "Error", "message" => "Failed to fetch insurance categories");
+			echo json_encode($response);
+		}
+	}	
 
 	function newinsurancecategory(){
 		$this->view->render('forms/products/newinsurancecategory');
