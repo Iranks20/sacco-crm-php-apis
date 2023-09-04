@@ -1629,14 +1629,33 @@ class Products extends Controller{
 		$this->view->render('forms/Members/editnewclientloanproduct');
 	}
 
-	//loan provisioning definition
-	function newLoanAgeing(){
-		$this->view->render('forms/products/newloanageing');
-	}
-
-	function createNewLoanAgeing(){
-		$this->model->createNewLoanAgeing(); 	
-	}
+	function createNewLoanAgeing() {
+		try {
+			$jsonInput = file_get_contents('php://input');
+			$data = json_decode($jsonInput, true);
+	
+			$headers = getallheaders();
+			$office = isset($headers['Office']) ? $headers['Office'] : '';
+	
+			if (isset($data['description'], $data['days_from'], $data['days_to'], $data['provision'])) {
+				$result = $this->model->createNewLoanAgeing($data, $office);
+	
+				if ($result) {
+					$response = array("status" => "Successfully Created");
+					echo json_encode($response);
+				} else {
+					$response = array("status" => "Not Successfully Created");
+					echo json_encode($response);
+				}
+			} else {
+				$response = array("status" => "Missing or Invalid Data");
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array("status" => "Error: " . $e->getMessage());
+			echo json_encode($response);
+		}
+	}	
 
 	function loanProvision(){
 		try {

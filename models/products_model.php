@@ -2512,29 +2512,23 @@ function customersupportshedule($id,$p,$np,$d1) {
        return $this->db->SelectData("SELECT * FROM m_loan_ageing WHERE office_id = $office order by id");
      }   
 
-     function createNewLoanAgeing(){
-       $data =  $_POST;
-
-       $postData = array(
-        'office_id' => $_SESSION['office'],
-        'description' => $data['description'],
-        'days_from' => $data['days_from'],
-        'days_to' => $data['days_to'],
-        'provision' => $data['provision'],
-      );
-
-       $results =$this->db->InsertData('m_loan_ageing', $postData);
-       if(!empty($results)){
-        $status = 'Successfully Created'; 
-
-      }else{
-        $status = 'Not Successfully Created'; 
-      }
-
-      header('Location: ' . URL . 'products/loanprovision?msg='.$status.''); 
-
+     function createNewLoanAgeing($data, $office) {
+        try {
+            $postData = array(
+                'office_id' => $office,
+                'description' => $data['description'],
+                'days_from' => $data['days_from'],
+                'days_to' => $data['days_to'],
+                'provision' => $data['provision'],
+            );
+    
+            $results = $this->db->InsertData('m_loan_ageing', $postData);
+                return !empty($results);
+        } catch (Exception $e) {
+            throw new Exception("Error in createNewLoanAgeing: " . $e->getMessage());
+        }
     }
-
+  
 
     function updateloanageing(){
      $data =  $_POST;
