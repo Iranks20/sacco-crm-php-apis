@@ -1885,22 +1885,32 @@ function amortization_Calculation() {
           return $this->db->SelectData("SELECT * FROM insurance_categories WHERE office_id = '".$office."' AND status = 'Active'");
       }
 	
-    	function getInsuranceCategory($id){
-    		$office = $_SESSION['office'];
-    		$result =  $this->db->SelectData("SELECT * FROM insurance_categories WHERE office_id = '".$office."' AND id = '" . $id ."'");
-    	    return $result;	
-    	}
-    	
-    	function updateInsuranceCategory($id){
-    	    
-    	    $postData = array(
-                'name' => $_POST['name']
-            );
+      function getInsuranceCategory($id, $office) {
+        try {
+            $result = $this->db->SelectData("SELECT * FROM insurance_categories WHERE office_id = '".$office."' AND id = '" . $id ."'");
+    
+            if (!empty($result)) {
+                return $result[0];
+            } else {
+                return false;
+            }
+        } catch (Exception $e) {
+            return false;
+        }
+      }    
 
-            $this->db->UpdateData('insurance_categories', $postData, "`id` = '{$id}'");
-            header('Location: ' . URL . 'products/insurancecategories?msg=updated');
-    	}
-    	
+      function updateInsuranceCategory($id, $data) {
+          try {
+              $postData = array(
+                  'name' => $data['name']
+              );
+              $this->db->UpdateData('insurance_categories', $postData, "`id` = '{$id}'");
+          } catch (Exception $e) {
+              // Handle any exceptions if needed
+              throw new Exception("Failed to update insurance category: " . $e->getMessage());
+          }
+      }
+   	
     	function deleteInsuranceCategory($id){
     	    
     	    $postData = array(

@@ -2264,18 +2264,39 @@ class Products extends Controller{
 		}
 	}	
 
-	// function newinsurancecategory(){
-	// 	$this->view->render('forms/products/newinsurancecategory');
-	// }
+	function editinsurancecategory($id) {
+		try {
+			$headers = getallheaders();
+			$office = isset($headers['office']) ? $headers['office'] : '';
 	
-	function editinsurancecategory($id){
-		$this->view->insurance = $this->model->getInsuranceCategory($id);
-		$this->view->render('forms/products/editinsurancecategory');
-	}
+			$insurance = $this->model->getInsuranceCategory($id, $office);
 	
-	function updateinsurancecategory($id){
-		$this->model->updateInsuranceCategory($id);
-	}
+			if ($insurance) {
+				echo json_encode($insurance);
+			} else {
+				$response = array("status" => "Insurance Category not found");
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array("status" => "An error occurred: " . $e->getMessage());
+			echo json_encode($response);
+		}
+	}	
+
+	function updateinsurancecategory($id) {
+		try {
+			$jsonInput = file_get_contents('php://input');
+			$data = json_decode($jsonInput, true);
+	
+			$this->model->updateInsuranceCategory($id, $data);
+	
+			$response = array("status" => "Insurance Category updated successfully");
+			echo json_encode($response);
+		} catch (Exception $e) {
+			$errorResponse = array("error" => $e->getMessage());
+			echo json_encode($errorResponse);
+		}
+	}	
 	
 	function deleteinsurancecategory($id){
 		$this->model->deleteInsuranceCategory($id);
@@ -2308,9 +2329,6 @@ class Products extends Controller{
 		$this->model->saveInsurance($_POST);
 	}
 
-	// function createinsurancecategory(){
-	// 	$this->model->saveInsuranceCategory($_POST);
-	// }
 	function createinsurancecategory() {
 		try {
 			$jsonInput = file_get_contents('php://input');
