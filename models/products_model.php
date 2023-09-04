@@ -703,8 +703,7 @@ function getChargeTransactionTypes2($id, $pdtType) {
 }
 
 
-function getGlaccounts() {
-  $office=$_SESSION['office'];
+function getGlaccounts($office) {
   return  $this->db->SelectData("SELECT * FROM acc_ledger_account where disabled ='No' AND account_usage='Account' AND sacco_id = '".$office."' order by name");      
 }
 function getGlaccountdetails($id){
@@ -921,7 +920,6 @@ function createcharge() {
   } else {
     $ispenalty = 0;
   }
-  $office = $_SESSION['office'];
   $postData = array(
     'office_id' => $_SESSION['office'],
     'charge_applies_to' => $data['chargeappliesto'],
@@ -1577,48 +1575,47 @@ function fixedDepositProductsdetails($id) {
   return $this->db->SelectData("SELECT * FROM fixed_deposit_product where id='" . $id . "' ");
 }
 
+function createfixedDepositProducts($data) {
+  try {
+      $postData = array(
+          'office_id' => $data['office'],
+          'name' => $data['product_name'],
+          'created_by' => $data['user_id'],
+          'description' => $data['fixeddeposite_description'],
+          'minimum_deposit_amount' => $data['minDepositAmount'],
+          'maximum_deposit_amount' => $data['maxDepositAmount'],
+          'interest_posting_period' => $data['i_postingperiod'],
+          'interest_calculation_method' => $data['s_interestCalculationTypeMethod'],
+          'days_in_year' => $data['days_in_year'],
+          'minimum_deposit_term' => $data['minDepositTerm'],
+          'minimum_term_value' => $data['minDepositTermTypeId'],
+          'maximum_deposit_term' => $data['maximumDepositTerm'],
+          'maximum_term_value' => $data['maxDepositTermTypeId'],
+      );
 
+      $result = $this->db->InsertData('fixed_deposit_product', $postData);
 
-function createfixedDepositProducts() {
+      if (!empty($data['s_charges'])) {
+          $num_charges = $data['s_charges'];
 
-  $data = $_POST;
-  $office=$_SESSION['office'];
-  $postData = array(
-   'office_id' =>   $office,
-   'name' => $data['product_name'],
-   'created_by' => $_SESSION['user_id'],
-   'description' => $data['fixeddeposite_description'],
-   'minimum_deposit_amount' => $data['minDepositAmount'],
-   'maximum_deposit_amount' => $data['maxDepositAmount'],
-   'interest_posting_period' => $data['i_postingperiod'],
-   'interest_calculation_method' => $data['s_interestCalculationTypeMethod'],
-   'days_in_year' => $data['days_in_year'], 
-   'minimum_deposit_term' => $data['minDepositTerm'],
-   'minimum_term_value' => $data['minDepositTermTypeId'],
-   'maximum_deposit_term' => $data['maximumDepositTerm'],
-   'maximum_term_value' => $data['maxDepositTermTypeId'],
- );
-
-  $result = $this->db->InsertData('fixed_deposit_product', $postData);
-  if(!empty($_POST['s_charges'])){
-    $num_charge = count($_POST['s_charges']);
-    $num_charges = $_POST['s_charges'];
-
-    for ($i = 0; $i < $num_charge; $i++) {
-      if (!empty($num_charges[$i])) {
-        $postData1 = array(
-          'savings_product_id' => $result,
-          'charge_id' => $num_charges[$i],
-        );
-        $this->db->InsertData('m_savings_product_charge', $postData1);
+          for ($i = 0; $i < count($num_charges); $i++) {
+              if (!empty($num_charges[$i])) {
+                  $postData1 = array(
+                      'savings_product_id' => $result,
+                      'charge_id' => $num_charges[$i],
+                  );
+                  $this->db->InsertData('m_savings_product_charge', $postData1);
+              }
+          }
       }
-    }
+
+      return $result;
+  } catch (Exception $e) {
+      // Handle the exception, you can log it or return an error response as needed.
+      return array('error' => 'An error occurred: ' . $e->getMessage());
   }
-
-
-   // header('Location:' . URL . 'products/fixeddepositproducts?update=true');
-  header('Location:' . URL . 'products/addglpointerstime/'.$result.'?msg=true');
 }
+
 
 function UpdatefixedDepositProducts() {
 

@@ -1776,7 +1776,6 @@ class Products extends Controller{
 					'message' => 'Required header (office) is missing.'
 				);
 			} else {
-				// Fetch required data as needed
 				$assets = $this->model->getAssets();
 				$liability = $this->model->getLiability();
 				$equity = $this->model->getEquity();
@@ -1785,9 +1784,7 @@ class Products extends Controller{
 				$id = 4;
 				$charges = $this->model->getCharges($id, $office);
 				$currency = $this->model->currency();
-	
-				// Create a response with the fetched data
-				$response = array(
+					$response = array(
 					'status' => 200,
 					'message' => 'Data retrieved successfully.',
 					'data' => array(
@@ -1813,11 +1810,51 @@ class Products extends Controller{
 			http_response_code($response['status']);
 			echo json_encode($response);
 		}
-	}	
-
-	function createfixedDepositProducts(){
-		$this->model->createfixedDepositProducts();	
 	}
+
+	function createfixedDepositProducts() {
+		try {
+			$jsonInput = file_get_contents('php://input');
+			$data = json_decode($jsonInput, true);
+				$headers = getallheaders();
+			$office = isset($headers['office']) ? $headers['office'] : null;
+			$user_id = isset($headers['user_id']) ? $headers['user_id'] : null;
+	
+			if ($office === null || $user_id === null) {
+				$response = array(
+					'status' => 400,
+					'message' => 'Required headers (office and user_id) are missing.'
+				);
+			} else {
+				$data['office'] = $office;
+				$data['user_id'] = $user_id;
+					$result = $this->model->createfixedDepositProducts($data);
+	
+				if ($result) {
+					$response = array(
+						'status' => 200,
+						'message' => 'Fixed deposit product created successfully.'
+					);
+				} else {
+					$response = array(
+						'status' => 500,
+						'message' => 'Failed to create fixed deposit product.'
+					);
+				}
+			}
+	
+			http_response_code($response['status']);
+			echo json_encode($response);
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500,
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code($response['status']);
+			echo json_encode($response);
+		}
+	}	
 
 	function UpdatefixedDepositProducts(){
 		$data=$_POST;
@@ -1882,14 +1919,46 @@ class Products extends Controller{
 			http_response_code(500);
 			echo json_encode($response);
 		}
-	}	
-
-	function newChargesProduct(){
-		$this->view->currency  = $this->model->currency();
-		$this->view->products = $this->model->getProducts();
-		$this->view->glaccounts = $this->model->getGlaccounts();
-		$this->view->render('forms/products/newchargeproduct');
 	}
+	
+	function newChargesProduct() {
+		try {
+			$headers = getallheaders();
+			$office = isset($headers['office']) ? $headers['office'] : null;
+	
+			if ($office === null) {
+				$response = array(
+					'status' => 400,
+					'message' => 'Required header (office_id) is missing.'
+				);
+			} else {
+				$currency = $this->model->currency();
+				$products = $this->model->getProducts();
+				$glaccounts = $this->model->getGlaccounts($office);
+	
+				$response = array(
+					'status' => 200,
+					'message' => 'Data retrieved successfully.',
+					'data' => array(
+						'currency' => $currency,
+						'products' => $products,
+						'glaccounts' => $glaccounts
+					)
+				);
+			}
+	
+			http_response_code($response['status']);
+			echo json_encode($response);
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500,
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code($response['status']);
+			echo json_encode($response);
+		}
+	}	
 
 	function getchargeapplicity($id){
 		$this->view->apply  = $this->model->getchargeapplicity($id);
