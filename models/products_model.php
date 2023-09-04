@@ -1910,19 +1910,19 @@ function amortization_Calculation() {
               throw new Exception("Failed to update insurance category: " . $e->getMessage());
           }
       }
-   	
-    	function deleteInsuranceCategory($id){
-    	    
-    	    $postData = array(
-                'status' => 'Closed'
+  
+      function deleteInsuranceCategory($id, $data) {
+          try {
+              $postData = array(
+                  'status' => $data['status']
               );
-
-            $this->db->UpdateData('insurance_categories', $postData, "`id` = '{$id}'");
-            header('Location: ' . URL . 'products/insurancecategories?msg=deleted');
-    	}
+      
+              $this->db->UpdateData('insurance_categories', $postData, "`id` = '{$id}'");
+          } catch (Exception $e) {
+              throw new Exception("Failed to delete insurance category: " . $e->getMessage());
+          }
+      }
         
-
-
        function SharesList($office){
          return $this->db->SelectData("SELECT * FROM share_products  WHERE office_id = '".$office."'");
 

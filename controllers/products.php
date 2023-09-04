@@ -2298,10 +2298,21 @@ class Products extends Controller{
 		}
 	}	
 	
-	function deleteinsurancecategory($id){
-		$this->model->deleteInsuranceCategory($id);
-	}
+	function deleteinsurancecategory($id) {
+		try {
+			$jsonInput = file_get_contents('php://input');
+			$data = json_decode($jsonInput, true);
+	
+			$this->model->deleteInsuranceCategory($id, $data);
+	
+			$response = array("status" => "Insurance Category deleted successfully");
+			echo json_encode($response);
+		} catch (Exception $e) {
 
+			$errorResponse = array("error" => $e->getMessage());
+			echo json_encode($errorResponse);
+		}
+	}
 
 	function createShare(){
 		$user = $_SERVER['HTTP_USER'];
