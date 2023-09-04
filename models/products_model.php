@@ -1815,69 +1815,75 @@ function amortization_Calculation() {
 ///shares processing
 
        function saveShares($data){
-        $user = $data['user'];
-        $office = $data['office'];
-    
-        $postData = array(
-            'office_id' =>  $office,
-            'share_name' => $data['sname'],
-            'description' => $data['description'],
-            'amount_per_share' => $data['samount'],
-            'created_by' => $user
-        );
-    
-        $result = $this->db->InsertData('share_products', $postData);
-    
-        $response = array(
-            'status' => 200,
-            'message' => 'Share product created successfully.',
-            'data' => array(
-                'share_product_id' => $result
-            )
-        );
-    
-        echo json_encode($response);
-    }    
+          $user = $data['user'];
+          $office = $data['office'];
+      
+          $postData = array(
+              'office_id' =>  $office,
+              'share_name' => $data['sname'],
+              'description' => $data['description'],
+              'amount_per_share' => $data['samount'],
+              'created_by' => $user
+          );
+      
+          $result = $this->db->InsertData('share_products', $postData);
+      
+          $response = array(
+              'status' => 200,
+              'message' => 'Share product created successfully.',
+              'data' => array(
+                  'share_product_id' => $result
+              )
+          );
+      
+          echo json_encode($response);
+      }   
 
-       function saveInsurance($data){
-        $postData = array(
-          'office_id' =>  $_SESSION['office'],
-          'name' => $data['name'],
-          'description' => $data['description'],
-          'min_amount' => $data['min_amount'],
-          'max_amount' => $data['max_amount'],
-          'cover' => $data['cover'],
-          'reward' => $data['reward'],
-          'claim_penalty' => $data['claim_penalty'],
-          'claim_type' => $data['claim_type'],
-          'recovery_time' => $data['recovery_time'],
-          'recovery_time_type' => $data['recovery_time_type'],
-          'category' => $data['category'],
-          'product_type' => $data['product_type'],
-          'payment_freq' => $data['payment_freq'],
-          'payout_freq' => $data['payout_freq'],
-          'created_by' => $_SESSION['user_id']
-        );
+      function saveInsurance($data){
+      $postData = array(
+        'office_id' =>  $_SESSION['office'],
+        'name' => $data['name'],
+        'description' => $data['description'],
+        'min_amount' => $data['min_amount'],
+        'max_amount' => $data['max_amount'],
+        'cover' => $data['cover'],
+        'reward' => $data['reward'],
+        'claim_penalty' => $data['claim_penalty'],
+        'claim_type' => $data['claim_type'],
+        'recovery_time' => $data['recovery_time'],
+        'recovery_time_type' => $data['recovery_time_type'],
+        'category' => $data['category'],
+        'product_type' => $data['product_type'],
+        'payment_freq' => $data['payment_freq'],
+        'payout_freq' => $data['payout_freq'],
+        'created_by' => $_SESSION['user_id']
+      );
 
-         $result = $this->db->InsertData('insurance_products', $postData);
-         header('Location:'.URL.'products/addglpointersinsurance/'.$result.'?msg=success');
+        $result = $this->db->InsertData('insurance_products', $postData);
+        header('Location:'.URL.'products/addglpointersinsurance/'.$result.'?msg=success');
 
-       }
+      }
 
-       function saveInsuranceCategory($data){
-         $postData = array(
-          'office_id' =>  $_SESSION['office'],
-          'name' => $data['name']
-        );
-
-         $result = $this->db->InsertData('insurance_categories', $postData);
-         header('Location:'.URL.'products/insurancecategories/?msg=success');
-
-       }
-
-        function getInsuranceCategories($office){
-            return $this->db->SelectData("SELECT * FROM insurance_categories WHERE office_id = '".$office."' AND status = 'Active'");
-        }
+      function saveInsuranceCategory($data, $office) {
+          try {
+              $postData = array(
+                  'office_id' => $office,
+                  'name' => $data['name']
+              );        
+              $result = $this->db->InsertData('insurance_categories', $postData);        
+      
+              if (!empty($result)) {
+                  return true;
+              } else {
+                  throw new Exception("Failed to insert data into insurance_categories");
+              }
+          } catch (Exception $e) {
+              throw $e;
+          }
+      }
+      function getInsuranceCategories($office){
+          return $this->db->SelectData("SELECT * FROM insurance_categories WHERE office_id = '".$office."' AND status = 'Active'");
+      }
 	
     	function getInsuranceCategory($id){
     		$office = $_SESSION['office'];

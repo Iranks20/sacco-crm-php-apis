@@ -2264,9 +2264,9 @@ class Products extends Controller{
 		}
 	}	
 
-	function newinsurancecategory(){
-		$this->view->render('forms/products/newinsurancecategory');
-	}
+	// function newinsurancecategory(){
+	// 	$this->view->render('forms/products/newinsurancecategory');
+	// }
 	
 	function editinsurancecategory($id){
 		$this->view->insurance = $this->model->getInsuranceCategory($id);
@@ -2308,9 +2308,41 @@ class Products extends Controller{
 		$this->model->saveInsurance($_POST);
 	}
 
-	function createinsurancecategory(){
-		$this->model->saveInsuranceCategory($_POST);
+	// function createinsurancecategory(){
+	// 	$this->model->saveInsuranceCategory($_POST);
+	// }
+	function createinsurancecategory() {
+		try {
+			$jsonInput = file_get_contents('php://input');
+			$data = json_decode($jsonInput, true);
+	
+			$headers = getallheaders();
+			$office = isset($headers['office']) ? $headers['office'] : '';
+	
+			if (empty($office)) {
+				throw new Exception("Office value is missing in headers");
+			}
+	
+			if (isset($data['name'])) {
+				$result = $this->model->saveInsuranceCategory($data, $office);
+	
+				if ($result) {
+					$response = array("status" => "Successfully Created");
+					echo json_encode($response);
+				} else {
+					$response = array("status" => "Not Successfully Created");
+					echo json_encode($response);
+				}
+			} else {
+				$response = array("status" => "Missing or Invalid Data");
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array("status" => $e->getMessage());
+			echo json_encode($response);
+		}
 	}
+	
 
 	/* ----ThirdParty products  ******************/
 	function thirdpartyproducts(){
