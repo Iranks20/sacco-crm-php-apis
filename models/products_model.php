@@ -905,58 +905,46 @@ function getCharge($id) {
   return $result;
 }
 
-function createcharge() {
-  $data = $_POST;
 
-  $commision_amount = 0;
-  if ($data['flatamount'] != "" && $data['peramount'] == "") {
-    $commision_amount = $data['flatamount'];
-  } else if ($data['peramount'] != "" && $data['flatamount'] == "") {
-    $commision_amount = (($data['peramount']/100)*$data['amount']);
+function createcharge($data, $office) {
+  try {
+      $commision_amount = 0;
+      if (!empty($data['flatamount']) && empty($data['peramount'])) {
+          $commision_amount = $data['flatamount'];
+      } elseif (!empty($data['peramount']) && empty($data['flatamount'])) {
+          $commision_amount = (($data['peramount'] / 100) * $data['amount']);
+      }
+
+      $ispenalty = !empty($data['ispenalty']) ? 1 : 0;
+
+      $postData = array(
+          'office_id' => $office,
+          'charge_applies_to' => $data['chargeappliesto'],
+          'name' => $data['fname'],
+          'charge_time' => $data['periodic_charge'],
+          'transaction_type_id' => $data['chargetype'],
+          'charge_calculation_enum' => $data['chargecalculation'],
+          'amount' => str_replace(',', '', $data['amount']),
+          'is_penalty' => $ispenalty,
+          'commission' => $data['commission'],
+          'commission_type' => $data['commission_type'],
+          'percentage' => $data['peramount'],
+          'commision_amount' => $commision_amount,
+      );
+
+      $result = $this->db->InsertData('m_charge', $postData);
+
+      if (!empty($result)) {
+          return true;
+      } else {
+          throw new Exception("Failed to create charge");
+      }
+  } catch (Exception $e) {
+      error_log("Error in createcharge: " . $e->getMessage());
+      return false;
   }
-        //$acc_no= $this->AccountNo();
-  if (!empty($data['ispenalty'])) {
-    $ispenalty = 1;
-  } else {
-    $ispenalty = 0;
-  }
-  $postData = array(
-    'office_id' => $_SESSION['office'],
-    'charge_applies_to' => $data['chargeappliesto'],
-    'name' => $data['fname'],
-    'charge_time' => $data['periodic_charge'],
-    'transaction_type_id' => $data['chargetype'],
-    'charge_calculation_enum' => $data['chargecalculation'],
-    'amount' => str_replace( ',', '', $data['amount']),
-    'is_penalty' => $ispenalty,
-    'commission' => $data['commission'],
-    'commission_type' => $data['commission_type'],
-    'percentage' => $data['peramount'],
-    'commision_amount' => $commision_amount,
-  );
-
-  $result = $this->db->InsertData('m_charge', $postData);
-  
-  $pData = array(
-           'sacco_id' =>$office,
-         'pointer_name' => $data['fname'],
-         'description' => $data['fname'],
-         'product_id' => $result,
-         'transaction_type_id' => $data['chargetype'],
-         'transaction_mode' => 0,
-         'product_type_id' => 6,
-         'debit_account' => $data['source'],
-         'credit_account' => $data['destination'],
-        );
-		
-  $this->db->InsertData('acc_gl_pointers', $pData);
-        $NewData = array(         
-          'status' =>'Active'
-        );
-        $this->db->UpdateData('m_charge', $NewData,"`id` = '{$result}'");
-
-  header('Location:'.URL.'products/chargeproducts?msg=success');
 }
+
 
 function UpdateChargeProduct($data) {
   $id = $data['id'];

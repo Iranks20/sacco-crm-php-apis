@@ -1983,10 +1983,32 @@ class Products extends Controller{
 		$this->view->apply  = $this->model->getchargeapplicity($id);
 	}
 
-
-	function createcharge(){
-		$this->model->createcharge();
-	}
+	function createcharge() {
+		try {
+			$jsonInput = file_get_contents('php://input');
+			$data = json_decode($jsonInput, true);
+	
+			$headers = getallheaders();
+			$office = isset($headers['Office']) ? $headers['Office'] : '';
+	
+			if (isset($headers['office'], $data['chargeappliesto'], $data['fname'], $data['periodic_charge'], $data['chargetype'], $data['chargecalculation'], $data['amount'])) {
+				$result = $this->model->createcharge($data, $office);
+				if ($result) {
+					$response = array("status" => "Successfully Created");
+					echo json_encode($response);
+				} else {
+					$response = array("status" => "Not Successfully Created");
+					echo json_encode($response);
+				}
+			} else {
+				$response = array("status" => "Missing or Invalid Data");
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$response = array("status" => "Error: " . $e->getMessage());
+			echo json_encode($response);
+		}
+	}	
 
 	function editChargeProduct($id){
 		$this->view->charge = $this->model->getChargesDetails($id);
