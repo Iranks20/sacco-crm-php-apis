@@ -1763,18 +1763,57 @@ class Products extends Controller{
 			http_response_code(500);
 			echo json_encode($response);
 		}
-	}	
-
-	function newfixedDepositProducts(){
-		$this->view->assets=$this->model->getAssets();
-		$this->view->liability=$this->model->getLiability();
-		$this->view->equity=$this->model->getEquity();
-		$this->view->income=$this->model->getIncome();
-		$this->view->expenses=$this->model->getExpenses();
-		$this->view->getcharges=$this->model->getCharges(4);
-		$this->view->currency  = $this->model->currency();
-		$this->view->render('forms/products/newfixeddepositproduct');
 	}
+
+	function newfixedDepositProducts() {
+		try {
+			$headers = getallheaders();
+			$office = isset($headers['office']) ? $headers['office'] : null;
+	
+			if ($office === null) {
+				$response = array(
+					'status' => 400,
+					'message' => 'Required header (office) is missing.'
+				);
+			} else {
+				// Fetch required data as needed
+				$assets = $this->model->getAssets();
+				$liability = $this->model->getLiability();
+				$equity = $this->model->getEquity();
+				$income = $this->model->getIncome();
+				$expenses = $this->model->getExpenses();
+				$id = 4;
+				$charges = $this->model->getCharges($id, $office);
+				$currency = $this->model->currency();
+	
+				// Create a response with the fetched data
+				$response = array(
+					'status' => 200,
+					'message' => 'Data retrieved successfully.',
+					'data' => array(
+						'assets' => $assets,
+						'liability' => $liability,
+						'equity' => $equity,
+						'income' => $income,
+						'expenses' => $expenses,
+						'charges' => $charges,
+						'currency' => $currency
+					)
+				);
+			}
+	
+			http_response_code($response['status']);
+			echo json_encode($response);
+		} catch (Exception $e) {
+			$response = array(
+				'status' => 500,
+				'message' => 'An error occurred: ' . $e->getMessage()
+			);
+	
+			http_response_code($response['status']);
+			echo json_encode($response);
+		}
+	}	
 
 	function createfixedDepositProducts(){
 		$this->model->createfixedDepositProducts();	
