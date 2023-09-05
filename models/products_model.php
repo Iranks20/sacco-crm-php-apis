@@ -334,83 +334,98 @@ class Products_model extends Model {
     header('Location: ' . URL . 'products/defaultproducts?msg=success');
   }
 
+  // function updateDefaultProducts($data){
+
+  //   $office = $data['office'];
+
+  //   $sth = $this->db->prepare("DELETE FROM `m_reg_settings` WHERE `sacco_id` = '$office'");
+  //   $success = $sth->execute();
+
+  //   $this->adddefaults($data);
+
+  //   header('Location: ' . URL . 'products/defaultproducts?msg=updated');
+  // }
   function updateDefaultProducts($data){
+      try {
+          $office = $_SESSION['office'];
 
-    $office = $_SESSION['office'];
+          $sth = $this->db->prepare("DELETE FROM `m_reg_settings` WHERE `sacco_id` = '$office'");
+          $success = $sth->execute();
 
-    /*$defaults =  $this->db->SelectData("SELECT * FROM m_reg_settings WHERE status ='Active' AND sacco_id = '".$office."'");
+          $this->adddefaults($data);
 
-    foreach ($defaults as $key => $value) {
-    
-      $postData = array(
-        'status' => 'Closed'
-      );
-
-      $id = $value['id'];
-
-      $this->db->UpdateData('m_reg_settings', $postData, "`id` = '{$id}'");
-
-    }*/
-
-    $sth = $this->db->prepare("DELETE FROM `m_reg_settings` WHERE `sacco_id` = '$office'");
-    $success = $sth->execute();
-
-    $this->adddefaults($data);
-
-    header('Location: ' . URL . 'products/defaultproducts?msg=updated');
+          return true;
+      } catch (Exception $e) {
+          throw new Exception("Failed to update defaults: " . $e->getMessage());
+      }
   }
 
   function adddefaults($data){
+    try {
+        $charge = 6;
+        $wallet = 5;
+        $shares = 1;
+        $savings = 3;
+        $group = -1;
 
-    $charge = 6;
-    $wallet = 5;
-    $shares = 1;
-    $savings = 3;
-    $group = -1;
+        if ($data['group_savings_product'] != "") {
+            $this->insertdefaults($group, $data['group_savings_product'], str_replace(",", "", $data['group_savings_amount']));
+        }
 
-    if ($data['group_savings_product'] != "" ) {
-      $this->insertdefaults($group, $data['group_savings_product'], str_replace(",","",$data['group_savings_amount']));
+        foreach ($data['charges'] as $key => $value) {
+            if ($value != "") {
+                $this->insertdefaults($charge, $value, str_replace(",", "", $data['charge_amounts'][$key]));
+            }
+        }
+
+        if ($data['shares'] != "") {
+            if ($data['share_product'] == "" && $data['shares_amount'] == "") {
+                $this->insertdefaults($shares, 0, 0);
+            } else if ($data['share_product'] != "" && $data['shares_amount'] != "") {
+                $this->insertdefaults($shares, $data['share_product'], str_replace(",", "", $data['shares_amount']));
+            }
+        }
+
+        if ($data['savings'] != "") {
+            if ($data['savings_product'] == "" && $data['savings_amount'] == "") {
+                $this->insertdefaults($savings, 0, 0);
+            } else if ($data['savings_product'] != "" && $data['savings_amount'] != "") {
+                $this->insertdefaults($savings, $data['savings_product'], str_replace(",", "", $data['savings_amount']));
+            }
+
+            if (isset($data['wallets'])) {
+                $this->insertdefaults($wallet, 0, 0);
+            }
+        }
+
+        // No exceptions, operation succeeded
+        return true;
+    } catch (Exception $e) {
+        // Handle any exceptions and re-throw
+        throw new Exception("Failed to add defaults: " . $e->getMessage());
     }
-    
-    foreach ($data['charges'] as $key => $value) {
-      if ($value != "") {
-        $this->insertdefaults($charge, $value, str_replace(",","",$data['charge_amounts'][$key]));
-      }
-    }
+}
 
-    if ($data['shares'] != "") {
-      if ($data['share_product'] == "" && $data['shares_amount'] == "") {
-        $this->insertdefaults($shares, 0, 0);
-      } else if ($data['share_product'] != "" && $data['shares_amount'] != "") {
-        $this->insertdefaults($shares, $data['share_product'], str_replace(",","",$data['shares_amount']));
-      }
-    }
 
-    if ($data['savings'] != "") {
-      if ($data['savings_product'] == "" && $data['savings_amount'] == "") {
-        $this->insertdefaults($savings, 0, 0);
-      } else if ($data['savings_product'] != "" && $data['savings_amount'] != "") {
-        $this->insertdefaults($savings, $data['savings_product'], str_replace(",","",$data['savings_amount']));
-      }
+function insertdefaults($product_type, $product_id, $amount){
+  try {
+      $postData = array(
+          'sacco_id' => 1001,
+          'product_type' => $product_type,
+          'p_id' => $product_id,
+          'amount' => $amount,
+          'created_by' => 2
+      );
 
-      if (isset($data['wallets'])) {
-        $this->insertdefaults($wallet, 0, 0);
-      }
-    }
+      $result = $this->db->InsertData('m_reg_settings', $postData);
 
+      // No exceptions, operation succeeded
+      return true;
+  } catch (Exception $e) {
+      // Handle any exceptions and re-throw
+      throw new Exception("Failed to insert defaults: " . $e->getMessage());
   }
-
-  function insertdefaults($product_type, $product_id, $amount){
-    $postData = array(
-     'sacco_id' =>$_SESSION['office'],
-     'product_type' => $product_type,
-     'p_id' => $product_id,
-     'amount' => $amount,
-     'created_by' => $_SESSION['user_id']
-    );
-
-    $result = $this->db->InsertData('m_reg_settings', $postData);
-  }
+}
 
   function getDefaultsCount($office){
 

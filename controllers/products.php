@@ -139,12 +139,9 @@ class Products extends Controller{
 
 	function defaultproducts(){
 		try {
-			$office = $_SERVER['HTTP_OFFICE'];
-			// $jsonData = json_decode(file_get_contents('php://input'), true);
+			$office = getallheaders()['office'];
 	
-			if (!empty($office)) {
-				// $office = $jsonData['office'];
-	
+			if (!empty($office)) {	
 				$defaultsCount = $this->model->getDefaultsCount($office);
 				$charges = $this->model->getAllCharges($office);
 				$savings = $this->model->getAllSavings($office);
@@ -192,39 +189,72 @@ class Products extends Controller{
 			http_response_code(500); // Set HTTP status code
 			echo json_encode($response);
 		}
+	}
+	function editdefaults() {
+		try {
+			$office = getallheaders()['office'];
+	
+			$allcharges = $this->model->getAllCharges($office);
+			$allsavings = $this->model->getAllSavings($office);
+			$allshares = $this->model->getAllShares($office);
+			$selected_charges = $this->model->getDefaultProducts(6);
+	
+			$charges = array();
+			$charges_selected = array();
+			foreach ($selected_charges as $key => $value) {
+				array_push($charges, $value['p_id']);
+			}
+	
+			foreach ($selected_charges as $key => $value) {
+				array_push($charges_selected, $value[0]);
+			}
+	
+			$wallets = $this->model->getDefaultWalletDetails(5);
+			$savings = $this->model->getDefaultProducts(3);
+			$shares = $this->model->getDefaultProducts(1);
+			$groups = $this->model->getDefaultProducts(-1);
+	
+			$responseData = array(
+				"office" => $office,
+				"allcharges" => $allcharges,
+				"allsavings" => $allsavings,
+				"allshares" => $allshares,
+				"charges" => $charges,
+				"charges_selected" => $charges_selected,
+				"wallets" => $wallets,
+				"savings" => $savings,
+				"shares" => $shares,
+				"groups" => $groups,
+			);
+	
+			echo json_encode($responseData);
+		} catch (Exception $e) {
+			$errorResponse = array("error" => $e->getMessage());
+			echo json_encode($errorResponse);
+		}
 	}	
 
-	function editdefaults(){
-
-	 	$this->view->allcharges = $this->model->getAllCharges();
-		$this->view->allsavings = $this->model->getAllSavings();
-		$this->view->allshares = $this->model->getAllShares();
-
-		$selected_charges = $this->model->getDefaultProducts(6);
-
-		$charges = array();
-		$charges_selected = array();
-		foreach ($selected_charges as $key => $value) {
-			array_push($charges, $value['p_id']);
-		}
-
-		foreach ($selected_charges as $key => $value) {
-			array_push($charges_selected, $value[0]);
-		}
-		
-		$this->view->charges = $charges;
-		$this->view->charges_selected = $charges_selected;
-		$this->view->wallets = $this->model->getDefaultWalletDetails(5);
-		$this->view->savings = $this->model->getDefaultProducts(3);
-		$this->view->shares = $this->model->getDefaultProducts(1);
-		$this->view->groups = $this->model->getDefaultProducts(-1);
-
-		$this->view->render('forms/products/editdefaults');
-	}
-
+	// function updatedefaults(){
+	// 	$this->model->updateDefaultProducts($_POST);
+	// }
 	function updatedefaults(){
-		$this->model->updateDefaultProducts($_POST);
-	}
+		try {
+			// Retrieve JSON input
+			$jsonInput = file_get_contents('php://input');
+			$data = json_decode($jsonInput, true);
+	
+			// Call the model function to update defaults
+			$final = $this->model->updateDefaultProducts($data);
+	
+			// Return a JSON response indicating success
+			$response = array("status" => $final);
+			echo json_encode($response);
+		} catch (Exception $e) {
+			// Handle any exceptions and return an error response
+			$errorResponse = array("error" => $e->getMessage());
+			echo json_encode($errorResponse);
+		}
+	}	
 
 	function getSavingsProductDetails($id){
 		$this->model->getSavingsProductDetails($id);
