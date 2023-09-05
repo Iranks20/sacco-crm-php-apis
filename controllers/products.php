@@ -125,22 +125,52 @@ class Products extends Controller{
 		}
 	}	
 
-	function editexemption($id){
-		$this->view->id = $id;
-		$member_details = $this->model->getMemberDetails($id);
-		$this->view->member = $member_details['firstname'] . " " . $member_details['middlename'] . " " . $member_details['lastname'];
-		$this->view->charges = $this->model->getSelectedCharges($id);
-		$this->view->allcharges = $this->model->getAllSaccoCharges();
-		$this->view->render('forms/products/edit_exemptions');		
-	}
+	function editexemption($id) {
+		try {
+			$headers = getallheaders();
+			$office = isset($headers['office']) ? $headers['office'] : null;
+	
+			$memberDetails = $this->model->getMemberDetails($id, $office);
+			$memberName = $memberDetails['firstname'] . " " . $memberDetails['middlename'] . " " . $memberDetails['lastname'];
+			$selectedCharges = $this->model->getSelectedCharges($id, $office);
+			$allSaccoCharges = $this->model->getAllSaccoCharges($office);
+	
+			$response = array(
+				"id" => $id,
+				"member" => $memberName,
+				"selected_charges" => $selectedCharges,
+				"all_charges" => $allSaccoCharges
+			);
+	
+			echo json_encode($response);
+		} catch (Exception $e) {
+			$errorResponse = array("error" => $e->getMessage());
+			echo json_encode($errorResponse);
+		}
+	}	
 
 	function updateexemptionmembers($id){
 		$this->model->updateExemptedMembers($id);
 	}
-
 	function updateexemption($id){
-		$this->model->editChargeExemption($id);
-	}
+		try {
+			$jsonInput = file_get_contents('php://input');
+			$data = json_decode($jsonInput, true);
+	
+			$result = $this->model->editChargeExemption($id, $data);
+	
+			if ($result) {
+				$response = array("status" => 200, "message" => "Charge exemption updated successfully");
+			} else {
+				$response = array("status" => 400, "message" => "Failed to update charge exemption");
+			}
+	
+			echo json_encode($response);
+		} catch (Exception $e) {
+			$errorResponse = array("status" => 500, "error" => $e->getMessage());
+			echo json_encode($errorResponse);
+		}
+	}	
 
 	function resetexemption($id){
 		$this->model->resetChargeExemption($id);

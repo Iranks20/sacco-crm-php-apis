@@ -207,9 +207,8 @@ class Products_model extends Model {
     return $query;
   }
 
-  function getMemberDetails($id){
+  function getMemberDetails($id, $office){
 
-    $office=$_SESSION['office'];
     $query= $this->db->SelectData("SELECT * FROM members WHERE office_id='".$office."' AND c_id = '$id'");
 
     return $query[0];
@@ -226,9 +225,8 @@ class Products_model extends Model {
       header('Location: ' . URL . 'products/chargeexemption?msg=reset');
   }
 
-  function getSelectedCharges($id){
+  function getSelectedCharges($id, $office){
 
-    $office=$_SESSION['office'];
     $query= $this->db->SelectData("SELECT charge_exemptions FROM members WHERE office_id='".$office."' AND c_id = '$id'");
 
     foreach ($query as $key => $value) {
@@ -238,24 +236,50 @@ class Products_model extends Model {
 
   }
 
-  function editChargeExemption($id){
+  // function editChargeExemption($id){
 
-    $exp = "";
-    foreach ($_POST['charges'] as $key => $value) {
-      $exp .= $value . ",";
-    }
-    $exp .= " ";
+  //   $exp = "";
+  //   foreach ($_POST['charges'] as $key => $value) {
+  //     $exp .= $value . ",";
+  //   }
+  //   $exp .= " ";
 
-    $exp1 = str_replace(", ", "", $exp);
-    $exp2 = str_replace(" ,", "", $exp1);
-    $new_exp = str_replace(" ", "", $exp2);
+  //   $exp1 = str_replace(", ", "", $exp);
+  //   $exp2 = str_replace(" ,", "", $exp1);
+  //   $new_exp = str_replace(" ", "", $exp2);
 
-    $postData = array(
-      'charge_exemptions' => $new_exp
-    );
+  //   $postData = array(
+  //     'charge_exemptions' => $new_exp
+  //   );
 
-    $this->db->UpdateData('members', $postData, "`c_id` = '{$id}'");
-    header('Location: ' . URL . 'products/chargeexemption?msg=success');
+  //   $this->db->UpdateData('members', $postData, "`c_id` = '{$id}'");
+  //   header('Location: ' . URL . 'products/chargeexemption?msg=success');
+  // }
+
+  function editChargeExemption($id, $data){
+      try {
+          $exp = "";
+          foreach ($data['charges'] as $key => $value) {
+              $exp .= $value . ",";
+          }
+          $exp .= " ";
+
+          $exp1 = str_replace(", ", "", $exp);
+          $exp2 = str_replace(" ,", "", $exp1);
+          $new_exp = str_replace(" ", "", $exp2);
+
+          $postData = array(
+              'charge_exemptions' => $new_exp
+          );
+
+          $this->db->UpdateData('members', $postData, "`c_id` = '{$id}'");
+          
+          // No exceptions, operation succeeded
+          return true;
+      } catch (Exception $e) {
+          // Handle any exceptions if needed
+          throw new Exception("Failed to update charge exemption: " . $e->getMessage());
+      }
   }
 
   function getThirdpartyTransactions($id, $office){
@@ -311,8 +335,7 @@ class Products_model extends Model {
     return $results;
   }
 
-  function getAllSaccoCharges(){
-    $office = $_SESSION['office'];
+  function getAllSaccoCharges($office){
     $results =  $this->db->SelectData("SELECT * FROM m_charge WHERE status ='Active' AND is_active = 1 AND is_deleted = 0  AND office_id = '".$office."'");
     return $results;
   }
