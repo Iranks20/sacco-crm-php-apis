@@ -421,46 +421,87 @@ class Products extends Controller{
 
 
 	//////////////////////insurance//////////////////////
-	function addglpointersinsurance($id){
+	// function addglpointersinsurance($id){
 
-		$this->view->hastransactions = $this->model->hastransacted();
+	// 	$this->view->hastransactions = $this->model->hastransacted();
 
-		$product_type=8;
-		$this->view->product=$id;	
-	 	$this->view->transaction_types = $this->model->getMissingTransactionTypes($id, $product_type);
-	 	$this->view->payment_modes= $this->model->getPaymentModes();
-	 	$this->view->created= $this->model->getPointers($id,$product_type);
-	 	$this->view->glaccounts = $this->model->getGlaccounts();
+	// 	$product_type=8;
+	// 	$this->view->product=$id;	
+	//  	$this->view->transaction_types = $this->model->getMissingTransactionTypes($id, $product_type);
+	//  	$this->view->payment_modes= $this->model->getPaymentModes();
+	//  	$this->view->created= $this->model->getPointers($id,$product_type);
+	//  	$this->view->glaccounts = $this->model->getGlaccounts();
 
-		$types = $this->model->getTransactionTypes($product_type);
-		$created_pointers = $this->model->getPointers($id,$product_type);
+	// 	$types = $this->model->getTransactionTypes($product_type);
+	// 	$created_pointers = $this->model->getPointers($id,$product_type);
 
-		$joint1 = array();
-		if ($types > 0) {
-			foreach ($types as $key => $value) {
-				$joint1[$key] = $value['transaction_type_name'];
+	// 	$joint1 = array();
+	// 	if ($types > 0) {
+	// 		foreach ($types as $key => $value) {
+	// 			$joint1[$key] = $value['transaction_type_name'];
+	// 		}
+	// 	}
+
+	// 	$joint2 = array();
+	// 	if ($created_pointers > 0) {
+	// 		foreach ($created_pointers as $key => $value) {
+	// 			$joint2[$key] = $value['transaction_type'];
+	// 		}
+	// 	}
+
+	// 	$missing = array_diff($joint1, $joint2);
+	// 	$this->view->missing = $missing;
+	// 	$this->view->product_type = $product_type;
+	// 	$imported_accounts = $this->model->checkIfSaccoImportedAccounts($id);
+	// 	$this->view->imported_accounts = $imported_accounts;
+
+	// 	if ($imported_accounts) {
+	// 		$this->view->missing_pointers = $this->model->getMissingPointers($missing);
+	// 	}
+	// 	$this->view->render('forms/products/insurance_pointers_form');
+
+	// }
+    function addglpointersinsurance($id) {
+		try {
+			// Fetch the office value from headers
+			$office = getallheaders()['office'];
+	
+			$product_type = 8;
+	
+			$types = $this->model->getTransactionTypes($product_type);
+			$created_pointers = $this->model->getPointers($id, $product_type);
+	
+			$joint1 = array();
+			if ($types > 0) {
+				foreach ($types as $key => $value) {
+					$joint1[$key] = $value['transaction_type_name'];
+				}
 			}
-		}
-
-		$joint2 = array();
-		if ($created_pointers > 0) {
-			foreach ($created_pointers as $key => $value) {
-				$joint2[$key] = $value['transaction_type'];
+	
+			$joint2 = array();
+			if ($created_pointers > 0) {
+				foreach ($created_pointers as $key => $value) {
+					$joint2[$key] = $value['transaction_type'];
+				}
 			}
+	
+			$missing = array_diff($joint1, $joint2);
+	
+			// Return a JSON response with data
+			$response = array(
+				"office" => $office,
+				"product" => $id,
+				"missing" => $missing,
+				"product_type" => $product_type,
+			);
+	
+			echo json_encode($response);
+		} catch (Exception $e) {
+			// Handle any exceptions and return an error response
+			$errorResponse = array("error" => $e->getMessage());
+			echo json_encode($errorResponse);
 		}
-
-		$missing = array_diff($joint1, $joint2);
-		$this->view->missing = $missing;
-		$this->view->product_type = $product_type;
-		$imported_accounts = $this->model->checkIfSaccoImportedAccounts($id);
-		$this->view->imported_accounts = $imported_accounts;
-
-		if ($imported_accounts) {
-			$this->view->missing_pointers = $this->model->getMissingPointers($missing);
-		}
-		$this->view->render('forms/products/insurance_pointers_form');
-
-	}
+	}	
 
 	function editglpointersinsurance($product_id, $pointer_id){
 
@@ -502,47 +543,6 @@ class Products extends Controller{
 	}
 	/////////////////////////////////////////////////////
 
-	// function addSavingsGlpointers($id){
-
-	// 	$this->view->hastransactions = $this->model->hastransacted();
-
-	// 	$product_type=3;
-	// 	$this->view->product=$id;
-	// 	$this->view->transaction_types = $this->model->getMissingTransactionTypes($id, $product_type);
-	// 	$this->view->payment_modes= $this->model->getPaymentModes();
-	// 	$this->view->created= $this->model->getPointers($id,$product_type);
-	// 	$this->view->glaccounts = $this->model->getGlaccounts();
-
-	// 	$types = $this->model->getTransactionTypes($product_type);
-	// 	$created_pointers = $this->model->getPointers($id,$product_type);
-
-	// 	$joint1 = array();
-	// 	if ($types > 0) {
-	// 		foreach ($types as $key => $value) {
-	// 			$joint1[$key] = $value['transaction_type_name'];
-	// 		}
-	// 	}
-
-	// 	$joint2 = array();
-	// 	if ($created_pointers > 0) {
-	// 		foreach ($created_pointers as $key => $value) {
-	// 			$joint2[$key] = $value['transaction_type'];
-	// 		}
-	// 	}
-
-	// 	$missing = array_diff($joint1, $joint2);
-	// 	$this->view->missing = $missing;
-	// 	$this->view->prodproduct_typeuct_type = $;
-	// 	$imported_accounts = $this->model->checkIfSaccoImportedAccounts($id);
-	// 	$this->view->imported_accounts = $imported_accounts;
-
-	// 	if ($imported_accounts) {
-	// 		$this->view->missing_pointers = $this->model->getMissingPointers($missing);
-	// 	}
-	// 	$this->view->render('forms/products/savings_pointers_form');
-
-	// }
-
 	function addSavingsGlpointers($id) {
 		try {
 			$headers = getallheaders();
@@ -561,7 +561,7 @@ class Products extends Controller{
 				$transaction_types = $this->model->getMissingTransactionTypes($id, $product_type, $office);
 				$payment_modes = $this->model->getPaymentModes();
 				$created = $this->model->getPointers($id, $product_type, $office);
-				$glaccounts = $this->model->getGlaccounts();
+				$glaccounts = $this->model->getGlaccounts($office);
 	
 				$types = $this->model->getTransactionTypes($product_type);
 				$created_pointers = $this->model->getPointers($id, $product_type, $office);
@@ -875,14 +875,24 @@ class Products extends Controller{
 		}
 	}	
 
-	function createglinsurance(){
-		$this->model->createglinsurance();
-	}
-
-	// function createglsaving(){	
-	// 	$this->model->createglsaving();
-		
-	// }
+	function createglinsurance() {
+		try {
+			$jsonInput = file_get_contents('php://input');
+			$data = json_decode($jsonInput, true);
+	
+			$office = getallheaders()['office'];
+	
+			$data['office'] = $office;
+	
+			$this->model->createglinsurance($data);
+	
+			$response = array("status" => "GL insurance created successfully");
+			echo json_encode($response);
+		} catch (Exception $e) {
+			$errorResponse = array("error" => $e->getMessage());
+			echo json_encode($errorResponse);
+		}
+	}	
 
 	function createglsaving() {
 		try {

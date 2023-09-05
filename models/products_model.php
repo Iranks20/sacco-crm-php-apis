@@ -1838,31 +1838,6 @@ function amortization_Calculation() {
       
           echo json_encode($response);
       }   
-
-      // function saveInsurance($data){
-      // $postData = array(
-      //   'office_id' =>  $_SESSION['office'],
-      //   'name' => $data['name'],
-      //   'description' => $data['description'],
-      //   'min_amount' => $data['min_amount'],
-      //   'max_amount' => $data['max_amount'],
-      //   'cover' => $data['cover'],
-      //   'reward' => $data['reward'],
-      //   'claim_penalty' => $data['claim_penalty'],
-      //   'claim_type' => $data['claim_type'],
-      //   'recovery_time' => $data['recovery_time'],
-      //   'recovery_time_type' => $data['recovery_time_type'],
-      //   'category' => $data['category'],
-      //   'product_type' => $data['product_type'],
-      //   'payment_freq' => $data['payment_freq'],
-      //   'payout_freq' => $data['payout_freq'],
-      //   'created_by' => $_SESSION['user_id']
-      // );
-
-      //   $result = $this->db->InsertData('insurance_products', $postData);
-      //   header('Location:'.URL.'products/addglpointersinsurance/'.$result.'?msg=success');
-
-      // }
       function saveInsurance($data) {
           try {
               $postData = array(
@@ -2400,58 +2375,58 @@ function customersupportshedule($id,$p,$np,$d1) {
       }
 
     function createglequity($data) {
-      try {
-          $postData = array(
-              'sacco_id' => $data['office'],
-              'pointer_name' => $data['pname'],
-              'description' => $data['description'],
-              'product_type_id' => 1,
-              'product_id' => $data['pnumber'],
-              'transaction_type_id' => $data['transaction_type'],
-              'transaction_mode' => $data['transaction_mode'],
-              'debit_account' => $data['source'],
-              'credit_account' => $data['destination'],
-          );
-  
-          $this->db->InsertData('acc_gl_pointers', $postData);
-  
-          $postData = array(         
-              'product_status' => 'Active'
-          );
-  
-          $this->db->UpdateData('share_products', $postData, "`id` = '{$data['pnumber']}'");
-  
-          return true;
-      } catch (Exception $e) {
-          return false;
-      }
-  }  
+        try {
+            $postData = array(
+                'sacco_id' => $data['office'],
+                'pointer_name' => $data['pname'],
+                'description' => $data['description'],
+                'product_type_id' => 1,
+                'product_id' => $data['pnumber'],
+                'transaction_type_id' => $data['transaction_type'],
+                'transaction_mode' => $data['transaction_mode'],
+                'debit_account' => $data['source'],
+                'credit_account' => $data['destination'],
+            );
+    
+            $this->db->InsertData('acc_gl_pointers', $postData);
+    
+            $postData = array(         
+                'product_status' => 'Active'
+            );
+    
+            $this->db->UpdateData('share_products', $postData, "`id` = '{$data['pnumber']}'");
+    
+            return true;
+        } catch (Exception $e) {
+            return false;
+        }
+    }
 
-      function createglinsurance() {
-        $data = $_POST;
-        $office =$_SESSION['office'];
-        
-        $postData = array(
-            'sacco_id' =>$office,
-            'pointer_name' => $data['pname'],
-            'description' => $data['description'],
-            'product_type_id' => 8,
-            'product_id' => $data['pnumber'],
-            'transaction_type_id' => $data['transaction_type'],
-            'transaction_mode' => $data['transaction_mode'],
-            'debit_account' => $data['source'],
-            'credit_account' => $data['destination'],
-        );
-
-        $this->db->InsertData('acc_gl_pointers', $postData);
-
-        $postData = array(
-          'product_status' =>'Active'
-        );
-        $this->db->UpdateData('insurance_products', $postData,"`id` = '{$data['pnumber']}'");
-
-        header('Location: ' . URL . 'products/addglpointersinsurance/'.$data['pnumber']);
-      }
+    function createglinsurance($data) {
+        try {
+            $postData = array(
+                'sacco_id' => $data['office'],
+                'pointer_name' => $data['pname'],
+                'description' => $data['description'],
+                'product_type_id' => 8,
+                'product_id' => $data['pnumber'],
+                'transaction_type_id' => $data['transaction_type'],
+                'transaction_mode' => $data['transaction_mode'],
+                'debit_account' => $data['source'],
+                'credit_account' => $data['destination'],
+            );
+    
+            $this->db->InsertData('acc_gl_pointers', $postData);
+    
+            $postData = array(
+                'product_status' => 'Active'
+            );
+    
+            $this->db->UpdateData('insurance_products', $postData, "`id` = '{$data['pnumber']}'");
+        } catch (Exception $e) {
+            throw new Exception("Failed to create GL insurance: " . $e->getMessage());
+        }
+    }    
     function createglsaving($data) {
       $postData = array(
             'sacco_id' => $data['office'],
@@ -2473,113 +2448,113 @@ function customersupportshedule($id,$p,$np,$d1) {
     }  
 
 
-      function createglother() {    
-         $data = $_POST;
-
-        $office =$_SESSION['office'];
-        $postData = array(
-         'sacco_id' =>$office,
-         'pointer_name' => $data['pname'],
-         'description' => $data['description'],
-         'product_id' => $data['pnumber'],
-         'transaction_type_id' => $data['transaction_type'],
-         'transaction_mode' => 0,
-         'product_type_id' => $data['product_type'],
-         'debit_account' => $data['source'],
-         'credit_account' => $data['destination'],
-        );
-
-        $this->db->InsertData('acc_gl_pointers', $postData);
-        $NewData = array(         
-          'status' =>'Active'
-        );
-        $this->db->UpdateData('m_charge', $NewData,"`id` = '{$data['pnumber']}'");
-        return true;
-        header('Location: ' . URL . 'products/addglpointerswallet/'.$data['pnumber']);
-      }
-
-      function createglwallet() {
+    function createglother() {    
         $data = $_POST;
-        $office =$_SESSION['office'];
-        $postData = array(
-         'sacco_id' =>$office,
-         'pointer_name' => $data['pname'],
-         'description' => $data['description'],
-         'product_type_id' => 5,
-		 'product_id' => $data['pnumber'],
-         'transaction_type_id' => $data['transaction_type'],
-         'transaction_mode' => $data['transaction_mode'],
-         'debit_account' => $data['source'],
-         'credit_account' => $data['destination'],
-       );
 
-        $this->db->InsertData('acc_gl_pointers', $postData);
-        header('Location: ' . URL . 'products/addglpointerswallet/'.$data['pnumber']);
-      }
+      $office =$_SESSION['office'];
+      $postData = array(
+        'sacco_id' =>$office,
+        'pointer_name' => $data['pname'],
+        'description' => $data['description'],
+        'product_id' => $data['pnumber'],
+        'transaction_type_id' => $data['transaction_type'],
+        'transaction_mode' => 0,
+        'product_type_id' => $data['product_type'],
+        'debit_account' => $data['source'],
+        'credit_account' => $data['destination'],
+      );
 
-
-      function createTimeGl() {
-        $data = $_POST;
-        $office =$_SESSION['office'];
-        $postData = array(
-         'sacco_id' =>$office,
-         'pointer_name' => $data['pname'],
-         'description' => $data['description'],
-         'product_id' => $data['pnumber'],
-          'product_type_id' => 4,
-         'transaction_type_id' => $data['transaction_type'],
-         'transaction_mode' => $data['transaction_mode'],
-         'debit_account' => $data['source'],
-         'credit_account' => $data['destination'],
-       );
-
-        $this->db->InsertData('acc_gl_pointers', $postData);
-        $NewData = array(         
-          'product_status' =>'Active'
-        );
-        $this->db->UpdateData('fixed_deposit_product', $NewData,"`id` = '{$data['pnumber']}'");
-        header('Location: ' . URL . 'products/addglpointerstime/'.$data['pnumber']);
-      }
-
-      function loanProvision($office){
-       return $this->db->SelectData("SELECT * FROM m_loan_ageing WHERE office_id = $office order by id");
-     }   
-
-     function createNewLoanAgeing($data, $office) {
-        try {
-            $postData = array(
-                'office_id' => $office,
-                'description' => $data['description'],
-                'days_from' => $data['days_from'],
-                'days_to' => $data['days_to'],
-                'provision' => $data['provision'],
-            );
-    
-            $results = $this->db->InsertData('m_loan_ageing', $postData);
-                return !empty($results);
-        } catch (Exception $e) {
-            throw new Exception("Error in createNewLoanAgeing: " . $e->getMessage());
-        }
+      $this->db->InsertData('acc_gl_pointers', $postData);
+      $NewData = array(         
+        'status' =>'Active'
+      );
+      $this->db->UpdateData('m_charge', $NewData,"`id` = '{$data['pnumber']}'");
+      return true;
+      header('Location: ' . URL . 'products/addglpointerswallet/'.$data['pnumber']);
     }
-  
 
-    function updateloanageing(){
-     $data =  $_POST;
-     $id = $data['id'];     
-     $postData = array(         
-      'description' =>$data['description'],
-      'days_from' =>$data['days_from'],
-      'days_to' =>$data['days_to'],
-      'provision' =>$data['provision'],
+    function createglwallet() {
+      $data = $_POST;
+      $office =$_SESSION['office'];
+      $postData = array(
+        'sacco_id' =>$office,
+        'pointer_name' => $data['pname'],
+        'description' => $data['description'],
+        'product_type_id' => 5,
+    'product_id' => $data['pnumber'],
+        'transaction_type_id' => $data['transaction_type'],
+        'transaction_mode' => $data['transaction_mode'],
+        'debit_account' => $data['source'],
+        'credit_account' => $data['destination'],
+      );
+
+      $this->db->InsertData('acc_gl_pointers', $postData);
+      header('Location: ' . URL . 'products/addglpointerswallet/'.$data['pnumber']);
+    }
+
+
+  function createTimeGl() {
+    $data = $_POST;
+    $office =$_SESSION['office'];
+    $postData = array(
+      'sacco_id' =>$office,
+      'pointer_name' => $data['pname'],
+      'description' => $data['description'],
+      'product_id' => $data['pnumber'],
+      'product_type_id' => 4,
+      'transaction_type_id' => $data['transaction_type'],
+      'transaction_mode' => $data['transaction_mode'],
+      'debit_account' => $data['source'],
+      'credit_account' => $data['destination'],
     );
 
-     $this->db->UpdateData('m_loan_ageing', $postData,"`id` = '{$id}'");
-     $status = 'update successfully';
-     header('Location: ' . URL . 'products/loanProvision?msg='.$status.''); 
+    $this->db->InsertData('acc_gl_pointers', $postData);
+    $NewData = array(         
+      'product_status' =>'Active'
+    );
+    $this->db->UpdateData('fixed_deposit_product', $NewData,"`id` = '{$data['pnumber']}'");
+    header('Location: ' . URL . 'products/addglpointerstime/'.$data['pnumber']);
+  }
 
-   }
+  function loanProvision($office){
+    return $this->db->SelectData("SELECT * FROM m_loan_ageing WHERE office_id = $office order by id");
+  }   
 
-   function getLonAgeingDetails($id){
+  function createNewLoanAgeing($data, $office) {
+      try {
+          $postData = array(
+              'office_id' => $office,
+              'description' => $data['description'],
+              'days_from' => $data['days_from'],
+              'days_to' => $data['days_to'],
+              'provision' => $data['provision'],
+          );
+  
+          $results = $this->db->InsertData('m_loan_ageing', $postData);
+              return !empty($results);
+      } catch (Exception $e) {
+          throw new Exception("Error in createNewLoanAgeing: " . $e->getMessage());
+      }
+  }
+  
+
+  function updateloanageing(){
+    $data =  $_POST;
+    $id = $data['id'];     
+    $postData = array(         
+    'description' =>$data['description'],
+    'days_from' =>$data['days_from'],
+    'days_to' =>$data['days_to'],
+    'provision' =>$data['provision'],
+  );
+
+    $this->db->UpdateData('m_loan_ageing', $postData,"`id` = '{$id}'");
+    $status = 'update successfully';
+    header('Location: ' . URL . 'products/loanProvision?msg='.$status.''); 
+
+  }
+
+  function getLonAgeingDetails($id){
     return $this->db->SelectData("SELECT * FROM m_loan_ageing where id ='".$id."'  order by id  ");
 
   }
