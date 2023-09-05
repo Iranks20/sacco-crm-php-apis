@@ -101,20 +101,43 @@ class Products extends Controller{
 		}
 	}
 	
-	function chargeexemption($id=null){
+	// function chargeexemption($id=null){
 
-		$this->view->members = $this->model->getAllMembers();
+	// 	$this->view->members = $this->model->getAllMembers();
 		
-		if (is_null($id)) {
-			$this->view->render('forms/products/member_charge_exemptions');
-		} else{
-			$this->view->id = $id;
-			$this->view->charge = $this->model->getChargesDetails($id);
-			$this->view->exempted_members = $this->model->getProductExceptions($id);
-			$this->view->render('forms/products/charge_exemptions');
-		}
+	// 	if (is_null($id)) {
+	// 		$this->view->render('forms/products/member_charge_exemptions');
+	// 	} else{
+	// 		$this->view->id = $id;
+	// 		$this->view->charge = $this->model->getChargesDetails($id);
+	// 		$this->view->exempted_members = $this->model->getProductExceptions($id);
+	// 		$this->view->render('forms/products/charge_exemptions');
+	// 	}
 
-	}
+	// }
+	function chargeexemption($id = null) {
+		try {
+			$headers = getallheaders();
+			$office = isset($headers['office']) ? $headers['office'] : null;
+	
+			if (is_null($id)) {
+				$members = $this->model->getAllMembers($office);
+					$response = array("members" => $members);
+				echo json_encode($response);
+			} else {
+				$charge = $this->model->getChargesDetails($id, $office);
+				$exemptedMembers = $this->model->getProductExceptions($id);
+				$response = array(
+					"charge" => $charge,
+					"exempted_members" => $exemptedMembers
+				);
+				echo json_encode($response);
+			}
+		} catch (Exception $e) {
+			$errorResponse = array("error" => $e->getMessage());
+			echo json_encode($errorResponse);
+		}
+	}	
 
 	function editexemption($id){
 		$this->view->id = $id;
@@ -239,18 +262,14 @@ class Products extends Controller{
 	// }
 	function updatedefaults(){
 		try {
-			// Retrieve JSON input
 			$jsonInput = file_get_contents('php://input');
 			$data = json_decode($jsonInput, true);
 	
-			// Call the model function to update defaults
 			$final = $this->model->updateDefaultProducts($data);
 	
-			// Return a JSON response indicating success
 			$response = array("status" => $final);
 			echo json_encode($response);
 		} catch (Exception $e) {
-			// Handle any exceptions and return an error response
 			$errorResponse = array("error" => $e->getMessage());
 			echo json_encode($errorResponse);
 		}

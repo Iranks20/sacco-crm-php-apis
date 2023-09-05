@@ -199,9 +199,9 @@ class Products_model extends Model {
 
   }
 
-  function getAllMembers(){
+  function getAllMembers($office){
 
-    $office=$_SESSION['office'];
+    // $office=$_SESSION['office'];
     $query= $this->db->SelectData("SELECT * FROM members WHERE office_id='".$office."'");
 
     return $query;
