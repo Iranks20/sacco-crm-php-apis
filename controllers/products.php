@@ -100,21 +100,7 @@ class Products extends Controller{
 			echo json_encode($response);
 		}
 	}
-	
-	// function chargeexemption($id=null){
 
-	// 	$this->view->members = $this->model->getAllMembers();
-		
-	// 	if (is_null($id)) {
-	// 		$this->view->render('forms/products/member_charge_exemptions');
-	// 	} else{
-	// 		$this->view->id = $id;
-	// 		$this->view->charge = $this->model->getChargesDetails($id);
-	// 		$this->view->exempted_members = $this->model->getProductExceptions($id);
-	// 		$this->view->render('forms/products/charge_exemptions');
-	// 	}
-
-	// }
 	function chargeexemption($id = null) {
 		try {
 			$headers = getallheaders();
