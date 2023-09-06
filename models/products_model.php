@@ -201,7 +201,6 @@ class Products_model extends Model {
 
   function getAllMembers($office){
 
-    // $office=$_SESSION['office'];
     $query= $this->db->SelectData("SELECT * FROM members WHERE office_id='".$office."'");
 
     return $query;
@@ -216,14 +215,18 @@ class Products_model extends Model {
   }
 
   function resetChargeExemption($id){
-    
-      $postData = array(
-        'charge_exemptions' => ''
-      );
-
-      $this->db->UpdateData('members', $postData, "`c_id` = '{$id}'");
-      header('Location: ' . URL . 'products/chargeexemption?msg=reset');
+      try {
+          $postData = array(
+              'charge_exemptions' => ''
+          );
+          $this->db->UpdateData('members', $postData, "`c_id` = '{$id}'");         
+          return true;
+      } catch (Exception $e) {
+          throw new Exception("Failed to reset charge exemption: " . $e->getMessage());
+          return false;
+      }
   }
+
 
   function getSelectedCharges($id, $office){
 
@@ -235,26 +238,6 @@ class Products_model extends Model {
     return $exp;
 
   }
-
-  // function editChargeExemption($id){
-
-  //   $exp = "";
-  //   foreach ($_POST['charges'] as $key => $value) {
-  //     $exp .= $value . ",";
-  //   }
-  //   $exp .= " ";
-
-  //   $exp1 = str_replace(", ", "", $exp);
-  //   $exp2 = str_replace(" ,", "", $exp1);
-  //   $new_exp = str_replace(" ", "", $exp2);
-
-  //   $postData = array(
-  //     'charge_exemptions' => $new_exp
-  //   );
-
-  //   $this->db->UpdateData('members', $postData, "`c_id` = '{$id}'");
-  //   header('Location: ' . URL . 'products/chargeexemption?msg=success');
-  // }
 
   function editChargeExemption($id, $data){
       try {
@@ -274,10 +257,8 @@ class Products_model extends Model {
 
           $this->db->UpdateData('members', $postData, "`c_id` = '{$id}'");
           
-          // No exceptions, operation succeeded
           return true;
       } catch (Exception $e) {
-          // Handle any exceptions if needed
           throw new Exception("Failed to update charge exemption: " . $e->getMessage());
       }
   }
@@ -705,8 +686,7 @@ function getMissingTransactionTypes($id, $product_type, $office) {
 
 }
 
-function getChargeTransactionTypes($id, $pdtType) {
-  $office=$_SESSION['office'];
+function getChargeTransactionTypes($id, $office, $product_type) {
 
   $charge =  $this->db->SelectData("SELECT * FROM m_charge WHERE id ='$id' AND office_id='".$office."'");
 
@@ -780,17 +760,20 @@ function getPointers($id, $product_type, $office, $charge=null) {
   }
 }
 
-function hastransacted($office){
-  $result=$this->db->SelectData("SELECT * FROM acc_gl_journal_entry WHERE office_id = ".$office. " AND transaction_id NOT LIKE 'OP%'");
+function hastransacted($office) {
+  $query = "SELECT * FROM acc_gl_journal_entry WHERE office_id = :office AND transaction_id NOT LIKE 'OP%'";
+  $params = array('office' => $office);
 
-  $count=count($result);         
-  if($count>0){
-    return FALSE;
+  $result = $this->db->SelectData($query, $params);
+
+  $count = count($result);
+  if ($count > 0) {
+      return FALSE;
   } else {
-    return TRUE;
+      return TRUE;
   }
-
 }
+
 
 function getPointerDetails($id, $product_id, $prodType) {
   $parent_office =$_SESSION['office'];
@@ -2483,33 +2466,36 @@ function customersupportshedule($id,$p,$np,$d1) {
             'product_status' => 'Active'
         );
         $this->db->UpdateData('m_savings_product', $NewData, "`id` = '{$data['pnumber']}'");
-    }  
-
-
-    function createglother() {    
-        $data = $_POST;
-
-      $office =$_SESSION['office'];
-      $postData = array(
-        'sacco_id' =>$office,
-        'pointer_name' => $data['pname'],
-        'description' => $data['description'],
-        'product_id' => $data['pnumber'],
-        'transaction_type_id' => $data['transaction_type'],
-        'transaction_mode' => 0,
-        'product_type_id' => $data['product_type'],
-        'debit_account' => $data['source'],
-        'credit_account' => $data['destination'],
-      );
-
-      $this->db->InsertData('acc_gl_pointers', $postData);
-      $NewData = array(         
-        'status' =>'Active'
-      );
-      $this->db->UpdateData('m_charge', $NewData,"`id` = '{$data['pnumber']}'");
-      return true;
-      header('Location: ' . URL . 'products/addglpointerswallet/'.$data['pnumber']);
-    }
+    } 
+    
+    function createGLOther($data) {
+      try {
+          $postData = array(
+              'sacco_id' => $data['office'],
+              'pointer_name' => $data['pname'],
+              'description' => $data['description'],
+              'product_id' => $data['pnumber'],
+              'transaction_type_id' => $data['transaction_type'],
+              'transaction_mode' => 0,
+              'product_type_id' => $data['product_type'],
+              'debit_account' => $data['source'],
+              'credit_account' => $data['destination'],
+          );
+  
+          $this->db->InsertData('acc_gl_pointers', $postData);
+          
+          $NewData = array(         
+              'status' => 'Active'
+          );
+          $this->db->UpdateData('m_charge', $NewData, "`id` = '{$data['pnumber']}'");
+  
+          return true;
+      } catch (Exception $e) {
+          // Handle any exceptions and return false for failure
+          throw new Exception("Failed to create GL other: " . $e->getMessage());
+          return false;
+      }
+  }  
 
     function createglwallet() {
       $data = $_POST;

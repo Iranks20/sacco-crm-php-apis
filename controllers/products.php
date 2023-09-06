@@ -170,11 +170,34 @@ class Products extends Controller{
 			$errorResponse = array("status" => 500, "error" => $e->getMessage());
 			echo json_encode($errorResponse);
 		}
-	}	
-
-	function resetexemption($id){
-		$this->model->resetChargeExemption($id);
 	}
+
+	// function resetexemption($id){
+	// 	$this->model->resetChargeExemption($id);
+	// }
+	function resetexemption($id){
+		try {
+			// Call the model function to reset charge exemption
+			$result = $this->model->resetChargeExemption($id);
+	
+			if ($result === true) {
+				// Operation succeeded
+				$response = array("status" => 200, "message" => "Charge exemption reset successfully");
+			} else {
+				// Operation failed
+				$response = array("status" => 500, "message" => "Failed to reset charge exemption");
+			}
+			
+			// Return the JSON response
+			http_response_code($response['status']);
+			echo json_encode($response);
+		} catch (Exception $e) {
+			// Handle any exceptions and return an error response
+			$errorResponse = array("status" => 500, "message" => $e->getMessage());
+			http_response_code($errorResponse['status']);
+			echo json_encode($errorResponse);
+		}
+	}	
 
 	function defaultproducts(){
 		try {
@@ -801,47 +824,112 @@ class Products extends Controller{
 		$this->model->UpdateGlAccountFixed($_POST, $id);
 	}
 
-	function addglpointersOther($id){
-		$this->view->hastransactions = $this->model->hastransacted();
-		$product_type = 6;
-		$this->view->product = $id;	
-		$charge = $this->model->getCharge($id);
-		//$product_type = $charge[0]['charge_applies_to'];
+	// function addglpointersOther($id){
+	// 	$this->view->hastransactions = $this->model->hastransacted();
+	// 	$product_type = 6;
+	// 	$this->view->product = $id;	
+	// 	$charge = $this->model->getCharge($id);
+	// 	//$product_type = $charge[0]['charge_applies_to'];
 		
 
-		$this->view->transaction_types = $this->model->getChargeTransactionTypes($id, $product_type);
-		$this->view->payment_modes = $this->model->getPaymentModes();
-		$this->view->created = $this->model->getPointers($id, $product_type, $charge[0]['transaction_type_id']);
-		$this->view->glaccounts = $this->model->getGlaccounts();
+	// 	$this->view->transaction_types = $this->model->getChargeTransactionTypes($id, $product_type);
+	// 	$this->view->payment_modes = $this->model->getPaymentModes();
+	// 	$this->view->created = $this->model->getPointers($id, $product_type, $charge[0]['transaction_type_id']);
+	// 	$this->view->glaccounts = $this->model->getGlaccounts();
 
-		$types = $this->model->getChargeTransactionTypes($id, $product_type, $charge[0]['transaction_type_id']);
-		$created_pointers = $this->model->getPointers($id,$product_type);
+	// 	$types = $this->model->getChargeTransactionTypes($id, $product_type, $charge[0]['transaction_type_id']);
+	// 	$created_pointers = $this->model->getPointers($id,$product_type);
 
-		$joint1 = array();
-		if ($types > 0) {
-			foreach ($types as $key => $value) {
-				$joint1[$key] = $value['transaction_type_name'];
+	// 	$joint1 = array();
+	// 	if ($types > 0) {
+	// 		foreach ($types as $key => $value) {
+	// 			$joint1[$key] = $value['transaction_type_name'];
+	// 		}
+	// 	}
+
+	// 	$joint2 = array();
+	// 	if ($created_pointers > 0) {
+	// 		foreach ($created_pointers as $key => $value) {
+	// 			$joint2[$key] = $value['transaction_type'];
+	// 		}
+	// 	}
+
+	// 	$missing = array_diff($joint1, $joint2);
+	// 	$this->view->missing = $missing;
+	// 	$this->view->product_type = $product_type;
+	// 	$imported_accounts = $this->model->checkIfSaccoImportedAccounts($id);
+	// 	$this->view->imported_accounts = $imported_accounts;
+
+	// 	if ($imported_accounts) {
+	// 		$this->view->missing_pointers = $this->model->getMissingPointers($missing);
+	// 	}
+	// 	$this->view->render('forms/products/charge_pointers_form');
+
+	// }
+	function addglpointersOther($id) {
+		$office = isset($_SERVER['HTTP_HEAD']) ? $_SERVER['HTTP_HEAD'] : null;
+		
+		$responseData = array();
+	
+		try {
+			$hastransactions = $this->model->hastransacted($office);
+			$product_type = 6;
+			$product = $id;
+	
+			$charge = $this->model->getCharge($id);
+	
+			$transaction_types = $this->model->getChargeTransactionTypes($id, $office, $product_type);
+			$payment_modes = $this->model->getPaymentModes();
+			$created = $this->model->getPointers($id, $product_type, $office, $charge[0]['transaction_type_id']);
+			$glaccounts = $this->model->getGlaccounts($office);
+	
+			$types = $this->model->getChargeTransactionTypes($id, $office, $product_type, $charge[0]['transaction_type_id']);
+			$created_pointers = $this->model->getPointers($id, $product_type, $office);
+	
+			$joint1 = array();
+			if ($types > 0) {
+				foreach ($types as $key => $value) {
+					$joint1[$key] = $value['transaction_type_name'];
+				}
 			}
-		}
-
-		$joint2 = array();
-		if ($created_pointers > 0) {
-			foreach ($created_pointers as $key => $value) {
-				$joint2[$key] = $value['transaction_type'];
+	
+			$joint2 = array();
+			if ($created_pointers > 0) {
+				foreach ($created_pointers as $key => $value) {
+					$joint2[$key] = $value['transaction_type'];
+				}
 			}
+	
+			$missing = array_diff($joint1, $joint2);
+			$product_type = $product_type;
+			$imported_accounts = $this->model->checkIfSaccoImportedAccounts($id, $office);
+	
+			$responseData['hastransactions'] = $hastransactions;
+			$responseData['product'] = $product;
+			$responseData['charge'] = $charge;
+			$responseData['transaction_types'] = $transaction_types;
+			$responseData['payment_modes'] = $payment_modes;
+			$responseData['created'] = $created;
+			$responseData['glaccounts'] = $glaccounts;
+			$responseData['missing'] = $missing;
+			$responseData['product_type'] = $product_type;
+			$responseData['imported_accounts'] = $imported_accounts;
+	
+			if ($imported_accounts) {
+				$responseData['missing_pointers'] = $this->model->getMissingPointers($missing);
+			}
+	
+			http_response_code(200);
+			echo json_encode($responseData);
+		} catch (Exception $e) {
+			$errorResponse = array(
+				'status' => 500,
+				'message' => 'Failed to process the request: ' . $e->getMessage()
+			);
+	
+			http_response_code(500);
+			echo json_encode($errorResponse);
 		}
-
-		$missing = array_diff($joint1, $joint2);
-		$this->view->missing = $missing;
-		$this->view->product_type = $product_type;
-		$imported_accounts = $this->model->checkIfSaccoImportedAccounts($id);
-		$this->view->imported_accounts = $imported_accounts;
-
-		if ($imported_accounts) {
-			$this->view->missing_pointers = $this->model->getMissingPointers($missing);
-		}
-		$this->view->render('forms/products/charge_pointers_form');
-
 	}
 
 	function addglpointersWallet($id){
@@ -997,10 +1085,36 @@ class Products extends Controller{
 		}
 	}	
 
-	function createglother(){	
-		$this->model->createglother();
-		
-	}
+	function createglother() {
+		try {
+			$jsonInput = file_get_contents('php://input');
+			$data = json_decode($jsonInput, true);
+	
+			$headers = getallheaders();
+			$office = isset($headers['office']) ? $headers['office'] : null;
+	
+			if ($office === null) {
+				$response = array("status" => 400, "message" => "Office value missing in headers");
+			} else {
+				$data['office'] = $office;
+	
+				$result = $this->model->createGLOther($data);
+	
+				if ($result === true) {
+					$response = array("status" => 200, "message" => "GL other created successfully");
+				} else {
+					$response = array("status" => 500, "message" => "Failed to create GL other");
+				}
+			}
+	
+			http_response_code($response['status']);
+			echo json_encode($response);
+		} catch (Exception $e) {
+			$errorResponse = array("status" => 500, "message" => $e->getMessage());
+			http_response_code($errorResponse['status']);
+			echo json_encode($errorResponse);
+		}
+	}	
 
 	function createglwallet(){	
 		$this->model->createglwallet();
