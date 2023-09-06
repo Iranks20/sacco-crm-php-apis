@@ -48,7 +48,6 @@ class Products extends Controller{
 		try {
 			$office = null;
 	
-			// Check if 'office' header is set
 			if (isset($_SERVER['HTTP_OFFICE'])) {
 				$office = $_SERVER['HTTP_OFFICE'];
 			}
@@ -65,7 +64,7 @@ class Products extends Controller{
 				$insurance = $this->model->getInsuranceProductsCount($office);
 	
 				$response = array(
-					'status' => 200, // Success status code
+					'status' => 200,
 					'message' => 'Product data fetched successfully.',
 					'data' => array(
 						'shares' => $shares,
@@ -83,20 +82,20 @@ class Products extends Controller{
 				echo json_encode($response);
 			} else {
 				$response = array(
-					'status' => 400, // Bad request status code
+					'status' => 400,
 					'message' => 'Office value is missing in request header.'
 				);
 	
-				http_response_code(400); // Set HTTP status code
+				http_response_code(400);
 				echo json_encode($response);
 			}
 		} catch (Exception $e) {
 			$response = array(
-				'status' => 500, // Internal server error status code
+				'status' => 500,
 				'message' => 'An error occurred: ' . $e->getMessage()
 			);
 	
-			http_response_code(500); // Set HTTP status code
+			http_response_code(500);
 			echo json_encode($response);
 		}
 	}
@@ -149,9 +148,33 @@ class Products extends Controller{
 		}
 	}	
 
+	// function updateexemptionmembers($id){
+	// 	$this->model->updateExemptedMembers($id);
+	// }
 	function updateexemptionmembers($id){
-		$this->model->updateExemptedMembers($id);
-	}
+		try {
+			$jsonInput = file_get_contents('php://input');
+			$data = json_decode($jsonInput, true);
+	
+			$headers = getallheaders();
+			$office = $headers['office'];
+	
+			$result = $this->model->updateExemptedMembers($id, $data);
+	
+			if ($result === true) {
+				$response = array("status" => 200, "message" => "Exempted members updated successfully");
+			} else {
+				$response = array("status" => 500, "message" => "Failed to update exempted members");
+			}
+	
+			http_response_code($response['status']);
+			echo json_encode($response);
+		} catch (Exception $e) {
+			$errorResponse = array("status" => 500, "message" => $e->getMessage());
+			http_response_code($errorResponse['status']);
+			echo json_encode($errorResponse);
+		}
+	}	
 	function updateexemption($id){
 		try {
 			$jsonInput = file_get_contents('php://input');

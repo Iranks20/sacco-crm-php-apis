@@ -1270,8 +1270,6 @@ function getExpenses() {
 
 function getChargesDetails($id, $office) {
 
-  // $office = $_SESSION['office'];
-
   $result = $this->db->selectData("SELECT * FROM m_charge INNER JOIN products ON m_charge.charge_applies_to = products.p_id WHERE m_charge.office_id = " . $office . " AND id= '" . $id . "' ORDER BY m_charge.id ");
 
   foreach ($result as $key => $value) {
@@ -2467,7 +2465,6 @@ function customersupportshedule($id,$p,$np,$d1) {
         );
         $this->db->UpdateData('m_savings_product', $NewData, "`id` = '{$data['pnumber']}'");
     } 
-    
     function createGLOther($data) {
       try {
           $postData = array(
