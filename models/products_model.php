@@ -966,25 +966,27 @@ function createcharge($data, $office) {
   }
 }
 
+function UpdateChargeProduct($data, $id) {
+  try {
 
-function UpdateChargeProduct($data) {
-  $id = $data['id'];
+      $postData = array(
+          'name' => $data['fname'],
+          'charge_applies_to' => $data['chargeappliesto'],
+          'transaction_type_id' => $data['chargetype'],
+          'charge_calculation_enum' => $data['chargecalculation'],
+          'amount' => str_replace( ',', '', $data['amount']),
+          'is_penalty' => $data['ispenalty'],
+      );
 
-  $postData = array(
-        //'office_id' => $_SESSION['office'],
-    'name' => $data['fname'],
-    'charge_applies_to' => $data['chargeappliesto'],
-    'transaction_type_id' => $data['chargetype'],
-    'charge_calculation_enum' => $data['chargecalculation'],
-    'amount' => str_replace( ',', '',$data['amount']),
-        //'is_active' => $data['activecheck'],
-    'is_penalty' => $data['ispenalty'],
-           // 'income_or_liability_account_id' => $data['incomefcharge']
-  );
-
-  $this->db->UpdateData('m_charge', $postData, "`id` = '{$id}'");
-  header('Location: ' . URL . 'products/chargeproducts?msg=success');
+      $this->db->UpdateData('m_charge', $postData, "`id` = '{$id}'");
+      
+      return true;
+  } catch (Exception $e) {
+      throw new Exception("Failed to update charge product: " . $e->getMessage());
+      return false;
+  }
 }
+
 
 function DeleteChargeProduct($id) {
 
@@ -1269,38 +1271,42 @@ function getExpenses() {
 }
 
 function getChargesDetails($id, $office) {
+  try {
+      $result = $this->db->selectData("SELECT * FROM m_charge INNER JOIN products ON m_charge.charge_applies_to = products.p_id WHERE m_charge.office_id = " . $office . " AND id= '" . $id . "' ORDER BY m_charge.id ");
 
-  $result = $this->db->selectData("SELECT * FROM m_charge INNER JOIN products ON m_charge.charge_applies_to = products.p_id WHERE m_charge.office_id = " . $office . " AND id= '" . $id . "' ORDER BY m_charge.id ");
+      $rset = [];
 
-  foreach ($result as $key => $value) {
-    $rset[$key]['id'] = $result[$key]['id'];
-    $rset[$key]['name'] = $result[$key]['name'];
-    if ($result[$key]['is_penalty'] == 1) {
-      $rset[$key]['type'] = "Penalty";
-    } else {
-      $rset[$key]['type'] = "Charge";
-    }
-    $rset[$key]['amount'] = $result[$key]['amount'];
-    $rset[$key]['transaction_type_id'] = $result[$key]['transaction_type_id'];
-    $rset[$key]['charge_time'] = $result[$key]['charge_time'];
-        //$rset[$key]['chargetime'] = $this->getChargeTime($result[$key]['charge_time']);
-    $rset[$key]['chargetime'] = $this->getChargeTime($result[$key]['transaction_type_id']);
-    $rset[$key]['chargeappliesto'] =  $result[$key]['charge_applies_to'];
-    $rset[$key]['commission'] =  $result[$key]['commission'];
-    $rset[$key]['commision_amount'] =  $result[$key]['commision_amount'];
-          //  $rset[$key]['chargeappliesto'] = $this->getChargePurpose($result[$key]['charge_applies_to']);
-    if ($result[$key]['is_active'] == 1) {
-      $rset[$key]['is_active'] = "Yes";
-    } else {
-      $rset[$key]['is_active'] = "NO";
-    }
-    if ($result[$key]['charge_calculation_enum'] == 1) {
-      $rset[$key]['charge_calculation_enum'] = "Flat";
-    } else {
-      $rset[$key]['charge_calculation_enum'] = "% Amount";
-    }
-  }
-  return $rset;
+      foreach ($result as $key => $value) {
+          $rset[$key]['id'] = $result[$key]['id'];
+          $rset[$key]['name'] = $result[$key]['name'];
+          if ($result[$key]['is_penalty'] == 1) {
+              $rset[$key]['type'] = "Penalty";
+          } else {
+              $rset[$key]['type'] = "Charge";
+          }
+          $rset[$key]['amount'] = $result[$key]['amount'];
+          $rset[$key]['transaction_type_id'] = $result[$key]['transaction_type_id'];
+          $rset[$key]['charge_time'] = $result[$key]['charge_time'];
+          $rset[$key]['chargetime'] = $this->getChargeTime($result[$key]['transaction_type_id']);
+          $rset[$key]['chargeappliesto'] =  $result[$key]['charge_applies_to'];
+          $rset[$key]['commission'] =  $result[$key]['commission'];
+          $rset[$key]['commision_amount'] =  $result[$key]['commision_amount'];
+          if ($result[$key]['is_active'] == 1) {
+              $rset[$key]['is_active'] = "Yes";
+          } else {
+              $rset[$key]['is_active'] = "NO";
+          }
+          if ($result[$key]['charge_calculation_enum'] == 1) {
+              $rset[$key]['charge_calculation_enum'] = "Flat";
+          } else {
+              $rset[$key]['charge_calculation_enum'] = "% Amount";
+          }
+      }
+      return true;
+  } catch (Exception $e) {
+    throw new Exception("Failed to update member exemption: " . $e->getMessage());
+    return false;
+}
 }
 
 function getChargePurpose($id) {

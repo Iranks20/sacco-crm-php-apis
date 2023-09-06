@@ -2222,11 +2222,40 @@ class Products extends Controller{
 		}
 	}	
 
-	function editChargeProduct($id){
-		$this->view->charge = $this->model->getChargesDetails($id);
-		$this->view->products = $this->model->getProducts();
-		$this->view->render('forms/products/editchargesproduct');	
-	}
+	function editChargeProduct($id) {
+		try {
+			$headers = getallheaders();
+			if (isset($headers['office'])) {
+				$office = $headers['office'];
+			} else {
+				throw new Exception('Office header is missing.');
+			}
+	
+			$charge = $this->model->getChargesDetails($id, $office);
+			$products = $this->model->getProducts();
+	
+			$response = [
+				'status' => 200,
+				'message' => 'Charge product details fetched successfully',
+				'data' => [
+					'office' => $office,
+					'charge' => $charge,
+					'products' => $products
+				]
+			];
+	
+			header('Content-Type: application/json');
+			echo json_encode($response);
+		} catch (Exception $e) {
+			$response = [
+				'status' => 500,
+				'message' => 'Failed to fetch charge product details: ' . $e->getMessage()
+			];
+	
+			header('Content-Type: application/json');
+			echo json_encode($response);
+		}
+	}	
 
 	// function viewCharge($product_type, $product_id){
 	// 	$this->view->hastransactions = $this->model->hastransacted();
@@ -2399,10 +2428,27 @@ class Products extends Controller{
 		}
 	}	
 
-	function UpdateChargeProduct(){
-		$data=$_POST;
-		$this->model->UpdateChargeProduct($data);	
-	}
+	function UpdateChargeProduct($id){
+		try {
+			$jsonInput = file_get_contents('php://input');
+			$data = json_decode($jsonInput, true);
+	
+			$result = $this->model->UpdateChargeProduct($data, $id);
+	
+			if ($result === true) {
+				$response = array("status" => 200, "message" => "Charge product updated successfully");
+			} else {
+				$response = array("status" => 500, "message" => "Failed to update charge product");
+			}
+			
+			http_response_code($response['status']);
+			echo json_encode($response);
+		} catch (Exception $e) {
+			$errorResponse = array("status" => 500, "message" => $e->getMessage());
+			http_response_code($errorResponse['status']);
+			echo json_encode($errorResponse);
+		}
+	}	
 
 	function DeleteChargeProduct($id){
 		$this->model->DeleteChargeProduct($id);	
