@@ -99,40 +99,50 @@ function memberstransactionspdf($start, $end){
 }
 
 function walletslistpdf(){
-    $data = $this->model->getWallets();
-	$pdf = new FPDF();
-	$pdf->AddPage();
-	$pdf->SetFont('Helvetica','b',16);
-	$pdf->Cell(30,7,'Member List Report',2);
-    $pdf->Ln();
-	$pdf->Ln();
-	$pdf->SetFont('Helvetica','b',12);
-	$pdf->Cell(30,6,'Member No',1,0,'C');
-	$pdf->Cell(35,6,'Member Name',1,0,'C');
-	$pdf->Cell(35,6,'Wallet No',1,0,'C');
-	//$pdf->Cell(20,6,'DOB',1,0,'C');
-	$pdf->Cell(30,6,'Wallet Status',1,0,'C');
-	$pdf->Cell(35,6,'Walelt Balance',1,0,'C');
+    try {
+		$headers = getallheaders();
+        $office = $headers['office'];
+        $data = $this->model->getWallets($office);
 
-	
- 	foreach ($data as $key => $value){
-	        $total=$total+$value["wallet_balance"];
-			$pdf->Ln();
-			$pdf->SetFont('Helvetica','',10);
-			$pdf->Cell(30,6,$value["member_id"],1);
-			$pdf->Cell(35,6,$value["firstname"]." ". $value["middlename"],1);
-			$pdf->Cell(35,6, $value["wallet_account_number"] ,1);
-			//$pdf->Cell(20,6, $value["date_of_birth"] ,1);
-			$pdf->Cell(30,6, $value["wallet_status"] ,1);
-			$pdf->Cell(35,6, $value["wallet_balance"] ,1);
-			
-	}
-	
-	$pdf->SetFont('Helvetica','b',15);
-	$pdf->Ln();
-	$pdf->Ln();
-	$pdf->Cell(30,6,'TOTAL WALLET BALANCES: '.number_format($total),3);   
-	$pdf->Output();
+        $pdf = new FPDF();
+        $pdf->AddPage();
+        $pdf->SetFont('Helvetica','b',16);
+        $pdf->Cell(30,7,'Member List Report',2);
+        $pdf->Ln();
+        $pdf->Ln();
+        $pdf->SetFont('Helvetica','b',12);
+        $pdf->Cell(30,6,'Member No',1,0,'C');
+        $pdf->Cell(35,6,'Member Name',1,0,'C');
+        $pdf->Cell(35,6,'Wallet No',1,0,'C');
+        $pdf->Cell(30,6,'Wallet Status',1,0,'C');
+        $pdf->Cell(35,6,'Wallet Balance',1,0,'C');
+
+        $total = 0;
+
+        foreach ($data as $key => $value) {
+            $total += $value["wallet_balance"];
+            $pdf->Ln();
+            $pdf->SetFont('Helvetica','',10);
+            $pdf->Cell(30,6,$value["member_id"],1);
+            $pdf->Cell(35,6,$value["firstname"]." ".$value["middlename"],1);
+            $pdf->Cell(35,6,$value["wallet_account_number"],1);
+            $pdf->Cell(30,6,$value["wallet_status"],1);
+            $pdf->Cell(35,6,$value["wallet_balance"],1);
+        }
+
+        $pdf->SetFont('Helvetica','b',15);
+        $pdf->Ln();
+        $pdf->Ln();
+        $pdf->Cell(30,6,'TOTAL WALLET BALANCES: '.number_format($total),3);
+
+        header('Content-Type: application/pdf');
+        $pdf->Output();
+    } catch (Exception $e) {
+        $errorResponse = array("status" => 500, "message" => $e->getMessage());
+        header('Content-Type: application/json');
+        http_response_code($errorResponse['status']);
+        echo json_encode($errorResponse);
+    }
 }
 
 function memberslistpdf(){
@@ -429,8 +439,22 @@ $this->view->render('reports/loans/arrears_report');
 /* Savings   */
 
 function savingslist(){
-$this->view->savings = $this->model->savingslist();	
-$this->view->render('reports/savings/savingslist');
+    try {
+        $headers = getallheaders();
+        $office = $headers['office'];
+
+        $savingsListData = $this->model->savingslist($office);
+
+        $response = array("status" => 200, "data" => $savingsListData);
+
+        header('Content-Type: application/json');
+        echo json_encode($response);
+    } catch (Exception $e) {
+        $errorResponse = array("status" => 500, "message" => $e->getMessage());
+        header('Content-Type: application/json');
+        http_response_code($errorResponse['status']);
+        echo json_encode($errorResponse);
+    }
 }
 
 function savingslistpdf(){

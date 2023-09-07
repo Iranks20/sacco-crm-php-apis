@@ -255,13 +255,17 @@ class Reports_model extends Model{
 
   }
 
-  function savingslist(){
-    $query= $this->db->SelectData("SELECT * FROM m_savings_account s  JOIN (members m  JOIN m_branch b ON m.office_id=b.id)
-      ON  s.member_id  = m.c_id where m.office_id='".$_SESSION['office']."'");
+  function savingslist($office) {
+    try {
+        $query = $this->db->SelectData("SELECT * FROM m_savings_account s JOIN (members m JOIN m_branch b ON m.office_id=b.id)
+            ON s.member_id = m.c_id WHERE m.office_id = '$office'");
 
-    return $query;
+        return $query;
+    } catch (Exception $e) {
+        throw new Exception("Failed to fetch savings list: " . $e->getMessage());
+    }
+}
 
-  }
   function getSavingsProductAccount($id){
     $query= $this->db->SelectData("SELECT count(s.product_id) as number,sum(running_balance) as balance FROM m_savings_account s  JOIN (members m  JOIN m_branch b ON m.office_id=b.id)
       ON  s.member_id  = m.c_id where m.office_id='".$_SESSION['office']."' and s.product_id='".$id."'");
@@ -1702,11 +1706,13 @@ function GetSideCodes($side){
      return $this->db->selectData("SELECT * FROM acc_ledger_account_main_headers where tb_side='".$side."' ");
 }
 
-
-function getWallets(){
-		$office=$_SESSION['office'];
-		$results =  $this->db->SelectData("SELECT * FROM sm_mobile_wallet AS a JOIN members AS b ON a.member_id = b.c_id WHERE a.bank_no = '$office'");
-		return $results;
+function getWallets($office) {
+  try {
+      $results = $this->db->SelectData("SELECT * FROM sm_mobile_wallet AS a JOIN members AS b ON a.member_id = b.c_id WHERE a.bank_no = '$office'");
+      return $results;
+  } catch (Exception $e) {
+      throw new Exception("Failed to fetch wallet data: " . $e->getMessage());
+  }
 }
 
 /* CONTAINS Liability, EQUITY OR SHARES,INCOMES */
