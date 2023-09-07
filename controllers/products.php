@@ -665,7 +665,6 @@ class Products extends Controller{
 					'message' => 'Required header (office_id) is missing.'
 				);
 			} else {
-				// Proceed with the function logic
 				$hastransactions = $this->model->hastransacted($office);
 	
 				$product_type = 3;

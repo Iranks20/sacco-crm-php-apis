@@ -515,44 +515,50 @@ function savingsbystatus(){
     }
 }
 
-function savingsbystatuspdf(){
-	$data = $this->model->getSavingsByStatus();
+function savingsbystatuspdf() {
+    try {
+        $headers = getallheaders();
+        $office = $headers['office'];
 
-	$pdf = new FPDF();
-	$pdf->AddPage();
-	$pdf->SetFont('Helvetica','b',16);
-	$pdf->Cell(30,7,'Summary of Savings By status',2);
-    $pdf->Ln();
-	$pdf->Ln();
-	$pdf->SetFont('Helvetica','b',12);
-	$pdf->Cell(50,6,'Account Status',1,0,'C');
-	$pdf->Cell(50,6,'Number Of Accounts',1,0,'C');
-	$pdf->Cell(50,6,'Balance Of Accounts',1,0,'C');
+        $data = $this->model->getSavingsByStatus($office);
 
-	if(count($data)>0){
-		$accounts=0;
-		$balance=0;
- 	foreach ($data as $key => $value){
-		$pdf->Ln();
-		$pdf->SetFont('Helvetica','',10);
-		$accounts= $accounts+$value["no_of_accounts"];
-  		$balance= $balance+$value["balance_of_account"];
-		$pdf->Cell(50,6,$value["status"],1);
-		$pdf->Cell(50,6,number_format($value["no_of_accounts"]),1);
-		$pdf->Cell(50,6,number_format($value["balance_of_account"]),1);
-		
-	 }
-	 $pdf->Ln();
-	 $pdf->Cell(50,6,"Totals",1);
-	 $pdf->Cell(50,6,number_format($accounts),1);
-	 $pdf->Cell(50,6,number_format($balance),1);
+        $pdf = new FPDF();
+        $pdf->AddPage();
+        $pdf->SetFont('Helvetica', 'b', 16);
+        $pdf->Cell(30, 7, 'Summary of Savings By Status', 2);
+        $pdf->Ln();
+        $pdf->Ln();
+        $pdf->SetFont('Helvetica', 'b', 12);
+        $pdf->Cell(50, 6, 'Account Status', 1, 0, 'C');
+        $pdf->Cell(50, 6, 'Number Of Accounts', 1, 0, 'C');
+        $pdf->Cell(50, 6, 'Balance Of Accounts', 1, 0, 'C');
 
-	}
- 
+        if (count($data) > 0) {
+            $accounts = 0;
+            $balance = 0;
+            foreach ($data as $key => $value) {
+                $pdf->Ln();
+                $pdf->SetFont('Helvetica', '', 10);
+                $accounts = $accounts + $value["no_of_accounts"];
+                $balance = $balance + $value["balance_of_account"];
+                $pdf->Cell(50, 6, $value["status"], 1);
+                $pdf->Cell(50, 6, number_format($value["no_of_accounts"]), 1);
+                $pdf->Cell(50, 6, number_format($value["balance_of_account"]), 1);
+            }
+            $pdf->Ln();
+            $pdf->Cell(50, 6, "Totals", 1);
+            $pdf->Cell(50, 6, number_format($accounts), 1);
+            $pdf->Cell(50, 6, number_format($balance), 1);
+        }
 
-	$pdf->Output();
+        $pdf->Output();
+    } catch (Exception $e) {
+        $errorResponse = array("status" => 500, "message" => $e->getMessage());
+        header('Content-Type: application/json');
+        http_response_code($errorResponse['status']);
+        echo json_encode($errorResponse);
+    }
 }
-
 
 function savingsbyproduct(){
 $this->view->savings = $this->model->getSavingsByProduct();	
