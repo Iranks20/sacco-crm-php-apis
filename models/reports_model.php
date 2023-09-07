@@ -297,29 +297,29 @@ function getSavingsAccountByStatus($status){
   return $query;
 }
 
-function getSavingsByStatus(){
- $array = array(
-  '0' =>'Active',
-  '1' =>'Domant',
-  '2' =>'Closed',
-  '2' =>'Opened',
-);
+function getSavingsByStatus($office) {
+  try {
+      $array = array(
+          '0' =>'Active',
+          '1' =>'Domant',
+          '2' =>'Closed',
+          '3' =>'Opened',
+      );
 
- $count=count($array);   
-   //print_r($array);die();
- if($count>0){
-   for($i=0;$i<$count; $i++) {
+      $count = count($array);
 
-    $status= $this->getSavingsAccountByStatus($array[$i]);
-    $rset[$i]['status'] =$array[$i]; 
-    $rset[$i]['no_of_accounts'] = $status[0]['number']; 
-    $rset[$i]['balance_of_account'] = $status[0]['balance'];
-  }      
-  return $rset;  
-
-}
-
-
+      if ($count > 0) {
+          for ($i = 0; $i < $count; $i++) {
+              $status = $this->getSavingsAccountByStatus($office, $array[$i]);
+              $rset[$i]['status'] = $array[$i];
+              $rset[$i]['no_of_accounts'] = $status[0]['number'];
+              $rset[$i]['balance_of_account'] = $status[0]['balance'];
+          }
+          return $rset;
+      }
+  } catch (Exception $e) {
+      throw new Exception("Failed to fetch savings by status: " . $e->getMessage());
+  }
 }
 
 function fixeddepositList($office) {

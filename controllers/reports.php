@@ -496,10 +496,23 @@ function savingslistpdf(){
 	$pdf->Output();				
 }
 
-
 function savingsbystatus(){
-$this->view->savings = $this->model->getSavingsByStatus();	
-$this->view->render('reports/savings/savingbystatus');
+    try {
+        $headers = getallheaders();
+        $office = $headers['office'];
+
+        $savingsByStatusData = $this->model->getSavingsByStatus($office);
+
+        $response = array("status" => 200, "data" => $savingsByStatusData);
+
+        header('Content-Type: application/json');
+        echo json_encode($response);
+    } catch (Exception $e) {
+        $errorResponse = array("status" => 500, "message" => $e->getMessage());
+        header('Content-Type: application/json');
+        http_response_code($errorResponse['status']);
+        echo json_encode($errorResponse);
+    }
 }
 
 function savingsbystatuspdf(){
