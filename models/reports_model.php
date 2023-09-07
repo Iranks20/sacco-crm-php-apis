@@ -318,13 +318,14 @@ function getSavingsByStatus(){
 
 }
 
-////fixed_deposit
-function fixeddepositList(){
-  $query= $this->db->SelectData("SELECT * FROM fixed_deposit_account f JOIN (members m  JOIN m_branch b ON m.office_id=b.id)
-    ON  f.member_id  = m.c_id where m.office_id='".$_SESSION['office']."'");
-
-  return $query;
-  
+function fixeddepositList($office) {
+  try {
+      $query = $this->db->SelectData("SELECT * FROM fixed_deposit_account f JOIN (members m  JOIN m_branch b ON m.office_id=b.id)
+          ON  f.member_id  = m.c_id where m.office_id='$office'");
+      return $query;
+  } catch (Exception $e) {
+      throw new Exception("Failed to fetch fixed deposit data: " . $e->getMessage());
+  }
 }
 
 function getFixedProductAccount($id){

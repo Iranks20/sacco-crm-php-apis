@@ -11,14 +11,15 @@ class Reports extends Controller{
 	
 public function __construct(){
 parent::__construct();
-Auth::handleSignin();
-Auth::CheckSession();
-Auth::CheckAuthorization();
-$_SESSION['timeout'] = time(); 
+// Auth::handleSignin();
+// Auth::CheckSession();
+// Auth::CheckAuthorization();
+// $_SESSION['timeout'] = time(); 
 }
 function index(){
 
-$this->view->render('reports/dashboard');
+// $this->view->render('reports/dashboard');
+echo "AM IN REPORTS";
 }
 
 /* Client Listing   */
@@ -560,54 +561,115 @@ function savingsbyproductpdf(){
 	
 }
 
-
-/* Fixed Deposit   */
-
 function fixeddepositList(){
-$this->view->fixeddeposit = $this->model->fixeddepositList();	
-$this->view->render('reports/fixed/fixeddepositlist');
+    try {
+        $headers = getallheaders();
+        $office = $headers['office'];
+
+        $fixedDepositData = $this->model->fixeddepositList($office);
+
+        $response = array("status" => 200, "data" => $fixedDepositData);
+
+        header('Content-Type: application/json');
+        echo json_encode($response);
+    } catch (Exception $e) {
+        $errorResponse = array("status" => 500, "message" => $e->getMessage());
+        header('Content-Type: application/json');
+        http_response_code($errorResponse['status']);
+        echo json_encode($errorResponse);
+    }
 }
 
-function exportfixeddepositpdf(){
+// function exportfixeddepositpdf(){
 
-	$reportdata = $this->model->fixeddepositList();
-	$pdf = new FPDF();
-	$pdf->AddPage();
-	$pdf->SetFont('Helvetica','b',16);
-	$pdf->Cell(30,7,'Fixed Deposit List Report',2);
-    $pdf->Ln();
-	$pdf->Ln();
-	$pdf->SetFont('Helvetica','',6);
-	$pdf->Cell(20,6,'Member No',1);
-	$pdf->Cell(20,6,'Account No',1);
-	$pdf->Cell(20,6,'Account Name',1);
-	$pdf->Cell(30,6,'Opened On',1);
-	$pdf->Cell(20,6,'Amount Fixed',1);
-	$pdf->Cell(15,6,'Rate',1);
-	$pdf->Cell(15,6,'Maturity Date',1);
-	$pdf->Cell(30,6,'Last Transaction Date',1);
-	$pdf->Cell(15,6,'Status',1);
+// 	$reportdata = $this->model->fixeddepositList();
+// 	$pdf = new FPDF();
+// 	$pdf->AddPage();
+// 	$pdf->SetFont('Helvetica','b',16);
+// 	$pdf->Cell(30,7,'Fixed Deposit List Report',2);
+//     $pdf->Ln();
+// 	$pdf->Ln();
+// 	$pdf->SetFont('Helvetica','',6);
+// 	$pdf->Cell(20,6,'Member No',1);
+// 	$pdf->Cell(20,6,'Account No',1);
+// 	$pdf->Cell(20,6,'Account Name',1);
+// 	$pdf->Cell(30,6,'Opened On',1);
+// 	$pdf->Cell(20,6,'Amount Fixed',1);
+// 	$pdf->Cell(15,6,'Rate',1);
+// 	$pdf->Cell(15,6,'Maturity Date',1);
+// 	$pdf->Cell(30,6,'Last Transaction Date',1);
+// 	$pdf->Cell(15,6,'Status',1);
 	
-	//loop through the data
-	foreach ($reportdata as $key => $value){
-	$pdf->Ln();
-	$pdf->Cell(20,6,$value["c_id"],1);
-	$pdf->Cell(20,6,$value["account_no"],1);
-	$pdf->Cell(20,6,$value["firstname"]." ". $value["middlename"]." ". $value["lastname"] ,1);
-	$pdf->Cell(20,6,$value["submittedon_date"],1);
-	$pdf->Cell(20,6,$value["amount_fixed"],1);
-	$pdf->Cell(20,6,$value["interest_rate"],1);
-	$pdf->Cell(20,6,$value["maturity_date"],1);
-	$pdf->Cell(20,6,$value["last_updated_on"],1);
-	$pdf->Cell(20,6,$value["account_status"],1);
+// 	//loop through the data
+// 	foreach ($reportdata as $key => $value){
+// 	$pdf->Ln();
+// 	$pdf->Cell(20,6,$value["c_id"],1);
+// 	$pdf->Cell(20,6,$value["account_no"],1);
+// 	$pdf->Cell(20,6,$value["firstname"]." ". $value["middlename"]." ". $value["lastname"] ,1);
+// 	$pdf->Cell(20,6,$value["submittedon_date"],1);
+// 	$pdf->Cell(20,6,$value["amount_fixed"],1);
+// 	$pdf->Cell(20,6,$value["interest_rate"],1);
+// 	$pdf->Cell(20,6,$value["maturity_date"],1);
+// 	$pdf->Cell(20,6,$value["last_updated_on"],1);
+// 	$pdf->Cell(20,6,$value["account_status"],1);
 	
 
-	}
+// 	}
 
-	$pdf->Output();
+// 	$pdf->Output();
 
 		 
 	
+// }
+function exportfixeddepositpdf(){
+    try {
+        // Fetch the office value from headers
+        $office = $_SERVER['HTTP_OFFICE'];
+
+        // Fetch the report data using the office value
+        $reportdata = $this->model->fixeddepositList($office);
+        
+        // Create a PDF
+        $pdf = new FPDF();
+        $pdf->AddPage();
+        $pdf->SetFont('Helvetica','b',16);
+        $pdf->Cell(30,7,'Fixed Deposit List Report',2);
+        $pdf->Ln();
+        $pdf->Ln();
+        $pdf->SetFont('Helvetica','',6);
+        $pdf->Cell(20,6,'Member No',1);
+        $pdf->Cell(20,6,'Account No',1);
+        $pdf->Cell(20,6,'Account Name',1);
+        $pdf->Cell(30,6,'Opened On',1);
+        $pdf->Cell(20,6,'Amount Fixed',1);
+        $pdf->Cell(15,6,'Rate',1);
+        $pdf->Cell(15,6,'Maturity Date',1);
+        $pdf->Cell(30,6,'Last Transaction Date',1);
+        $pdf->Cell(15,6,'Status',1);
+        
+        // Loop through the data
+        foreach ($reportdata as $key => $value){
+            $pdf->Ln();
+            $pdf->Cell(20,6,$value["c_id"],1);
+            $pdf->Cell(20,6,$value["account_no"],1);
+            $pdf->Cell(20,6,$value["firstname"]." ". $value["middlename"]." ". $value["lastname"] ,1);
+            $pdf->Cell(20,6,$value["submittedon_date"],1);
+            $pdf->Cell(20,6,$value["amount_fixed"],1);
+            $pdf->Cell(20,6,$value["interest_rate"],1);
+            $pdf->Cell(20,6,$value["maturity_date"],1);
+            $pdf->Cell(20,6,$value["last_updated_on"],1);
+            $pdf->Cell(20,6,$value["account_status"],1);
+        }
+
+        // Output the PDF
+        $pdf->Output();
+    } catch (Exception $e) {
+        // Handle any exceptions and return an error response
+        $errorResponse = array("status" => 500, "message" => $e->getMessage());
+        header('Content-Type: application/json');
+        http_response_code($errorResponse['status']);
+        echo json_encode($errorResponse);
+    }
 }
 
 
