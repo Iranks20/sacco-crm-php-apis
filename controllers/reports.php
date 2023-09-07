@@ -625,16 +625,42 @@ function exportfixeddepositpdf(){
     }
 }
 
-
 function fixeddepositbystatus(){
-$this->view->fixeddeposit = $this->model->getFixedByStatus();	
-$this->view->render('reports/fixed/fixedbystatus');
+    try {
+        $headers = getallheaders();
+        $office = $headers['office'];
+
+        $fixedDepositData = $this->model->getFixedByStatus($office);
+
+        $response = array("status" => 200, "data" => $fixedDepositData);
+
+        header('Content-Type: application/json');
+        echo json_encode($response);
+    } catch (Exception $e) {
+        $errorResponse = array("status" => 500, "message" => $e->getMessage());
+        header('Content-Type: application/json');
+        http_response_code($errorResponse['status']);
+        echo json_encode($errorResponse);
+    }
 }
 
-
 function fixeddepositbyproduct(){
-$this->view->fixeddeposit = $this->model->getFixedByProduct();	
-$this->view->render('reports/fixed/fixedbyproduct');
+    try {
+        $headers = getallheaders();
+        $office = $headers['office'];
+
+        $fixedDepositData = $this->model->getFixedByProduct($office);
+
+        $response = array("status" => 200, "data" => $fixedDepositData);
+
+        header('Content-Type: application/json');
+        echo json_encode($response);
+    } catch (Exception $e) {
+        $errorResponse = array("status" => 500, "message" => $e->getMessage());
+        header('Content-Type: application/json');
+        http_response_code($errorResponse['status']);
+        echo json_encode($errorResponse);
+    }
 }
 
 /* Shares Listing   */

@@ -335,23 +335,27 @@ function getFixedProductAccount($id){
   return $query;
 }
 
-function getFixedByProduct(){
-  $office=$_SESSION['office'];
-  $result= $this->db->SelectData("SELECT * FROM fixed_deposit_product where office_id = $office");
-  $count=count($result);       
-  if($count>0){
-   foreach ( $result as $key => $value) {
-    $accounts=$this->getFixedProductAccount($value['id']); 
-    $rset[$key]['product_type'] = $value['name']; 
-    $rset[$key]['no_of_accounts'] = $accounts[0]['number']; 
-    $rset[$key]['balance_of_account'] = $accounts[0]['balance'];
-  }      
-  return $rset;  
+function getFixedByProduct($office) {
+  try {
+      $result = $this->db->SelectData("SELECT * FROM fixed_deposit_product WHERE office_id = $office");
+      $count = count($result);
+      $rset = array();
 
+      if ($count > 0) {
+          foreach ($result as $key => $value) {
+              $accounts = $this->getFixedProductAccount($value['id'], $office);
+              $rset[$key]['product_type'] = $value['name'];
+              $rset[$key]['no_of_accounts'] = $accounts[0]['number'];
+              $rset[$key]['balance_of_account'] = $accounts[0]['balance'];
+          }
+      }
+
+      return $rset;
+  } catch (Exception $e) {
+      throw new Exception("Failed to fetch fixed deposit data by product: " . $e->getMessage());
+  }
 }
 
-
-}
 function getFixedAccountByStatus($status){
   $query= $this->db->SelectData("SELECT count(f.account_status) as number,sum(running_balance) as balance FROM fixed_deposit_account f  JOIN (members m  JOIN m_branch b ON m.office_id=b.id)
     ON  f.member_id  = m.c_id where m.office_id='".$_SESSION['office']."' and f.account_status='".$status."'");
@@ -359,29 +363,30 @@ function getFixedAccountByStatus($status){
   return $query;
 }
 
-function getFixedByStatus(){
- $array = array(
-  '0' =>'Active',
-  '1' =>'Closed',
-);
+function getFixedByStatus($office) {
+  try {
+      $array = array(
+          '0' =>'Active',
+          '1' =>'Closed',
+      );
 
- $count=count($array);   
-   //print_r($array);die();
- if($count>0){
-   for($i=0;$i<$count; $i++) {
+      $count = count($array);
+      $rset = array();
 
-    $status= $this->getFixedAccountByStatus($array[$i]);
-    $rset[$i]['status'] =$array[$i]; 
-    $rset[$i]['no_of_accounts'] = $status[0]['number']; 
-    $rset[$i]['balance_of_account'] = $status[0]['balance'];
-  }      
-  return $rset;  
+      if ($count > 0) {
+          for ($i = 0; $i < $count; $i++) {
+              $status = $this->getFixedAccountByStatus($array[$i], $office);
+              $rset[$i]['status'] = $array[$i];
+              $rset[$i]['no_of_accounts'] = $status[0]['number'];
+              $rset[$i]['balance_of_account'] = $status[0]['balance'];
+          }
+      }
 
+      return $rset;
+  } catch (Exception $e) {
+      throw new Exception("Failed to fetch fixed deposit data by status: " . $e->getMessage());
+  }
 }
-
-
-}
-
 
 ////share_accounts
 function ShareHoldersLists(){
