@@ -273,23 +273,27 @@ class Reports_model extends Model{
     return $query;
   }
 
-  function getSavingsByProduct(){
-    $office = $_SESSION['office'];
-    $result= $this->db->SelectData("SELECT * FROM m_savings_product WHERE office_id = $office");
-    $count=count($result);       
-    if($count>0){
-     foreach ( $result as $key => $value) {
-      $accounts=$this->getSavingsProductAccount($value['id']); 
-      $rset[$key]['product_type'] = $value['name']; 
-      $rset[$key]['no_of_accounts'] = $accounts[0]['number']; 
-      $rset[$key]['balance_of_account'] = $accounts[0]['balance'];
-    }      
-    return $rset;  
+function getSavingsByProduct($office) {
+  try {
+      $result = $this->db->SelectData("SELECT * FROM m_savings_account s JOIN (members m JOIN m_branch b ON m.office_id = b.id) ON s.member_id = m.c_id WHERE m.office_id = '$office'");
 
+      $count = count($result);
+
+      if ($count > 0) {
+          foreach ($result as $key => $value) {
+              $accounts = $this->getSavingsProductAccount($value['id']);
+              $rset[$key]['product_type'] = $value['name'];
+              $rset[$key]['no_of_accounts'] = $accounts[0]['number'];
+              $rset[$key]['balance_of_account'] = $accounts[0]['balance'];
+          }
+          return $rset;
+      }
+  } catch (Exception $e) {
+      // Handle any exceptions and return an error response
+      throw new Exception("Failed to fetch savings by product: " . $e->getMessage());
   }
-
-  
 }
+
 function getSavingsAccountByStatus($status){
   $query= $this->db->SelectData("SELECT count(s.account_status) as number,sum(running_balance) as balance FROM m_savings_account s  JOIN (members m  JOIN m_branch b ON m.office_id=b.id)
     ON  s.member_id  = m.c_id where m.office_id='".$_SESSION['office']."' and s.account_status='".$status."'");
