@@ -55,23 +55,11 @@ function membersList(){
     }
 }
 
-// function dormantaccount($type)
-// {
-//     if($type == 'range')
-//     {
-//         $this->view->Members = $this->model->getDormantMemebersListRange();
-//     } else {
-//         $this->view->Members = $this->model->getDormantMemebersList($type);
-//     }
-    
-//     $this->view->render('reports/members_list');
-// }
 function dormantaccount($type)
 {
     try {
-        // Get the 'office' value from headers
         $headers = getallheaders();
-        $office = $headers['office']; // Assuming the header key is 'office'
+        $office = $headers['office'];
 
         if ($type == 'range') {
             $data = $this->model->getDormantMembersListRange($office);
@@ -79,12 +67,10 @@ function dormantaccount($type)
             $data = $this->model->getDormantMembersList($office, $type);
         }
 
-        // Return JSON response
         header('Content-Type: application/json');
         http_response_code(200);
         echo json_encode($data);
     } catch (Exception $e) {
-        // Handle any exceptions and return a JSON error response
         $errorResponse = array("status" => 500, "message" => $e->getMessage());
         header('Content-Type: application/json');
         http_response_code($errorResponse['status']);
