@@ -323,41 +323,61 @@ function loanspendingpdf(){
 }
 
 function DisbursedLoans(){
-$this->view->loans =$this->model->getDisbursedLoans();
-$this->view->render('reports/loans/loansdisbursed');
+    try {
+        $headers = getallheaders();
+        $office = $headers['office'];
+
+        $data = $this->model->getDisbursedLoans($office);
+
+        header('Content-Type: application/json');
+        echo json_encode($data);
+
+    } catch (Exception $e) {
+        $errorResponse = array("status" => 500, "message" => $e->getMessage());
+        header('Content-Type: application/json');
+        http_response_code($errorResponse['status']);
+        echo json_encode($errorResponse);
+    }
 }
 
 function disbursedloanspdf(){
+    try {
+        $headers = getallheaders();
+        $office = $headers['office'];
 
-	$data = $this->model->getDisbursedLoans();
-	$pdf = new FPDF();
-	$pdf->AddPage();
-	$pdf->SetFont('Helvetica','b',16);
-	$pdf->Cell(30,7,'Disbursed Loans Report',2);
-    $pdf->Ln();
-	$pdf->Ln();
-	$pdf->SetFont('Helvetica','b',12);
-	$pdf->Cell(30,6,'Member No',1,0,'C');
-	$pdf->Cell(35,6,'Name',1,0,'C');
-	$pdf->Cell(35,6,'Loan Acc No.',1,0,'C');
-	$pdf->Cell(45,6,'Principal Disbursed',1,0,'C');
-	$pdf->Cell(30,6,'Loan Status',1,0,'C');
+        $data = $this->model->getDisbursedLoans($office);
 
+        $pdf = new FPDF();
+        $pdf->AddPage();
+        $pdf->SetFont('Helvetica','b',16);
+        $pdf->Cell(30,7,'Disbursed Loans Report',2);
+        $pdf->Ln();
+        $pdf->Ln();
+        $pdf->SetFont('Helvetica','b',12);
+        $pdf->Cell(30,6,'Member No',1,0,'C');
+        $pdf->Cell(35,6,'Name',1,0,'C');
+        $pdf->Cell(35,6,'Loan Acc No.',1,0,'C');
+        $pdf->Cell(45,6,'Principal Disbursed',1,0,'C');
+        $pdf->Cell(30,6,'Loan Status',1,0,'C');
 
-	foreach ($data as $key => $value){
-		
-			$pdf->Ln();
-			$pdf->SetFont('Helvetica','',10);
-			$pdf->Cell(30,6,$value["c_id"],1);
-			$pdf->Cell(35,6,$value["firstname"]." ". $value["middlename"],1);
-			$pdf->Cell(35,6,$value["account_no"],1);
-			$pdf->Cell(45,6,number_format($value["principal_disbursed"]),1);
-			$pdf->Cell(30,6,$value["loan_status"],1);
+        foreach ($data as $key => $value){
+            $pdf->Ln();
+            $pdf->SetFont('Helvetica','',10);
+            $pdf->Cell(30,6,$value["c_id"],1);
+            $pdf->Cell(35,6,$value["firstname"]." ". $value["middlename"],1);
+            $pdf->Cell(35,6,$value["account_no"],1);
+            $pdf->Cell(45,6,number_format($value["principal_disbursed"]),1);
+            $pdf->Cell(30,6,$value["loan_status"],1);
+        }
 
-	}
+        $pdf->Output();
 
-	$pdf->Output();
-
+    } catch (Exception $e) {
+        $errorResponse = array("status" => 500, "message" => $e->getMessage());
+        header('Content-Type: application/json');
+        http_response_code($errorResponse['status']);
+        echo json_encode($errorResponse);
+    }
 }
 
 function ApprovedLoans(){

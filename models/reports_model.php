@@ -91,16 +91,14 @@ class Reports_model extends Model{
 
   }
 
-
-
-
-  function getDisbursedLoans(){
-    $office=$_SESSION['office'];
-    $query =   $this->db->SelectData("SELECT * FROM m_loan JOIN members on members.c_id=m_loan.member_id where members.office_id='".$office."' AND loan_status ='Disbursed' ");
-
-    return $query;
-
-  }
+  function getDisbursedLoans($office) {
+    try {
+        $query = $this->db->SelectData("SELECT * FROM m_loan JOIN members ON members.c_id = m_loan.member_id WHERE members.office_id = '$office' AND loan_status = 'Disbursed'");
+        return $query;
+    } catch (Exception $e) {
+        throw new Exception("Failed to fetch disbursed loans: " . $e->getMessage());
+    }
+}
 
   function getApprovedLoans(){
     $office=$_SESSION['office'];
