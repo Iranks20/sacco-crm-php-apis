@@ -83,12 +83,20 @@ class Reports_model extends Model{
       }
   }
 
-  function getPendingLoans(){
-    $office=$_SESSION['office'];
-    $query =   $this->db->SelectData("SELECT * FROM m_loan JOIN members on members.c_id=m_loan.member_id where members.office_id='".$office."' AND loan_status ='Pending'");
+  // function getPendingLoans(){
+  //   $office=$_SESSION['office'];
+  //   $query =   $this->db->SelectData("SELECT * FROM m_loan JOIN members on members.c_id=m_loan.member_id where members.office_id='".$office."' AND loan_status ='Pending'");
 
-    return $query;
+  //   return $query;
 
+  // }
+  function getPendingLoans($office) {
+      try {
+          $query = $this->db->SelectData("SELECT * FROM m_loan l JOIN members m ON l.member_id = m.c_id WHERE m.office_id = '$office' AND l.loan_status = 'Pending'");
+          return $query;
+      } catch (Exception $e) {
+          throw new Exception("Failed to fetch pending loans: " . $e->getMessage());
+      }
   }
 
   function getDisbursedLoans($office) {

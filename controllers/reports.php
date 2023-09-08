@@ -296,51 +296,69 @@ function loanspdf(){
 }
 
 function LoansPending(){
-$this->view->loans = $this->model->getPendingLoans();
-$this->view->render('reports/loans/loanspendingapproval');
+    try {
+        $headers = getallheaders();
+        $office = $headers['office'];
+
+        $data = $this->model->getPendingLoans($office);
+
+        header('Content-Type: application/json');
+        echo json_encode($data);
+
+    } catch (Exception $e) {
+        $errorResponse = array("status" => 500, "message" => $e->getMessage());
+        header('Content-Type: application/json');
+        http_response_code($errorResponse['status']);
+        echo json_encode($errorResponse);
+    }
 }
 
 function loanspendingpdf(){
+    try {
+        $headers = getallheaders();
+        $office = $headers['office'];
 
-	$data = $this->model->getPendingLoans();
-	$pdf = new FPDF();
-	$pdf->AddPage();
-	$pdf->SetFont('Helvetica','b',12);
-	$pdf->Cell(30,7,'Loans Pending Approval Report',2);
-    $pdf->Ln();
-	$pdf->Ln();
-	$pdf->SetFont('Helvetica','b',9);
-	$pdf->Cell(30,6,'Member No',1,0,'C');
-	$pdf->Cell(35,6,'Member Name',1,0,'C');
-	$pdf->Cell(30,6,'Loan Acc No',1,0,'C');
-	$pdf->Cell(30,6,'Applied Amt',1,0,'C');
-	$pdf->Cell(30,6,'Loan Status',1,0,'C');
+        $data = $this->model->getPendingLoans($office);
 
-	if(!empty($value["firstname"])){ 
-		$name =  $value["firstname"]." ". $value["middlename"]." ". $value["lastname"];
-	} else { 
-		$name = $value["company_name"];
-	}
+        $pdf = new FPDF();
+        $pdf->AddPage();
+        $pdf->SetFont('Helvetica', 'b', 12);
+        $pdf->Cell(30, 7, 'Loans Pending Approval Report', 2);
+        $pdf->Ln();
+        $pdf->Ln();
+        $pdf->SetFont('Helvetica', 'b', 9);
+        $pdf->Cell(30, 6, 'Member No', 1, 0, 'C');
+        $pdf->Cell(35, 6, 'Member Name', 1, 0, 'C');
+        $pdf->Cell(30, 6, 'Loan Acc No', 1, 0, 'C');
+        $pdf->Cell(30, 6, 'Applied Amt', 1, 0, 'C');
+        $pdf->Cell(30, 6, 'Loan Status', 1, 0, 'C');
 
-	
-	if(count($data)>0){
+        if (!empty($value["firstname"])) { 
+            $name = $value["firstname"] . " " . $value["middlename"] . " " . $value["lastname"];
+        } else { 
+            $name = $value["company_name"];
+        }
 
-		foreach ($data as $key => $value){
-			$pdf->SetFont('Helvetica','',8);
-			$pdf->Ln();
-			$pdf->Cell(30,6,$value["c_id"],1);
-			$pdf->Cell(35,6,$name ,1);
-			$pdf->Cell(30,6,$value["account_no"],1);
-			$pdf->Cell(30,6,number_format($value["principal_amount_proposed"]),1);
-			$pdf->Cell(30,6,$value["loan_status"],1);
+        if (count($data) > 0) {
+            foreach ($data as $key => $value) {
+                $pdf->SetFont('Helvetica', '', 8);
+                $pdf->Ln();
+                $pdf->Cell(30, 6, $value["c_id"], 1);
+                $pdf->Cell(35, 6, $name, 1);
+                $pdf->Cell(30, 6, $value["account_no"], 1);
+                $pdf->Cell(30, 6, number_format($value["principal_amount_proposed"]), 1);
+                $pdf->Cell(30, 6, $value["loan_status"], 1);
+            }
+        }
 
-		}
+        $pdf->Output();
 
-	}
-
-
-	$pdf->Output();
-
+    } catch (Exception $e) {
+        $errorResponse = array("status" => 500, "message" => $e->getMessage());
+        header('Content-Type: application/json');
+        http_response_code($errorResponse['status']);
+        echo json_encode($errorResponse);
+    }
 }
 
 function DisbursedLoans(){
