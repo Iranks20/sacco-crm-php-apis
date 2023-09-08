@@ -219,59 +219,80 @@ function memberslistpdf(){
 
 /* Loans Listing   */
 
-
 function loans(){
-$this->view->loans = $this->model->Getloanslist();	
-$this->view->render('reports/loans/loans_list');
+    try {
+        $headers = getallheaders();
+        $office = $headers['office'];
+
+        $data = $this->model->Getloanslist($office);
+
+        header('Content-Type: application/json');
+        echo json_encode($data);
+
+    } catch (Exception $e) {
+        $errorResponse = array("status" => 500, "message" => $e->getMessage());
+        header('Content-Type: application/json');
+        http_response_code($errorResponse['status']);
+        echo json_encode($errorResponse);
+    }
 }
 
 function loanspdf(){
+    try {
+        $headers = getallheaders();
+        $office = $headers['office'];
 
-	$data = $this->model->Getloanslist();
-	$pdf = new FPDF();
-	$pdf->AddPage();
-	$pdf->SetFont('Helvetica','b',12);
-	$pdf->Cell(30,7,'Loan List Report',2);
-    $pdf->Ln();
-	$pdf->Ln();
-	$pdf->SetFont('Helvetica','b',9);
-	$pdf->Cell(20,6,'Member No',1,0,'C');
-	$pdf->Cell(20,6,'Acc No',1,0,'C');
-	$pdf->Cell(25,6,'Acc Name',1,0,'C');
-	$pdf->Cell(25,6,'Acc Opened On',1,0,'C');
-	$pdf->Cell(25,6,'Proposed Amt',1,0,'C');
-	$pdf->Cell(30,6,'Approved Amt',1,0,'C');
-	$pdf->Cell(25,6,'Disbursed Amt',1,0,'C');
-	$pdf->Cell(20,6,'Loan Status',1,0,'C');
+        $data = $this->model->Getloanslist($office);
 
-	 
-	$total=0;
-	foreach ($data as $key => $value){
-		$pdf->SetFont('Helvetica','',8);
-		$pdf->Ln();
-		$total=$total+$value["principal_disbursed"];
-		if(!empty($value["firstname"])){ 
-			$name =  $value["firstname"]." ". $value["middlename"]." ". $value["lastname"];
-		} else { 
-			$name = $value["company_name"];
-		}
-	$pdf->Cell(20,6,$value["c_id"],1);
-	$pdf->Cell(20,6,$value["account_no"],1);
-	$pdf->Cell(25,6,$name,1);
-	$pdf->Cell(25,6,$value["submittedon_date"],1);
-	$pdf->Cell(25,6,number_format($value["principal_amount_proposed"]),1);
-	$pdf->Cell(30,6,number_format($value["approved_principal"]),1);
-	$pdf->Cell(25,6,number_format($value["principal_disbursed"]),1);
-	$pdf->Cell(20,6,$value["loan_status"],1);
+        $pdf = new FPDF();
+        $pdf->AddPage();
+        $pdf->SetFont('Helvetica', 'b', 12);
+        $pdf->Cell(30, 7, 'Loan List Report', 2);
+        $pdf->Ln();
+        $pdf->Ln();
+        $pdf->SetFont('Helvetica', 'b', 9);
+        $pdf->Cell(20, 6, 'Member No', 1, 0, 'C');
+        $pdf->Cell(20, 6, 'Acc No', 1, 0, 'C');
+        $pdf->Cell(25, 6, 'Acc Name', 1, 0, 'C');
+        $pdf->Cell(25, 6, 'Acc Opened On', 1, 0, 'C');
+        $pdf->Cell(25, 6, 'Proposed Amt', 1, 0, 'C');
+        $pdf->Cell(30, 6, 'Approved Amt', 1, 0, 'C');
+        $pdf->Cell(25, 6, 'Disbursed Amt', 1, 0, 'C');
+        $pdf->Cell(20, 6, 'Loan Status', 1, 0, 'C');
 
-	}
-	
-	$pdf->SetFont('Helvetica','b',15);
-	$pdf->Ln();
-	$pdf->Ln();
-	$pdf->Cell(30,6,'TOTAL: '.number_format($total),3);    
+        $total = 0;
+        foreach ($data as $key => $value) {
+            $pdf->SetFont('Helvetica', '', 8);
+            $pdf->Ln();
+            $total = $total + $value["principal_disbursed"];
+            if (!empty($value["firstname"])) {
+                $name = $value["firstname"] . " " . $value["middlename"] . " " . $value["lastname"];
+            } else {
+                $name = $value["company_name"];
+            }
+            $pdf->Cell(20, 6, $value["c_id"], 1);
+            $pdf->Cell(20, 6, $value["account_no"], 1);
+            $pdf->Cell(25, 6, $name, 1);
+            $pdf->Cell(25, 6, $value["submittedon_date"], 1);
+            $pdf->Cell(25, 6, number_format($value["principal_amount_proposed"]), 1);
+            $pdf->Cell(30, 6, number_format($value["approved_principal"]), 1);
+            $pdf->Cell(25, 6, number_format($value["principal_disbursed"]), 1);
+            $pdf->Cell(20, 6, $value["loan_status"], 1);
+        }
 
-	$pdf->Output();
+        $pdf->SetFont('Helvetica', 'b', 15);
+        $pdf->Ln();
+        $pdf->Ln();
+        $pdf->Cell(30, 6, 'TOTAL: ' . number_format($total), 3);
+
+        $pdf->Output();
+
+    } catch (Exception $e) {
+        $errorResponse = array("status" => 500, "message" => $e->getMessage());
+        header('Content-Type: application/json');
+        http_response_code($errorResponse['status']);
+        echo json_encode($errorResponse);
+    }
 }
 
 function LoansPending(){

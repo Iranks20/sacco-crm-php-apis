@@ -74,14 +74,14 @@ class Reports_model extends Model{
 
   ////////LOANS///////
 
-  function Getloanslist(){
-    $query= $this->db->SelectData("SELECT * FROM m_loan l JOIN (members m  JOIN m_branch b ON m.office_id=b.id)
-      ON  l.member_id  = m.c_id where m.office_id='".$_SESSION['office']."'");
-
-    return $query;
-
+  function Getloanslist($office) {
+      try {
+          $query = $this->db->SelectData("SELECT * FROM m_loan l JOIN members m ON l.member_id = m.c_id JOIN m_branch b ON m.office_id = b.id WHERE m.office_id = '$office'");
+          return $query;
+      } catch (Exception $e) {
+          throw new Exception("Failed to fetch loans list: " . $e->getMessage());
+      }
   }
-
 
   function getPendingLoans(){
     $office=$_SESSION['office'];
