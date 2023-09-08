@@ -44,30 +44,27 @@ class Reports_model extends Model{
     
     return $data[0][0];
   }
-  
-    function getDormantMemebersList($range)
+    function getDormantMembersList($office, $range)
     {
-        $range = 10;
-        $date =date('Y-m-d', strtotime('-'. $range . 'days'));
-        $id = $_SESSION['office'];
-        $data = $this->db->selectData("SELECT member_id, account_no, account_name FROM m_savings_account where office_id= $id");
-    
-        print_r($data);
-        echo "</br></br></br>";
-        
-        foreach($data as $key => $value){
-        
-            $transaction_data = $this->db->selectData("SELECT count(savings_account_no) as count FROM m_savings_account_transaction where transaction_date >= " . $date . " AND savings_account_no=" . $value['account_no']);
-            if($transaction_data['count'] > 0){
-                unset($data['account_no']);
+        try {
+            $date = date('Y-m-d', strtotime('-' . $range . 'days'));
+
+            $data = $this->db->selectData("SELECT member_id, account_no, account_name FROM m_savings_account WHERE office_id = $office");
+
+            foreach ($data as $key => $value) {
+                $transaction_data = $this->db->selectData("SELECT count(savings_account_no) as count FROM m_savings_account_transaction WHERE transaction_date >= '" . $date . "' AND savings_account_no = " . $value['account_no']);
+
+                if ($transaction_data[0]['count'] > 0) {
+                    unset($data[$key]);
+                }
             }
-          
-          
+
+            $response = array("status" => 200, "message" => "Dormant accounts retrieved successfully", "data" => array_values($data));
+            return $response;
+        } catch (Exception $e) {
+            $errorResponse = array("status" => 500, "message" => "Failed to retrieve dormant accounts: " . $e->getMessage());
+            return $errorResponse;
         }
-        print_r($data);
-        echo "</br></br></br>";
-        die();
-      
     }
   
     function getDormantMemebersListRange(){
@@ -246,13 +243,14 @@ class Reports_model extends Model{
 
   }
 
+  function membersList($office) {
+      try {
+          $result = $this->db->SelectData("SELECT * FROM members m INNER JOIN m_branch b WHERE m.office_id = b.id AND office_id = '$office' ORDER BY m.office_id DESC");
 
-  function memebersList(){
-    $query= $this->db->SelectData("SELECT * FROM members m INNER JOIN m_branch b 
-      where m.office_id  = b.id and office_id='".$_SESSION['office']."' order by m.office_id desc");
-
-    return $query;
-
+          return $result;
+      } catch (Exception $e) {
+          throw new Exception("Failed to fetch members' list: " . $e->getMessage());
+      }
   }
 
   function savingslist($office) {

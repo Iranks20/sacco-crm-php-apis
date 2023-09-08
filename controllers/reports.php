@@ -36,21 +36,60 @@ function Members(){
 $this->view->render('reports/clientList_report');
 }
 
-function memebersList(){
-$this->view->Members = $this->model->memebersList();
-$this->view->render('reports/members_list');
+function membersList(){
+    try {
+        $headers = getallheaders();
+        $office = $headers['office'];
+
+        $membersListData = $this->model->membersList($office);
+
+        $response = array("status" => 200, "data" => $membersListData);
+
+        header('Content-Type: application/json');
+        echo json_encode($response);
+    } catch (Exception $e) {
+        $errorResponse = array("status" => 500, "message" => $e->getMessage());
+        header('Content-Type: application/json');
+        http_response_code($errorResponse['status']);
+        echo json_encode($errorResponse);
+    }
 }
 
+// function dormantaccount($type)
+// {
+//     if($type == 'range')
+//     {
+//         $this->view->Members = $this->model->getDormantMemebersListRange();
+//     } else {
+//         $this->view->Members = $this->model->getDormantMemebersList($type);
+//     }
+    
+//     $this->view->render('reports/members_list');
+// }
 function dormantaccount($type)
 {
-    if($type == 'range')
-    {
-        $this->view->Members = $this->model->getDormantMemebersListRange();
-    } else {
-        $this->view->Members = $this->model->getDormantMemebersList($type);
+    try {
+        // Get the 'office' value from headers
+        $headers = getallheaders();
+        $office = $headers['office']; // Assuming the header key is 'office'
+
+        if ($type == 'range') {
+            $data = $this->model->getDormantMembersListRange($office);
+        } else {
+            $data = $this->model->getDormantMembersList($office, $type);
+        }
+
+        // Return JSON response
+        header('Content-Type: application/json');
+        http_response_code(200);
+        echo json_encode($data);
+    } catch (Exception $e) {
+        // Handle any exceptions and return a JSON error response
+        $errorResponse = array("status" => 500, "message" => $e->getMessage());
+        header('Content-Type: application/json');
+        http_response_code($errorResponse['status']);
+        echo json_encode($errorResponse);
     }
-    
-    $this->view->render('reports/members_list');
 }
 
 function wallets(){
@@ -146,45 +185,50 @@ function walletslistpdf(){
 }
 
 function memberslistpdf(){
-	$data = $this->model->memebersList();
-	$pdf = new FPDF();
-	$pdf->AddPage();
-	$pdf->SetFont('Helvetica','b',16);
-	$pdf->Cell(30,7,'Member List Report',2);
-    $pdf->Ln();
-	$pdf->Ln();
-	$pdf->SetFont('Helvetica','b',12);
-	$pdf->Cell(30,6,'Member No',1,0,'C');
-	$pdf->Cell(35,6,'Member Name',1,0,'C');
-	$pdf->Cell(20,6,'Type',1,0,'C');
-	//$pdf->Cell(20,6,'DOB',1,0,'C');
-	$pdf->Cell(30,6,'Tel No',1,0,'C');
-	$pdf->Cell(35,6,'Last updated on',1,0,'C');
-	$pdf->Cell(35,6,'Status',1,0,'C');
+    try {
+        $headers = getallheaders();
+        $office = $headers['office'];
 
-	
- 	foreach ($data as $key => $value){
-		if($value["legal_form"]=='Personal'){ 
-	         $legal =  "Personal";
+        $data = $this->model->membersList($office);
 
-			}else{ 
+        $pdf = new FPDF();
+        $pdf->AddPage();
+        $pdf->SetFont('Helvetica', 'b', 16);
+        $pdf->Cell(30, 7, 'Member List Report', 2);
+        $pdf->Ln();
+        $pdf->Ln();
+        $pdf->SetFont('Helvetica', 'b', 12);
+        $pdf->Cell(30, 6, 'Member No', 1, 0, 'C');
+        $pdf->Cell(35, 6, 'Member Name', 1, 0, 'C');
+        $pdf->Cell(20, 6, 'Type', 1, 0, 'C');
+        $pdf->Cell(30, 6, 'Tel No', 1, 0, 'C');
+        $pdf->Cell(35, 6, 'Last updated on', 1, 0, 'C');
+        $pdf->Cell(35, 6, 'Status', 1, 0, 'C');
 
-				$legal = "Institutional"; 
+        foreach ($data as $key => $value) {
+            if ($value["legal_form"] == 'Personal') {
+                $legal = "Personal";
+            } else {
+                $legal = "Institutional";
+            }
+            $pdf->Ln();
+            $pdf->SetFont('Helvetica', '', 10);
+            $pdf->Cell(30, 6, $value["c_id"], 1);
+            $pdf->Cell(35, 6, $value["firstname"] . " " . $value["middlename"], 1);
+            $pdf->Cell(20, 6, $legal, 1);
+            $pdf->Cell(30, 6, $value["mobile_no"], 1);
+            $pdf->Cell(35, 6, $value["last_updated_on"], 1);
+            $pdf->Cell(35, 6, $value["status"], 1);
+        }
 
-			}
-			$pdf->Ln();
-			$pdf->SetFont('Helvetica','',10);
-			$pdf->Cell(30,6,$value["c_id"],1);
-			$pdf->Cell(35,6,$value["firstname"]." ". $value["middlename"],1);
-			$pdf->Cell(20,6, $legal ,1);
-			//$pdf->Cell(20,6, $value["date_of_birth"] ,1);
-			$pdf->Cell(30,6, $value["mobile_no"] ,1);
-			$pdf->Cell(35,6, $value["last_updated_on"] ,1);
-			$pdf->Cell(35,6, $value["status"] ,1);
-			
-	}
-	$pdf->Output();
+        $pdf->Output();
 
+    } catch (Exception $e) {
+        $errorResponse = array("status" => 500, "message" => $e->getMessage());
+        header('Content-Type: application/json');
+        http_response_code($errorResponse['status']);
+        echo json_encode($errorResponse);
+    }
 }
 
 /* Loans Listing   */
