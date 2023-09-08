@@ -82,14 +82,6 @@ class Reports_model extends Model{
           throw new Exception("Failed to fetch loans list: " . $e->getMessage());
       }
   }
-
-  // function getPendingLoans(){
-  //   $office=$_SESSION['office'];
-  //   $query =   $this->db->SelectData("SELECT * FROM m_loan JOIN members on members.c_id=m_loan.member_id where members.office_id='".$office."' AND loan_status ='Pending'");
-
-  //   return $query;
-
-  // }
   function getPendingLoans($office) {
       try {
           $query = $this->db->SelectData("SELECT * FROM m_loan l JOIN members m ON l.member_id = m.c_id WHERE m.office_id = '$office' AND l.loan_status = 'Pending'");
@@ -108,13 +100,23 @@ class Reports_model extends Model{
     }
 }
 
-  function getApprovedLoans(){
-    $office=$_SESSION['office'];
-    $query =   $this->db->SelectData("SELECT * FROM m_loan JOIN members on members.c_id=m_loan.member_id where members.office_id='".$office."' AND loan_status ='Approved'");
+  // function getApprovedLoans(){
+  //   $office=$_SESSION['office'];
+  //   $query =   $this->db->SelectData("SELECT * FROM m_loan JOIN members on members.c_id=m_loan.member_id  where members.office_id='".$office."' AND loan_status ='Approved'");
 
-    return $query;
+  //   return $query;
 
-  }
+  // }
+  function getApprovedLoans($office) {
+    try {
+        $query = $this->db->SelectData("SELECT * FROM m_loan JOIN members ON members.c_id = m_loan.member_id WHERE members.office_id = '$office' AND loan_status = 'Approved'");
+        return $query;
+    } catch (Exception $e) {
+        // Handle any exceptions (e.g., database errors) and re-throw them
+        throw $e;
+    }
+}
+
 
 
   function getProvisionDefinitions(){
