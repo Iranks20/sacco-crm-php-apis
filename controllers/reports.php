@@ -915,62 +915,136 @@ function fixeddepositbyproduct(){
 
 /* Shares Listing   */
 
+function ShareholdersList() {
+    try {
+        $headers = getallheaders();
+        $office = $headers['office'];
 
-function ShareholdersList(){
-$this->view->shareholders = $this->model->ShareHoldersLists();		
-$this->view->render('reports/shares/shareholderslist');
+        $shareholdersData = $this->model->ShareHoldersLists($office);
+
+        if (empty($shareholdersData)) {
+            $response = array("status" => 404, "message" => "No shareholder data found.");
+        } else {
+            $response = array("status" => 200, "message" => "Shareholder data retrieved successfully.", "data" => $shareholdersData);
+        }
+
+        header('Content-Type: application/json');
+        http_response_code($response['status']);
+        echo json_encode($response);
+
+    } catch (Exception $e) {
+        $errorResponse = array("status" => 500, "message" => $e->getMessage());
+        header('Content-Type: application/json');
+        http_response_code($errorResponse['status']);
+        echo json_encode($errorResponse);
+    }
 }
  
-function shareholderslistpdf(){
+// function shareholderslistpdf(){
 
-	$data = $this->model->ShareHoldersLists();
-	$pdf = new FPDF();
-	$pdf->AddPage();
-	$pdf->SetFont('Helvetica','b',12);
-	$pdf->Cell(30,7,'Share Holders List Report',2);
-    $pdf->Ln();
-	$pdf->Ln();
-	$pdf->SetFont('Helvetica','b',9);
-	$pdf->Cell(20,6,'Member No',1,0,'C');
-	$pdf->Cell(20,6,'Account No',1,0,'C');
-	$pdf->Cell(20,6,'Acc Name',1,0,'C');
-	$pdf->Cell(30,6,'Opened On',1,0,'C');
-	$pdf->Cell(20,6,'Shares',1,0,'C');
-	$pdf->Cell(30,6,'Balance on Acc',1,0,'C');
-	$pdf->Cell(25,6,'Status',1,0,'C');
-	$pdf->Cell(30,6,'Last Trans Date',1,0,'C');
+// 	$data = $this->model->ShareHoldersLists();
+// 	$pdf = new FPDF();
+// 	$pdf->AddPage();
+// 	$pdf->SetFont('Helvetica','b',12);
+// 	$pdf->Cell(30,7,'Share Holders List Report',2);
+//     $pdf->Ln();
+// 	$pdf->Ln();
+// 	$pdf->SetFont('Helvetica','b',9);
+// 	$pdf->Cell(20,6,'Member No',1,0,'C');
+// 	$pdf->Cell(20,6,'Account No',1,0,'C');
+// 	$pdf->Cell(20,6,'Acc Name',1,0,'C');
+// 	$pdf->Cell(30,6,'Opened On',1,0,'C');
+// 	$pdf->Cell(20,6,'Shares',1,0,'C');
+// 	$pdf->Cell(30,6,'Balance on Acc',1,0,'C');
+// 	$pdf->Cell(25,6,'Status',1,0,'C');
+// 	$pdf->Cell(30,6,'Last Trans Date',1,0,'C');
 
-	$total_s = 0;
-	$total = 0;
-	foreach ($data as $key => $value){
-		    $total=$total+$value["amount"];						
-            $total_s=$total_s+$value["shares"];
-			$pdf->SetFont('Helvetica','',8);
-			$pdf->Ln();
-			$pdf->Cell(20,6,$value["member"],1);
-			$pdf->Cell(20,6,$value["account_no"],1);
-			$pdf->Cell(20,6,$value["name"] ,1);
-			$pdf->Cell(30,6,$value["opened"],1);
-			$pdf->Cell(20,6,$value["shares"],1);
-			$pdf->Cell(30,6,number_format($value["amount"]),1);
-			$pdf->Cell(25,6,$value["status"],1);
-			$pdf->Cell(30,6,$value["last_updated_on"],1);
+// 	$total_s = 0;
+// 	$total = 0;
+// 	foreach ($data as $key => $value){
+// 		    $total=$total+$value["amount"];						
+//             $total_s=$total_s+$value["shares"];
+// 			$pdf->SetFont('Helvetica','',8);
+// 			$pdf->Ln();
+// 			$pdf->Cell(20,6,$value["member"],1);
+// 			$pdf->Cell(20,6,$value["account_no"],1);
+// 			$pdf->Cell(20,6,$value["name"] ,1);
+// 			$pdf->Cell(30,6,$value["opened"],1);
+// 			$pdf->Cell(20,6,$value["shares"],1);
+// 			$pdf->Cell(30,6,number_format($value["amount"]),1);
+// 			$pdf->Cell(25,6,$value["status"],1);
+// 			$pdf->Cell(30,6,$value["last_updated_on"],1);
 
-		}
+// 		}
 
 	
-	$pdf->SetFont('Helvetica','b',15);
-	$pdf->Ln();
-	$pdf->Ln();
-	$pdf->Cell(30,6,'TOTAL SHARES: '.number_format($total_s),3);
-	$pdf->Ln();
-	$pdf->Cell(30,6,'TOTAL BALANCE ON ACCOUNT: '.number_format($total),3);
-	$pdf->Output();
+// 	$pdf->SetFont('Helvetica','b',15);
+// 	$pdf->Ln();
+// 	$pdf->Ln();
+// 	$pdf->Cell(30,6,'TOTAL SHARES: '.number_format($total_s),3);
+// 	$pdf->Ln();
+// 	$pdf->Cell(30,6,'TOTAL BALANCE ON ACCOUNT: '.number_format($total),3);
+// 	$pdf->Output();
 
+// }
+function shareholderslistpdf() {
+    try {
+        $headers = getallheaders();
+        $office = $headers['office'];
+
+        $shareholdersData = $this->model->ShareHoldersLists($office);
+
+        $pdf = new FPDF();
+        $pdf->AddPage();
+        $pdf->SetFont('Helvetica', 'b', 12);
+        $pdf->Cell(30, 7, 'Share Holders List Report', 2);
+        $pdf->Ln();
+        $pdf->Ln();
+        $pdf->SetFont('Helvetica', 'b', 9);
+        $pdf->Cell(20, 6, 'Member No', 1, 0, 'C');
+        $pdf->Cell(20, 6, 'Account No', 1, 0, 'C');
+        $pdf->Cell(20, 6, 'Acc Name', 1, 0, 'C');
+        $pdf->Cell(30, 6, 'Opened On', 1, 0, 'C');
+        $pdf->Cell(20, 6, 'Shares', 1, 0, 'C');
+        $pdf->Cell(30, 6, 'Balance on Acc', 1, 0, 'C');
+        $pdf->Cell(25, 6, 'Status', 1, 0, 'C');
+        $pdf->Cell(30, 6, 'Last Trans Date', 1, 0, 'C');
+
+        $totalShares = 0;
+        $totalBalance = 0;
+        
+        foreach ($shareholdersData as $key => $value) {
+            $totalBalance += $value["amount"];
+            $totalShares += $value["shares"];
+            $pdf->SetFont('Helvetica', '', 8);
+            $pdf->Ln();
+            $pdf->Cell(20, 6, $value["member"], 1);
+            $pdf->Cell(20, 6, $value["account_no"], 1);
+            $pdf->Cell(20, 6, $value["name"], 1);
+            $pdf->Cell(30, 6, $value["opened"], 1);
+            $pdf->Cell(20, 6, $value["shares"], 1);
+            $pdf->Cell(30, 6, number_format($value["amount"]), 1);
+            $pdf->Cell(25, 6, $value["status"], 1);
+            $pdf->Cell(30, 6, $value["last_updated_on"], 1);
+        }
+
+        $pdf->SetFont('Helvetica', 'b', 15);
+        $pdf->Ln();
+        $pdf->Ln();
+        $pdf->Cell(30, 6, 'TOTAL SHARES: ' . number_format($totalShares), 3);
+        $pdf->Ln();
+        $pdf->Cell(30, 6, 'TOTAL BALANCE ON ACCOUNT: ' . number_format($totalBalance), 3);
+
+        // Output the PDF
+        $pdf->Output();
+    } catch (Exception $e) {
+        // Handle any exceptions (e.g., database errors) and return an error response
+        $errorResponse = array("status" => 500, "message" => $e->getMessage());
+        header('Content-Type: application/json');
+        http_response_code($errorResponse['status']);
+        echo json_encode($errorResponse);
+    }
 }
-
-
-
 
 function shareAccountsbyStatus(){
 $this->view->shares = $this->model->getSharesByStatus();	

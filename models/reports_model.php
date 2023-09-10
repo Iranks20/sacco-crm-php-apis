@@ -317,33 +317,40 @@ function getFixedByStatus($office) {
 }
 
 ////share_accounts
-function ShareHoldersLists(){
 
-  $result= $this->db->SelectData("SELECT * FROM share_account JOIN members on share_account.member_id=members.c_id where members.office_id='".$_SESSION['office']."' ");
-  $count=count($result);
+function ShareHoldersLists($office) {
+  try {
+      $result = $this->db->SelectData("SELECT * FROM share_account JOIN members on share_account.member_id=members.c_id where members.office_id='".$office."' ");
+      $count = count($result);
+      $rset = array();
 
-  if($count>0){
-   foreach ( $result as $key => $value) {
-    $rset[$key]['member'] = $value['c_id']; 
-    $rset[$key]['account_no'] = $value['share_account_no']; 
-    $rset[$key]['office_id'] = $value['office_id']; 
-    $rset[$key]['shares'] = $result[$key]['total_shares'];
-    $rset[$key]['amount'] = $result[$key]['running_balance'];
-    $rset[$key]['opened'] = $result[$key]['submittedon_date'];
-    $rset[$key]['last_updated_on'] = $result[$key]['last_updated_on'];
-    $rset[$key]['status'] = $result[$key]['account_status'];
-    if(empty($value['firstname'])){
-      $rset[$key]['name'] = $value['company_name'];
+      if ($count > 0) {
+          foreach ($result as $key => $value) {
+              $rset[$key]['member'] = $value['c_id'];
+              $rset[$key]['account_no'] = $value['share_account_no'];
+              $rset[$key]['office_id'] = $value['office_id'];
+              $rset[$key]['shares'] = $result[$key]['total_shares'];
+              $rset[$key]['amount'] = $result[$key]['running_balance'];
+              $rset[$key]['opened'] = $result[$key]['submittedon_date'];
+              $rset[$key]['last_updated_on'] = $result[$key]['last_updated_on'];
+              $rset[$key]['status'] = $result[$key]['account_status'];
 
-    }else{
-      $rset[$key]['name'] = $value['firstname']." ".$value['middlename']." ".$value['lastname'];
-    }
+              if (empty($value['firstname'])) {
+                  $rset[$key]['name'] = $value['company_name'];
+              } else {
+                  $rset[$key]['name'] = $value['firstname']." ".$value['middlename']." ".$value['lastname'];
+              }
+          }
+      }
+
+      return $rset;
+
+  } catch (Exception $e) {
+      // Handle any exceptions (e.g., database errors) and re-throw them
+      throw $e;
   }
-
-  return $rset;  
-
 }
-}
+
 
 function getSharesProductAccount($id){
   $query= $this->db->SelectData("SELECT count(s.product_id) as number,sum(running_balance) as balance FROM share_account s JOIN (members m  JOIN m_branch b ON m.office_id=b.id)
