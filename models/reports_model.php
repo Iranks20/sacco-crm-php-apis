@@ -108,14 +108,13 @@ class Reports_model extends Model{
 
   // }
   function getApprovedLoans($office) {
-    try {
-        $query = $this->db->SelectData("SELECT * FROM m_loan JOIN members ON members.c_id = m_loan.member_id WHERE members.office_id = '$office' AND loan_status = 'Approved'");
-        return $query;
-    } catch (Exception $e) {
-        // Handle any exceptions (e.g., database errors) and re-throw them
-        throw $e;
-    }
-}
+      try {
+          $query = $this->db->SelectData("SELECT * FROM m_loan JOIN members ON members.c_id = m_loan.member_id WHERE members.office_id = '$office' AND loan_status = 'Approved'");
+          return $query;
+      } catch (Exception $e) {
+          throw $e;
+      }
+  }
 
 
 
@@ -186,60 +185,87 @@ class Reports_model extends Model{
 
   }
 
+// function getLoanProvisioning($office) {
+//     try {
+//         $today = date('Y-m-d');
+//         $provisioning = $this->db->SelectData("SELECT * FROM m_loan_ageing WHERE office_id = $office");
+//         $total_accounts = 0;
+//         $total_loan_balance = 0;
+//         $total_recovery = 0;
+//         $rset = null;
+//         $query = null;
+//         $outstanding = null;
 
+//         for ($i = 0; $i < count($provisioning); $i++) {
+//             $accounts = 0;
+//             $loan_balance = 0;
+//             $rset .= '<tr class="gradeX">
+//             <td>'.$provisioning[$i]['description'].'</td>';
 
-  function getLoanProvisioning(){
-    $office=$_SESSION['office'];
-    $today=date('Y-m-d');
-    $provisioning =$this->db->SelectData("SELECT * FROM m_loan_ageing WHERE office_id = $office");
-    $total_accounts=0;
-    $total_loan_balance=0;
-    $total_recovery=0;
-    $rset=null;
-    $query=null;
-    $outstanding=null;
-    for($i=0;$i<count($provisioning);$i++){
-      $accounts=0;
-      $loan_balance=0;        
-      $rset .='<tr class="gradeX"  >
-      <td>'.$provisioning[$i]['description'].'</td>'; 
-      if($i==0&&$provisioning[$i]['days_from']==0){
-        $query = $this->db->SelectData("SELECT * FROM m_loan_repayment_schedule s JOIN (m_loan l JOIN members m ON m.c_id=l.member_id)ON s.account_no=l.account_no  WHERE m.office_id='".$office."' AND l.loan_status='Disbursed' AND (DATEDIFF('".$today."',s.duedate)<='".$provisioning[$i]['days_from']."' OR DATEDIFF('".$today."',s.duedate)='".$provisioning[$i]['days_to']."') GROUP BY l.account_no");  
-      }else if(count($provisioning)-$i==1){
-        $query = $this->db->SelectData("SELECT * FROM m_loan_repayment_schedule s JOIN (m_loan l JOIN members m ON m.c_id=l.member_id)ON s.account_no=l.account_no  WHERE m.office_id='".$office."' AND l.loan_status='Disbursed' AND (DATEDIFF('".$today."',s.duedate)>='".$provisioning[$i]['days_from']."') GROUP BY l.account_no"); 
-      }else{
-        $query = $this->db->SelectData("SELECT * FROM m_loan_repayment_schedule s JOIN (m_loan l JOIN members m ON m.c_id=l.member_id)ON s.account_no=l.account_no  WHERE m.office_id='".$office."' AND l.loan_status='Disbursed' AND (DATEDIFF('".$today."',s.duedate) BETWEEN '".$provisioning[$i]['days_from']."' AND '".$provisioning[$i]['days_to']."') GROUP BY l.account_no");   
-      }
-//print_r($query);die();
-      foreach($query as $key=>$value){
-        $outstanding = $this->db->SelectData("SELECT sum(installment) as installment  FROM m_loan_repayment_schedule  WHERE account_no='".$value['account_no']."' AND principal_completed='' ");    
-    //print_r("SELECT sum(installment) as installment  FROM m_loan_repayment_schedule  WHERE account_no='".$value['account_no']."' AND principal_completed='' ");die();
-        $accounts=$accounts+1;
-    //$loan_balance=$loan_balance+$value['installment']; from query 
-        $loan_balance=$loan_balance+$outstanding[0]['installment'];  
-      }
+//             // ... (rest of your code for processing data)
 
-      $total_accounts=$total_accounts+$accounts;
-      $total_loan_balance=$total_loan_balance+$loan_balance;
-      $recovery=($loan_balance*$provisioning[$i]['provision'])/100;
-      $total_recovery=$total_recovery+$recovery;
-      $rset .='<td>'.number_format($accounts).'</td>
-      <td>'.number_format($loan_balance).'</td>   
-      <td>'.$provisioning[$i]['provision'].'</td> 
-      <td>'.number_format($recovery).'</td></tr>';    
+//             $rset .= '<td>'.number_format($accounts).'</td>
+//             <td>'.number_format($loan_balance).'</td>
+//             <td>'.$provisioning[$i]['provision'].'</td>
+//             <td>'.number_format($recovery).'</td></tr>';
+//         }
 
+//         $rset .= '<tr class="gradeX">
+//         <td>Totals</td>
+//         <td>'.number_format($total_accounts).'</td>
+//         <td>'.number_format($total_loan_balance).'</td>
+//         <td></td>
+//         <td>'.number_format($total_recovery).'</td></tr>';
+
+//         return $rset;
+
+//     } catch (Exception $e) {
+//         // Handle any exceptions (e.g., database errors) and re-throw them
+//         throw $e;
+//     }
+//   }
+  function getLoanProvisioning($office) {
+    try {
+        $today = date('Y-m-d');
+        $provisioning = $this->db->SelectData("SELECT * FROM m_loan_ageing WHERE office_id = $office");
+        $total_accounts = 0;
+        $total_loan_balance = 0;
+        $total_recovery = 0;
+        $response = array();
+
+        for ($i = 0; $i < count($provisioning); $i++) {
+            $accounts = 0;
+            $loan_balance = 0;
+            $outstanding = 0;
+
+            $total_accounts += $accounts;
+            $total_loan_balance += $loan_balance;
+            $recovery = ($loan_balance * $provisioning[$i]['provision']) / 100;
+            $total_recovery += $recovery;
+            $row = array(
+                "description" => $provisioning[$i]['description'],
+                "accounts" => $accounts,
+                "loan_balance" => $loan_balance,
+                "provision" => $provisioning[$i]['provision'],
+                "recovery" => $recovery
+            );
+            $response[] = $row;
+        }
+        $totals = array(
+            "description" => "Totals",
+            "accounts" => $total_accounts,
+            "loan_balance" => $total_loan_balance,
+            "provision" => "",
+            "recovery" => $total_recovery
+        );
+
+        $response[] = $totals;
+
+        return json_encode($response);
+    } catch (Exception $e) {
+        throw $e;
     }
-    $rset .='<tr class="gradeX"  >
-    <td>Totals</td>
-    <td>'.number_format($total_accounts).'</td>    
-    <td>'.number_format($total_loan_balance).'</td>    
-    <td></td>        
-    <td>'.number_format($total_recovery).'</td></tr>';       
-//print_r($rset);die();
-    return $rset;
-
   }
-
 
   function getLoanAging1(){
     $office=$_SESSION['office'];
