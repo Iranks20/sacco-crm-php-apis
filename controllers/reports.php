@@ -569,18 +569,59 @@ function provisioningpdf() {
     }
 }
 
+function detailedprovisioning() {
+    try {
+        $headers = getallheaders();
+        $office = $headers['office'];
 
-function detailedprovisioning(){
-$this->view->provisioning = $this->model->getProvisionDefinitions();
-$this->view->render('reports/loans/provisioning_form');
+        $data = $this->model->getProvisionDefinitions($office);
+
+        if (empty($data)) {
+            $response = array("status" => 404, "message" => "No provisioning definitions found.");
+        } else {
+            $response = array("status" => 200, "message" => "Provisioning definitions retrieved successfully.", "data" => $data);
+        }
+
+        header('Content-Type: application/json');
+        http_response_code($response['status']);
+        echo json_encode($response);
+
+    } catch (Exception $e) {
+        $errorResponse = array("status" => 500, "message" => $e->getMessage());
+        header('Content-Type: application/json');
+        http_response_code($errorResponse['status']);
+        echo json_encode($errorResponse);
+    }
 }
 
-function getdetailedprovisioning(){
-	$id=$_POST['provis_id'];
-$this->view->provisioning = $this->model->getDetailedProvisioning($id);
-$this->view->render('reports/loans/arrears_report');
-}
+function getdetailedprovisioning() {
+    try {
+        $jsonData = file_get_contents('php://input');
+        $data = json_decode($jsonData, true);
+        $id = $data['id'];
 
+        $headers = getallheaders();
+        $office = $headers['office'];
+
+        $provisioningData = $this->model->getDetailedProvisioning($office, $id);
+
+        if (empty($provisioningData)) {
+            $response = array("status" => 404, "message" => "No detailed provisioning data found.");
+        } else {
+            $response = array("status" => 200, "message" => "Detailed provisioning data retrieved successfully.", "data" => $provisioningData);
+        }
+
+        header('Content-Type: application/json');
+        http_response_code($response['status']);
+        echo json_encode($response);
+
+    } catch (Exception $e) {
+        $errorResponse = array("status" => 500, "message" => $e->getMessage());
+        header('Content-Type: application/json');
+        http_response_code($errorResponse['status']);
+        echo json_encode($errorResponse);
+    }
+}
 
 /* Savings   */
 

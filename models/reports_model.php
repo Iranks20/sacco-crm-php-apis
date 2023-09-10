@@ -38,12 +38,12 @@ class Reports_model extends Model{
 
   //////////////////////////////////////////////////////////////////////////////////////////////
 
-  function getGlAccountsCount(){
-    $id = $_SESSION['office'];
-    $data = $this->db->selectData("SELECT count(product_id) FROM acc_ledger_account_mapping where office_id= $id");
-    
-    return $data[0][0];
-  }
+    function getGlAccountsCount(){
+      $id = $_SESSION['office'];
+      $data = $this->db->selectData("SELECT count(product_id) FROM acc_ledger_account_mapping where office_id= $id");
+      
+      return $data[0][0];
+    }
     function getDormantMembersList($office, $range)
     {
         try {
@@ -74,257 +74,145 @@ class Reports_model extends Model{
 
   ////////LOANS///////
 
-  function Getloanslist($office) {
-      try {
-          $query = $this->db->SelectData("SELECT * FROM m_loan l JOIN members m ON l.member_id = m.c_id JOIN m_branch b ON m.office_id = b.id WHERE m.office_id = '$office'");
-          return $query;
-      } catch (Exception $e) {
-          throw new Exception("Failed to fetch loans list: " . $e->getMessage());
-      }
-  }
-  function getPendingLoans($office) {
-      try {
-          $query = $this->db->SelectData("SELECT * FROM m_loan l JOIN members m ON l.member_id = m.c_id WHERE m.office_id = '$office' AND l.loan_status = 'Pending'");
-          return $query;
-      } catch (Exception $e) {
-          throw new Exception("Failed to fetch pending loans: " . $e->getMessage());
-      }
-  }
-
-  function getDisbursedLoans($office) {
-    try {
-        $query = $this->db->SelectData("SELECT * FROM m_loan JOIN members ON members.c_id = m_loan.member_id WHERE members.office_id = '$office' AND loan_status = 'Disbursed'");
-        return $query;
-    } catch (Exception $e) {
-        throw new Exception("Failed to fetch disbursed loans: " . $e->getMessage());
+    function Getloanslist($office) {
+        try {
+            $query = $this->db->SelectData("SELECT * FROM m_loan l JOIN members m ON l.member_id = m.c_id JOIN m_branch b ON m.office_id = b.id WHERE m.office_id = '$office'");
+            return $query;
+        } catch (Exception $e) {
+            throw new Exception("Failed to fetch loans list: " . $e->getMessage());
+        }
     }
-}
+    function getPendingLoans($office) {
+        try {
+            $query = $this->db->SelectData("SELECT * FROM m_loan l JOIN members m ON l.member_id = m.c_id WHERE m.office_id = '$office' AND l.loan_status = 'Pending'");
+            return $query;
+        } catch (Exception $e) {
+            throw new Exception("Failed to fetch pending loans: " . $e->getMessage());
+        }
+    }
 
-  // function getApprovedLoans(){
-  //   $office=$_SESSION['office'];
-  //   $query =   $this->db->SelectData("SELECT * FROM m_loan JOIN members on members.c_id=m_loan.member_id  where members.office_id='".$office."' AND loan_status ='Approved'");
+    function getDisbursedLoans($office) {
+        try {
+            $query = $this->db->SelectData("SELECT * FROM m_loan JOIN members ON members.c_id = m_loan.member_id WHERE members.office_id = '$office' AND loan_status = 'Disbursed'");
+            return $query;
+        } catch (Exception $e) {
+            throw new Exception("Failed to fetch disbursed loans: " . $e->getMessage());
+        }
+    }
 
-  //   return $query;
-
-  // }
-  function getApprovedLoans($office) {
+    function getDetailedProvisioning($office, $id) {
       try {
-          $query = $this->db->SelectData("SELECT * FROM m_loan JOIN members ON members.c_id = m_loan.member_id WHERE members.office_id = '$office' AND loan_status = 'Approved'");
-          return $query;
+          $today = date('Y-m-d');
+          $provisioning = $this->db->SelectData("SELECT * FROM m_loan_ageing WHERE id='".$id."'");
+
+          return $rset;
+
       } catch (Exception $e) {
           throw $e;
       }
-  }
-
-
-
-  function getProvisionDefinitions(){
-    $office=$_SESSION['office'];
-    $provisioning =$this->db->SelectData("SELECT * FROM m_loan_ageing WHERE office_id = $office");
-
-    return $provisioning;
-
-  }
-
-
-  function getDetailedProvisioning($id){
-
-    $office=$_SESSION['office'];
-    $today=date('Y-m-d');
-    $provisioning =$this->db->SelectData("SELECT * FROM m_loan_ageing where id='".$id."'");
-    $total_interest=0;
-    $total_principal=0;
-    $rset=null;
-    $query=null;
-    if(count($provisioning)>0){
-      $accounts=0;
-      $loan_balance=0;        
-      if($provisioning[0]['days_from']==0){
-        $query = $this->db->SelectData("SELECT * FROM m_loan_repayment_schedule s JOIN (m_loan l JOIN members m ON m.c_id=l.member_id)ON s.account_no=l.account_no  WHERE m.office_id='".$office."' AND l.loan_status='Disbursed' AND (DATEDIFF('".$today."',s.duedate)>'".$provisioning[0]['days_from']."' OR DATEDIFF('".$today."',s.duedate)='".$provisioning[0]['days_to']."') GROUP BY l.account_no");
-
-      }else if($provisioning[0]['provision']==100){
-        $query = $this->db->SelectData("SELECT * FROM m_loan_repayment_schedule s JOIN (m_loan l JOIN members m ON m.c_id=l.member_id)ON s.account_no=l.account_no  WHERE m.office_id='".$office."' AND l.loan_status='Disbursed' AND (DATEDIFF('".$today."',s.duedate)>='".$provisioning[0]['days_from']."') GROUP BY l.account_no");  
-      }else{
-        $query = $this->db->SelectData("SELECT * FROM m_loan_repayment_schedule s JOIN (m_loan l JOIN members m ON m.c_id=l.member_id)ON s.account_no=l.account_no  WHERE m.office_id='".$office."' AND l.loan_status='Disbursed' AND (DATEDIFF('".$today."',s.duedate) BETWEEN '".$provisioning[0]['days_from']."' AND '".$provisioning[0]['days_to']."') GROUP BY l.account_no"); 
-      }
-
-
-
-      foreach($query as $key=>$value){
-        $accounts=$accounts+1;
-        $loan_balance=$loan_balance+$value['installment'];
-        if(empty($value['company_name'])){
-          $name=$value['firstname']." ".$value['middlename']." ".$value['lastname'];  
-        }else{
-          $name=$value['company_name'];   
-        }
-        $diff=date_diff(date_create($value['duedate']),date_create($today));
-        if($diff->format("%R%a")>0){
-          $days=$diff->format("%R%a");    
-        }else{
-          $days=0;    
-        }   
-        $total_principal=$total_principal+$value['principal_amount'];
-        $total_interest=$total_interest+$value['interest_amount'];
-        $rset .='<tr class="gradeX">
-        <td>'.$name.'</td>
-        <td>'.number_format($value['principal_amount']).'</td>
-        <td>'.number_format($value['interest_amount']).'</td>   
-        <td>'.$days.'</td></tr>';   
-      }
-      $rset .='<tr class="gradeX"  >
-      <td>Totals</td>
-      <td>'.number_format($total_principal).'</td>   
-      <td>'.number_format($total_interest).'</td>         
-      <td></td></tr>';    
-
     }
 
-//print_r($rset);die();
-    return $rset;
-
-  }
-
-// function getLoanProvisioning($office) {
-//     try {
-//         $today = date('Y-m-d');
-//         $provisioning = $this->db->SelectData("SELECT * FROM m_loan_ageing WHERE office_id = $office");
-//         $total_accounts = 0;
-//         $total_loan_balance = 0;
-//         $total_recovery = 0;
-//         $rset = null;
-//         $query = null;
-//         $outstanding = null;
-
-//         for ($i = 0; $i < count($provisioning); $i++) {
-//             $accounts = 0;
-//             $loan_balance = 0;
-//             $rset .= '<tr class="gradeX">
-//             <td>'.$provisioning[$i]['description'].'</td>';
-
-//             // ... (rest of your code for processing data)
-
-//             $rset .= '<td>'.number_format($accounts).'</td>
-//             <td>'.number_format($loan_balance).'</td>
-//             <td>'.$provisioning[$i]['provision'].'</td>
-//             <td>'.number_format($recovery).'</td></tr>';
-//         }
-
-//         $rset .= '<tr class="gradeX">
-//         <td>Totals</td>
-//         <td>'.number_format($total_accounts).'</td>
-//         <td>'.number_format($total_loan_balance).'</td>
-//         <td></td>
-//         <td>'.number_format($total_recovery).'</td></tr>';
-
-//         return $rset;
-
-//     } catch (Exception $e) {
-//         // Handle any exceptions (e.g., database errors) and re-throw them
-//         throw $e;
-//     }
-//   }
-  function getLoanProvisioning($office) {
-    try {
-        $today = date('Y-m-d');
-        $provisioning = $this->db->SelectData("SELECT * FROM m_loan_ageing WHERE office_id = $office");
-        $total_accounts = 0;
-        $total_loan_balance = 0;
-        $total_recovery = 0;
-        $response = array();
-
-        for ($i = 0; $i < count($provisioning); $i++) {
-            $accounts = 0;
-            $loan_balance = 0;
-            $outstanding = 0;
-
-            $total_accounts += $accounts;
-            $total_loan_balance += $loan_balance;
-            $recovery = ($loan_balance * $provisioning[$i]['provision']) / 100;
-            $total_recovery += $recovery;
-            $row = array(
-                "description" => $provisioning[$i]['description'],
-                "accounts" => $accounts,
-                "loan_balance" => $loan_balance,
-                "provision" => $provisioning[$i]['provision'],
-                "recovery" => $recovery
-            );
-            $response[] = $row;
-        }
-        $totals = array(
-            "description" => "Totals",
-            "accounts" => $total_accounts,
-            "loan_balance" => $total_loan_balance,
-            "provision" => "",
-            "recovery" => $total_recovery
-        );
-
-        $response[] = $totals;
-
-        return json_encode($response);
-    } catch (Exception $e) {
-        throw $e;
-    }
-  }
-
-  function getLoanAging1(){
-    $office=$_SESSION['office'];
-    $today=date('Y-m-d');
-    $query =   $this->db->SelectData("SELECT * FROM m_loan_repayment_schedule s JOIN (m_loan l JOIN members m ON m.c_id=l.member_id)ON s.account_no=l.account_no  WHERE m.office_id='".$office."' AND DATEDIFF('".$today."',s.duedate)>0 AND DATEDIFF('".$today."',s.duedate)<30 ");
-//print_r("SELECT * FROM m_loan_repayment_schedule s JOIN (m_loan l JOIN members m ON m.c_id=l.member_id)ON s.account_no=l.account_no  WHERE m.office_id='".$office."' AND DATEDIFF('".$today."',s.duedate)>0 && DATEDIFF('".$today."',s.duedate)<30 ");
-    print_r($query);die();
-    return $query;
-
-  }
-
-  function membersList($office) {
+    function getLoanProvisioning($office) {
       try {
-          $result = $this->db->SelectData("SELECT * FROM members m INNER JOIN m_branch b WHERE m.office_id = b.id AND office_id = '$office' ORDER BY m.office_id DESC");
+          $today = date('Y-m-d');
+          $provisioning = $this->db->SelectData("SELECT * FROM m_loan_ageing WHERE office_id = $office");
+          $total_accounts = 0;
+          $total_loan_balance = 0;
+          $total_recovery = 0;
+          $response = array();
 
-          return $result;
-      } catch (Exception $e) {
-          throw new Exception("Failed to fetch members' list: " . $e->getMessage());
-      }
-  }
+          for ($i = 0; $i < count($provisioning); $i++) {
+              $accounts = 0;
+              $loan_balance = 0;
+              $outstanding = 0;
 
-  function savingslist($office) {
-    try {
-        $query = $this->db->SelectData("SELECT * FROM m_savings_account s JOIN (members m JOIN m_branch b ON m.office_id=b.id)
-            ON s.member_id = m.c_id WHERE m.office_id = '$office'");
-
-        return $query;
-    } catch (Exception $e) {
-        throw new Exception("Failed to fetch savings list: " . $e->getMessage());
-    }
-}
-
-  function getSavingsProductAccount($id){
-    $query= $this->db->SelectData("SELECT count(s.product_id) as number,sum(running_balance) as balance FROM m_savings_account s  JOIN (members m  JOIN m_branch b ON m.office_id=b.id)
-      ON  s.member_id  = m.c_id where m.office_id='".$_SESSION['office']."' and s.product_id='".$id."'");
-
-    return $query;
-  }
-
-function getSavingsByProduct($office) {
-  try {
-      $result = $this->db->SelectData("SELECT * FROM m_savings_account s JOIN (members m JOIN m_branch b ON m.office_id = b.id) ON s.member_id = m.c_id WHERE m.office_id = '$office'");
-
-      $count = count($result);
-
-      if ($count > 0) {
-          foreach ($result as $key => $value) {
-              $accounts = $this->getSavingsProductAccount($value['id']);
-              $rset[$key]['product_type'] = $value['name'];
-              $rset[$key]['no_of_accounts'] = $accounts[0]['number'];
-              $rset[$key]['balance_of_account'] = $accounts[0]['balance'];
+              $total_accounts += $accounts;
+              $total_loan_balance += $loan_balance;
+              $recovery = ($loan_balance * $provisioning[$i]['provision']) / 100;
+              $total_recovery += $recovery;
+              $row = array(
+                  "description" => $provisioning[$i]['description'],
+                  "accounts" => $accounts,
+                  "loan_balance" => $loan_balance,
+                  "provision" => $provisioning[$i]['provision'],
+                  "recovery" => $recovery
+              );
+              $response[] = $row;
           }
-          return $rset;
+          $totals = array(
+              "description" => "Totals",
+              "accounts" => $total_accounts,
+              "loan_balance" => $total_loan_balance,
+              "provision" => "",
+              "recovery" => $total_recovery
+          );
+
+          $response[] = $totals;
+
+          return json_encode($response);
+      } catch (Exception $e) {
+          throw $e;
       }
-  } catch (Exception $e) {
-      // Handle any exceptions and return an error response
-      throw new Exception("Failed to fetch savings by product: " . $e->getMessage());
-  }
-}
+    }
+
+    function getLoanAging1(){
+      $office=$_SESSION['office'];
+      $today=date('Y-m-d');
+      $query =   $this->db->SelectData("SELECT * FROM m_loan_repayment_schedule s JOIN (m_loan l JOIN members m ON m.c_id=l.member_id)ON s.account_no=l.account_no  WHERE m.office_id='".$office."' AND DATEDIFF('".$today."',s.duedate)>0 AND DATEDIFF('".$today."',s.duedate)<30 ");
+  //print_r("SELECT * FROM m_loan_repayment_schedule s JOIN (m_loan l JOIN members m ON m.c_id=l.member_id)ON s.account_no=l.account_no  WHERE m.office_id='".$office."' AND DATEDIFF('".$today."',s.duedate)>0 && DATEDIFF('".$today."',s.duedate)<30 ");
+      print_r($query);die();
+      return $query;
+
+    }
+
+    function membersList($office) {
+        try {
+            $result = $this->db->SelectData("SELECT * FROM members m INNER JOIN m_branch b WHERE m.office_id = b.id AND office_id = '$office' ORDER BY m.office_id DESC");
+
+            return $result;
+        } catch (Exception $e) {
+            throw new Exception("Failed to fetch members' list: " . $e->getMessage());
+        }
+    }
+
+    function savingslist($office) {
+        try {
+            $query = $this->db->SelectData("SELECT * FROM m_savings_account s JOIN (members m JOIN m_branch b ON m.office_id=b.id)
+                ON s.member_id = m.c_id WHERE m.office_id = '$office'");
+
+            return $query;
+        } catch (Exception $e) {
+            throw new Exception("Failed to fetch savings list: " . $e->getMessage());
+        }
+    }
+
+    function getSavingsProductAccount($id){
+      $query= $this->db->SelectData("SELECT count(s.product_id) as number,sum(running_balance) as balance FROM m_savings_account s  JOIN (members m  JOIN m_branch b ON m.office_id=b.id)
+        ON  s.member_id  = m.c_id where m.office_id='".$_SESSION['office']."' and s.product_id='".$id."'");
+
+      return $query;
+    }
+
+    function getSavingsByProduct($office) {
+      try {
+          $result = $this->db->SelectData("SELECT * FROM m_savings_account s JOIN (members m JOIN m_branch b ON m.office_id = b.id) ON s.member_id = m.c_id WHERE m.office_id = '$office'");
+
+          $count = count($result);
+
+          if ($count > 0) {
+              foreach ($result as $key => $value) {
+                  $accounts = $this->getSavingsProductAccount($value['id']);
+                  $rset[$key]['product_type'] = $value['name'];
+                  $rset[$key]['no_of_accounts'] = $accounts[0]['number'];
+                  $rset[$key]['balance_of_account'] = $accounts[0]['balance'];
+              }
+              return $rset;
+          }
+      } catch (Exception $e) {
+          // Handle any exceptions and return an error response
+          throw new Exception("Failed to fetch savings by product: " . $e->getMessage());
+      }
+    }
 
 function getSavingsAccountByStatus($status){
   $query= $this->db->SelectData("SELECT count(s.account_status) as number,sum(running_balance) as balance FROM m_savings_account s  JOIN (members m  JOIN m_branch b ON m.office_id=b.id)
