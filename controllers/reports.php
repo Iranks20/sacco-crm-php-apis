@@ -15,6 +15,8 @@ parent::__construct();
 // Auth::CheckSession();
 // Auth::CheckAuthorization();
 // $_SESSION['timeout'] = time(); 
+// error_reporting(E_ALL);
+// ini_set('display_errors', 1);
 }
 function index(){
 
@@ -1226,26 +1228,92 @@ function gltransactionslists(){
 	
 $this->view->render('reports/gltransactions/gl_transaction_reports');
 }
-function GeneralLedgerReport(){
-	if ($_SESSION['Isheadoffice'] == 'Yes') {
-		$this->view->saccobranches = $this->model->getSaccoBranches();
-	}
-	$this->view->glaccount=$this->model->getGlaccounts();
-	$this->view->render('reports/gltransactions/generalledgerreport');
+
+function GeneralLedgerReport() {
+    try {
+        $headers = getallheaders();
+        $isHeadOffice = $headers['Isheadoffice'];
+
+        $saccoBranches = array();
+        if ($isHeadOffice == 'Yes') {
+            $saccoBranches = $this->model->getSaccoBranches();
+        }
+
+        $glAccounts = $this->model->getGlaccounts();
+
+        $responseData = array(
+            "Isheadoffice" => $isHeadOffice,
+            "saccobranches" => $saccoBranches,
+            "glaccount" => $glAccounts
+        );
+
+        $response = array("status" => 200, "message" => "General ledger report data retrieved successfully.", "data" => $responseData);
+
+        header('Content-Type: application/json');
+        http_response_code($response['status']);
+        echo json_encode($response);
+
+    } catch (Exception $e) {
+        $errorResponse = array("status" => 500, "message" => $e->getMessage());
+        header('Content-Type: application/json');
+        http_response_code($errorResponse['status']);
+        echo json_encode($errorResponse);
+    }
 }
 
-function runLedgerReport(){
-	$data=$_POST;
-	if (empty($data)) {
-		header('Location: ' . URL."reports/GeneralLedgerReport"); 
-	} else {
-		$this->view->ledger=$this->model->getGLreport($data);
-		$this->view->account=$this->model->getGlaccountName($data['glaccount']);
-		$this->view->balance_forward=$this->model->getBalance_Forward($data['startdon'],$data['glaccount']);
-		//print_r($this->view->balance_forward);die();
-		//$this->view->office=$this->model->getbranches($data);
-		$this->view->render('reports/gltransactions/ledgerReport_output');
-	}
+// function runLedgerReport(){
+// 	$data=$_POST;
+// 	if (empty($data)) {
+// 		header('Location: ' . URL."reports/GeneralLedgerReport"); 
+// 	} else {
+// 		$this->view->ledger=$this->model->getGLreport($data);
+// 		$this->view->account=$this->model->getGlaccountName($data['glaccount']);
+// 		$this->view->balance_forward=$this->model->getBalance_Forward($data['startdon'],$data['glaccount']);
+// 		//print_r($this->view->balance_forward);die();
+// 		//$this->view->office=$this->model->getbranches($data);
+// 		$this->view->render('reports/gltransactions/ledgerReport_output');
+// 	}
+// }
+function runLedgerReport() {
+    try {
+        $headers = getallheaders();
+        $office = $headers['office'];
+        $isHeadOffice = $headers['Isheadoffice'];
+        $branchid = $headers['branchid'];
+
+        $jsonInput = file_get_contents('php://input');
+        $data = json_decode($jsonInput, true);
+
+        if (empty($data)) {
+            $response = array("status" => 400, "message" => "Empty request data.");
+        } else {
+            $ledgerData = $this->model->getGLreport($office, $isHeadOffice, $data, $branchid);
+            $accountName = $this->model->getGlaccountName($data);
+            $balanceForward = $this->model->getBalance_Forward($office, $isHeadOffice, $data, $branchid);
+
+            if (empty($ledgerData) || empty($accountName) || empty($balanceForward) || empty($officeData)) {
+                $response = array("status" => 404, "message" => $balanceForward);
+            } else {
+                $response = array(
+                    "status" => 200,
+                    "message" => "Ledger report data retrieved successfully.",
+                    "ledger" => $ledgerData,
+                    "account" => $accountName,
+                    "balance_forward" => $balanceForward,
+                );
+            }
+        }
+
+        header('Content-Type: application/json');
+        http_response_code($response['status']);
+        echo json_encode($response);
+
+    } catch (Exception $e) {
+        $errorResponse = array("status" => 500, "message" => $e->getMessage());
+        header('Content-Type: application/json');
+        http_response_code($errorResponse['status']);
+        echo json_encode($errorResponse);
+    }
 }
 
 

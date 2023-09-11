@@ -441,7 +441,8 @@ function getSharesByStatus() {
 
 //GENEEAL LEGER Reports_model
 
-function getGlaccountName($account){
+function getGlaccountName($data){
+  $account = $data['glaccount'];
 
   return $this->db->selectData("SELECT * FROM acc_ledger_account WHERE id='".$account."' ");
 }
@@ -450,17 +451,19 @@ function getGlaccounts(){
   return $this->db->selectData("SELECT * FROM acc_ledger_account WHERE account_usage='Account' AND sacco_id = '".$_SESSION['office']."' order by  gl_code ASC,classification");
 }
 
-function getBalance_Forward($date,$account){
+function getBalance_Forward($office, $isHeadOffice, $data, $branchid){
+  $date = $data['startdon'];
+  $account = $data['glaccount'];
 
   $from=date('Y-m-d',strtotime($date));
 
-  $office_id=$_SESSION['office'];
+  $office_id=$office;
   $balance=0; 
 
-  if ($_SESSION['Isheadoffice'] == 'Yes') {
+  if ($isHeadOffice == 'Yes') {
     $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$account."' AND office_id='".$office_id."' and DATE(created_date) < '".$from."' ");
   } else {
-    $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$account."' AND office_id='".$office_id."' AND branch_id = '".$_SESSION['branchid']."' and DATE(created_date) < '".$from."' ");
+    $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$account."' AND office_id='".$office_id."' AND branch_id = '".$branchid."' and DATE(created_date) < '".$from."' ");
   }
 
   if(count($res)>0){ 
@@ -491,7 +494,7 @@ function getBalance_Forward($date,$account){
   }
 }
 
-function getGLreport($data){
+function getGLreport($office, $isHeadOffice, $data, $branchid){
 
   $start=$data['startdon'];
   $end=$data['endon'];
@@ -499,36 +502,33 @@ function getGLreport($data){
   $from=date('Y-m-d',strtotime($start));
   $to=date('Y-m-d',strtotime($end));
   $acc_id=$data['glaccount'];
-  $office_id=$_SESSION['office'];
+  $office_id=$office;
 
   if(!empty($start)){
     $branches = $this->getSaccoBranches();
-    if ($_SESSION['Isheadoffice'] == 'Yes') {
+    if ($isHeadOffice == 'Yes') {
       if ((isset($data['branch']) && $data['branch'] == 'all') || empty($branches)) {
         $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$acc_id."' AND office_id='".$office_id."' and DATE(created_date) BETWEEN '".$from."' AND '".$to."' ");
       } else {
         $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$acc_id."' AND office_id='".$office_id."' AND branch_id = '".$data['branch']."' and DATE(created_date) BETWEEN '".$from."' AND '".$to."' ");
       }
     } else {
-      $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$acc_id."' AND office_id='".$office_id."' AND branch_id = '".$_SESSION['branchid']."' and DATE(created_date) BETWEEN '".$from."' AND '".$to."' ");
+      $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$acc_id."' AND office_id='".$office_id."' AND branch_id = '".$branchid."' and DATE(created_date) BETWEEN '".$from."' AND '".$to."' ");
     }
   }else{
-    if ($_SESSION['Isheadoffice'] == 'Yes') {
+    if ($isHeadOffice == 'Yes') {
       $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$acc_id."' AND office_id='".$office_id."' ");
     } else {
-      $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$acc_id."' AND office_id='".$office_id."' AND branch_id = '".$_SESSION['branchid']."' ");
+      $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$acc_id."' AND office_id='".$office_id."' AND branch_id = '".$branchid."' ");
     }
   }
   if(count($res)>0){ 
- //print_r($res);
-//  die();
     $balance=0;
     $debit=0;
     $credit=0;
     $prev_bal=$this->getBalance_Forward($start,$acc_id);
     $balance=$prev_bal['balance'];
     foreach ($res as $key => $value) {
-                //$officename = $this->officeName($result[$key]['id']);
       $rset[$key]['created_date'] =date('d-m-Y',strtotime($res[$key]['created_date'])); 
       $rset[$key]['account_id'] = $res[$key]['account_id']; 
       $rset[$key]['office_id'] = $res[$key]['office_id']; 
@@ -536,52 +536,23 @@ function getGLreport($data){
       $side = $res[$key]['trial_balance_side']; 
       $type = $res[$key]['transaction_type']; 
       $amount = $res[$key]['amount']; 
-
-                /*
-                if($side=='SIDE_A'){
-                if($type=='DR'){
-                $balance=$balance+$amount;
-                $debit=$amount ;
-                $credit="";
-                }else{
-                $balance=$balance-$amount; 
-                $credit=$amount ;           
-                $debit="";          
-                }                
-                }else{
-                if($type=='DR'){
-                $balance=$balance-$amount; 
-                $debit=$amount ;                        
-                $credit="";             
-                }else{
-                $balance=$balance+$amount; 
-                $credit=$amount ;                       
-                $debit="";                      
-                }       
-                    
-                }
-                
-                */
-                
-                if($type=='DR'){
-                  $balance=$balance-$amount;
-                  $debit=$amount ;
-                  $credit="";
-                }else{
-                  $balance=$balance+$amount; 
-                  $credit=$amount ;           
-                  $debit="";          
-                }
-                
-                
-
-                $rset[$key]['debit'] =$debit; 
-                $rset[$key]['credit'] =$credit; 
-                $rset[$key]['balance'] =$balance; 
-              }
-              return $rset;
-            }
-          }
+      if($type=='DR'){
+        $balance=$balance-$amount;
+        $debit=$amount ;
+        $credit="";
+      }else{
+        $balance=$balance+$amount; 
+        $credit=$amount ;           
+        $debit="";          
+      }
+            
+      $rset[$key]['debit'] =$debit; 
+      $rset[$key]['credit'] =$credit; 
+      $rset[$key]['balance'] =$balance; 
+    }
+    return $rset;
+  }
+}
 
 
           function getGLreportByPostDate($data){
