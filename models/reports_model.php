@@ -876,131 +876,136 @@ return $rset;
 
 /* CONTAINS  EQUITY OR SHARES,INCOMES */
 
-function getIncomeAccounts($data=null){
-  $start=$data['startdon'];
-  $end=$data['endon'];
+function getIncomeAccounts($office_id, $Isheadoffice, $branchid, $data) {
+  try {
+      $start=$data['startdon'];
+      $end=$data['endon'];
+      $from = date('Y-m-d', strtotime($start));
+      $to = date('Y-m-d', strtotime($end));
 
-  $from=date('Y-m-d',strtotime($start));
-  $to=date('Y-m-d',strtotime($end));
+      $array = $this->db->selectData("SELECT * FROM acc_ledger_account WHERE sacco_id = $office_id AND classification='Incomes' ORDER BY gl_code ASC");
+      $counter = count($array);
 
-  $office_id=$_SESSION['office'];
-    //AND created_date between '".$from."' AND '".$to."'
-  $array=$this->db->selectData("SELECT * FROM acc_ledger_account where sacco_id = $office_id and classification='Incomes' order by gl_code ASC");
-  $counter=count($array);
-  if($counter>0){           
-    for($t=0;$t<$counter;$t++) {
-      if(!empty($start)){ 
-        $branches = $this->getSaccoBranches();
-        if ($_SESSION['Isheadoffice'] == 'Yes') {
-          if ((isset($data['branch']) && $data['branch'] == 'all') || empty($branches)) { 
-            $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' and DATE(created_date) between '".$from."' AND '".$to."' ");
-          } else {
-            $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' AND branch_id = '".$data['branch']."' and DATE(created_date) between '".$from."' AND '".$to."' ");
+      if($counter>0){           
+        for($t=0;$t<$counter;$t++) {
+          if(!empty($start)){ 
+            $branches = $this->getSaccoBranches();
+            if ($Isheadoffice == 'Yes') {
+              if ((isset($data['branch']) && $data['branch'] == 'all') || empty($branches)) { 
+                $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' and DATE(created_date) between '".$from."' AND '".$to."' ");
+              } else {
+                $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' AND branch_id = '".$data['branch']."' and DATE(created_date) between '".$from."' AND '".$to."' ");
+              }
+            } else {
+              $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' AND branch_id = '".$branchid."' and DATE(created_date) between '".$from."' AND '".$to."' ");
+            }
+          }else{
+            if ($Isheadoffice == 'Yes') { 
+              $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' ");
+            } else {
+              $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' AND branch_id = '".$branchid."'");
+            }
           }
-        } else {
-          $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' AND branch_id = '".$_SESSION['branchid']."' and DATE(created_date) between '".$from."' AND '".$to."' ");
-        }
-      }else{
-        if ($_SESSION['Isheadoffice'] == 'Yes') { 
-          $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' ");
-        } else {
-          $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' AND branch_id = '".$_SESSION['branchid']."'");
+          $count=count($res);
+    
+          if($count==0){
+           $rset[$t]['name'] =$array[$t]['name']; 
+           $rset[$t]['gl_code'] =$array[$t]['gl_code']; 
+           $rset[$t]['balance'] ="-";       
+    
+         }else{
+    
+          $balance=0;
+          foreach ($res as $key => $value) {
+    
+            $type = $res[$key]['transaction_type']; 
+            $amount = $res[$key]['amount']; 
+            if($type=='DR'){
+              $balance=$balance-$amount; 
+            }else{
+              $balance=$balance+$amount; 
+            }
+          }               
+          $rset[$t]['name'] =$array[$t]['name']; 
+          $rset[$t]['gl_code'] =$array[$t]['gl_code']; 
+          $rset[$t]['balance'] =$balance; 
+    
         }
       }
-      $count=count($res);
-
-      if($count==0){
-       $rset[$t]['name'] =$array[$t]['name']; 
-       $rset[$t]['gl_code'] =$array[$t]['gl_code']; 
-       $rset[$t]['balance'] ="-";       
-
-     }else{
-
-      $balance=0;
-      foreach ($res as $key => $value) {
-
-        $type = $res[$key]['transaction_type']; 
-        $amount = $res[$key]['amount']; 
-        if($type=='DR'){
-          $balance=$balance-$amount; 
-        }else{
-          $balance=$balance+$amount; 
-        }
-      }               
-      $rset[$t]['name'] =$array[$t]['name']; 
-      $rset[$t]['gl_code'] =$array[$t]['gl_code']; 
-      $rset[$t]['balance'] =$balance; 
-
+      return $rset;
     }
+
+      return $rset;
+  } catch (Exception $e) {
+      throw new Exception("Failed to fetch income accounts: " . $e->getMessage());
   }
-  return $rset;
-}
 }
 /* CONTAINS  OPERATING EXPENSES */
 
-function getExpenseAccounts($data=null){
+function getExpenseAccounts($office_id, $Isheadoffice, $branchid, $data){
 
-  $start=$data['startdon'];
-  $end=$data['endon'];
+  try {
+    $start=$data['startdon'];
+    $end=$data['endon'];
 
-  $from=date('Y-m-d',strtotime($start));
-  $to=date('Y-m-d',strtotime($end));
-  $office_id=$_SESSION['office'];
+    $from=date('Y-m-d',strtotime($start));
+    $to=date('Y-m-d',strtotime($end));
 
-    //AND created_date between '".$from."' AND '".$to."'
-  $array=$this->db->selectData("SELECT * FROM acc_ledger_account where sacco_id = $office_id and classification='Expenses' order by gl_code ASC");
-  $counter=count($array);     
+    $array=$this->db->selectData("SELECT * FROM acc_ledger_account where sacco_id = $office_id and classification='Expenses' order by gl_code ASC");
+    $counter=count($array);     
 
-  if($counter>0){      
-    for($t=0;$t<$counter;$t++) {
-      if(!empty($start)){    
-        $branches = $this->getSaccoBranches();
-        if ($_SESSION['Isheadoffice'] == 'Yes') {
-          if ((isset($data['branch']) && $data['branch'] == 'all') || empty($branches)) {  
-            $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' and DATE(created_date) between '".$from."' AND '".$to."' ");
+    if($counter>0){      
+      for($t=0;$t<$counter;$t++) {
+        if(!empty($start)){    
+          $branches = $this->getSaccoBranches();
+          if ($Isheadoffice == 'Yes') {
+            if ((isset($data['branch']) && $data['branch'] == 'all') || empty($branches)) {  
+              $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' and DATE(created_date) between '".$from."' AND '".$to."' ");
+            } else {
+              $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' AND branch_id = '".$data['branch']."' and DATE(created_date) between '".$from."' AND '".$to."' ");
+            }
           } else {
-            $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' AND branch_id = '".$data['branch']."' and DATE(created_date) between '".$from."' AND '".$to."' ");
+            $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' AND branch_id = '".$branchid."' and DATE(created_date) between '".$from."' AND '".$to."' ");
           }
-        } else {
-          $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' AND branch_id = '".$_SESSION['branchid']."' and DATE(created_date) between '".$from."' AND '".$to."' ");
-        }
-      }else{
-        if ($_SESSION['Isheadoffice'] == 'Yes') {  
-          $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' ");
-        } else {
-          $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' AND branch_id = '".$_SESSION['branchid']."' ");
-        }
-      }
-      $count=count($res);
-     // print_r($count);
-         // die();
-      if($count==0){
-       $rset[$t]['name'] =$array[$t]['name']; 
-       $rset[$t]['gl_code'] =$array[$t]['gl_code']; 
-       $rset[$t]['balance'] ="-";       
-
-     }else{
-      $balance=0;
-      foreach ($res as $key => $value) {
-
-        $type = $res[$key]['transaction_type']; 
-        $amount = $res[$key]['amount']; 
-        if($type=='DR'){
-          $balance=$balance+$amount; 
         }else{
-          $balance=$balance-$amount; 
+          if ($Isheadoffice == 'Yes') {  
+            $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' ");
+          } else {
+            $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' AND branch_id = '".$branchid."' ");
+          }
         }
-      }               
-      $rset[$t]['name'] =$array[$t]['name']; 
-      $rset[$t]['gl_code'] =$array[$t]['gl_code']; 
-      $rset[$t]['balance'] =$balance; 
+        $count=count($res);
+        if($count==0){
+        $rset[$t]['name'] =$array[$t]['name']; 
+        $rset[$t]['gl_code'] =$array[$t]['gl_code']; 
+        $rset[$t]['balance'] ="-";       
 
-    }
+      }else{
+        $balance=0;
+        foreach ($res as $key => $value) {
+
+          $type = $res[$key]['transaction_type']; 
+          $amount = $res[$key]['amount']; 
+          if($type=='DR'){
+            $balance=$balance+$amount; 
+          }else{
+            $balance=$balance-$amount; 
+          }
+        }               
+        $rset[$t]['name'] =$array[$t]['name']; 
+        $rset[$t]['gl_code'] =$array[$t]['gl_code']; 
+        $rset[$t]['balance'] =$balance; 
+
+      }
+  } 
   }
 
   return $rset;
 }
-}   
+catch (Exception $e) {
+  throw $e;
+}
+} 
 function getGlaccountdetails($id){
 
   return $this->db->selectData("SELECT * FROM acc_ledger_account where id='".$id."'");
@@ -1009,181 +1014,189 @@ function getGlaccountdetails($id){
 
 /*BALANCE SHEET   */
 
-function getAssets($data=null){
+function getAssets($office_id, $Isheadoffice, $branchid, $data = null) {
+  try {
+      $start = $data['startdon'];
+      $end = $data['endon'];
 
-  $start=$data['startdon'];
-  $end=$data['endon'];
+      $from = date('Y-m-d', strtotime($start));
+      $to = date('Y-m-d', strtotime($end));
 
-  $from=date('Y-m-d',strtotime($start));
-  $to=date('Y-m-d',strtotime($end));
-  $office_id=$_SESSION['office'];
-    //AND created_date between '".$from."' AND '".$to."'
-  $array=$this->db->selectData("SELECT * FROM acc_ledger_account where sacco_id = $office_id and classification='Assets' order by gl_code ASC");
-  $counter=count($array);
-  for($t=0;$t<$counter;$t++) {
-    if(!empty($start)){
-      if ($_SESSION['Isheadoffice'] == 'Yes') {  
-        if ($data['branch'] == 'all') {
-          $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' and DATE(created_date) between '".$from."' AND '".$to."' ");
-        } else {
-          $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' AND branch_id = '".$data['branch']."' and DATE(created_date) between '".$from."' AND '".$to."' ");
-        }
-      } else {
-        $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' AND branch_id = '".$_SESSION['branchid']."' and DATE(created_date) between '".$from."' AND '".$to."' ");
+      $array = $this->db->selectData("SELECT * FROM acc_ledger_account WHERE sacco_id = $office_id AND classification='Assets' ORDER BY gl_code ASC");
+
+      $counter = count($array);
+      for ($t = 0; $t < $counter; $t++) {
+          if (!empty($start)) {
+              if ($Isheadoffice == 'Yes') {
+                  if ($data['branch'] == 'all') {
+                      $res = $this->db->selectData("SELECT * FROM acc_gl_journal_entry WHERE account_id='" . $array[$t]['id'] . "' AND office_id='" . $office_id . "' AND DATE(created_date) BETWEEN '" . $from . "' AND '" . $to . "'");
+                  } else {
+                      $res = $this->db->selectData("SELECT * FROM acc_gl_journal_entry WHERE account_id='" . $array[$t]['id'] . "' AND office_id='" . $office_id . "' AND branch_id = '" . $data['branch'] . "' AND DATE(created_date) BETWEEN '" . $from . "' AND '" . $to . "'");
+                  }
+              } else {
+                  $res = $this->db->selectData("SELECT * FROM acc_gl_journal_entry WHERE account_id='" . $array[$t]['id'] . "' AND office_id='" . $office_id . "' AND branch_id = '" . $branchid . "' AND DATE(created_date) BETWEEN '" . $from . "' AND '" . $to . "'");
+              }
+          } else {
+              if ($Isheadoffice == 'Yes') {
+                  $res = $this->db->selectData("SELECT * FROM acc_gl_journal_entry WHERE account_id='" . $array[$t]['id'] . "' AND office_id='" . $office_id . "'");
+              } else {
+                  $res = $this->db->selectData("SELECT * FROM acc_gl_journal_entry WHERE account_id='" . $array[$t]['id'] . "' AND office_id='" . $office_id . "' AND branch_id = '" . $branchid . "'");
+              }
+          }
+
+          $count = count($res);
+
+          if ($count == 0) {
+              $rset[$t]['name'] = $array[$t]['name'];
+              $rset[$t]['gl_code'] = $array[$t]['gl_code'];
+              $rset[$t]['balance'] = "-";
+          } else {
+              $balance = 0;
+              foreach ($res as $key => $value) {
+                  $type = $res[$key]['transaction_type'];
+                  $amount = $res[$key]['amount'];
+                  if ($type == 'DR') {
+                      $balance = $balance + $amount;
+                  } else {
+                      $balance = $balance - $amount;
+                  }
+              }
+              $rset[$t]['name'] = $array[$t]['name'];
+              $rset[$t]['gl_code'] = $array[$t]['gl_code'];
+              $rset[$t]['balance'] = $balance;
+          }
       }
-    }else{
-      if ($_SESSION['Isheadoffice'] == 'Yes') { 
-        $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' ");
-      } else {
-        $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."'AND branch_id = '" .$_SESSION['branchid']."' ");
+      return $rset;
+  } catch (Exception $e) {
+      throw $e;
+  }
+}  
+
+function getLiabilities($office_id, $Isheadoffice, $branchid, $data) {
+  try {
+      $start = $data['startdon'];
+      $end = $data['endon'];
+      $from = date('Y-m-d', strtotime($start));
+      $to = date('Y-m-d', strtotime($end));
+
+      $array = $this->db->selectData("SELECT * FROM acc_ledger_account WHERE sacco_id = $office_id AND classification = 'Liabilities' ORDER BY gl_code ASC");
+      $counter = count($array);
+      $rset = array();
+
+      for ($t = 0; $t < $counter; $t++) {
+          if (!empty($start)) {
+              if ($Isheadoffice == 'Yes') { 
+                  if ($data['branch'] == 'all') {
+                      $res = $this->db->selectData("SELECT * FROM acc_gl_journal_entry WHERE account_id = '".$array[$t]['id']."' AND office_id = '".$office_id."' AND DATE(created_date) BETWEEN '".$from."' AND '".$to."'");
+                  } else {
+                      $res = $this->db->selectData("SELECT * FROM acc_gl_journal_entry WHERE account_id = '".$array[$t]['id']."' AND office_id = '".$office_id."' AND branch_id = '".$branchid."' AND DATE(created_date) BETWEEN '".$from."' AND '".$to."'");
+                  }
+              } else {
+                  $res = $this->db->selectData("SELECT * FROM acc_gl_journal_entry WHERE account_id = '".$array[$t]['id']."' AND office_id = '".$office_id."' AND branch_id = '".$branchid."' AND DATE(created_date) BETWEEN '".$from."' AND '".$to."'");
+              }
+          } else {
+              if ($Isheadoffice == 'Yes') { 
+                  $res = $this->db->selectData("SELECT * FROM acc_gl_journal_entry WHERE account_id = '".$array[$t]['id']."' AND office_id = '".$office_id."'");
+              } else {
+                  $res = $this->db->selectData("SELECT * FROM acc_gl_journal_entry WHERE account_id = '".$array[$t]['id']."' AND office_id = '".$office_id."' AND branch_id = '".$branchid."''");
+              }
+          }
+
+          $count = count($res);
+
+          if ($count == 0) {
+              $rset[$t]['name'] = $array[$t]['name']; 
+              $rset[$t]['gl_code'] = $array[$t]['gl_code']; 
+              $rset[$t]['balance'] = "-";       
+          } else {
+              $balance = 0;
+
+              foreach ($res as $key => $value) {
+                  $type = $res[$key]['transaction_type']; 
+                  $amount = $res[$key]['amount']; 
+
+                  if ($type == 'DR') {
+                      $balance = $balance - $amount; 
+                  } else {
+                      $balance = $balance + $amount; 
+                  }
+              }               
+
+              $rset[$t]['name'] = $array[$t]['name']; 
+              $rset[$t]['gl_code'] = $array[$t]['gl_code']; 
+              $rset[$t]['balance'] = $balance; 
+          }
       }
-    }
 
-    $count=count($res);
-    
-    if($count==0){
-     $rset[$t]['name'] =$array[$t]['name']; 
-     $rset[$t]['gl_code'] =$array[$t]['gl_code']; 
-     $rset[$t]['balance'] ="-";       
-    // print_r($t."   ".$res);//die();    
-   }else{
- //print_r("In");//die();         
-    $balance=0;
-    foreach ($res as $key => $value) {
+      return $rset;
 
-      $type = $res[$key]['transaction_type']; 
-      $amount = $res[$key]['amount']; 
-      if($type=='DR'){
-        $balance=$balance+$amount; 
-      }else{
-        $balance=$balance-$amount; 
-      }
-    }               
-    $rset[$t]['name'] =$array[$t]['name']; 
-    $rset[$t]['gl_code'] =$array[$t]['gl_code']; 
-    $rset[$t]['balance'] =$balance; 
-
+  } catch (Exception $e) {
+      throw $e;
   }
 }
 
-return $rset;
-}   
-function getLiabilities($data=null){
+function getEquity($office_id, $Isheadoffice, $branchid, $data) {
+  try {
+      $officeId = $office_id;
+      $start = $data['startdon'];
+      $end = $data['endon'];
+      $from = date('Y-m-d', strtotime($start));
+      $to = date('Y-m-d', strtotime($end));
 
-  $start=$data['startdon'];
-  $end=$data['endon'];
+      $array = $this->db->selectData("SELECT * FROM acc_ledger_account WHERE sacco_id = $officeId AND classification='Equity' ORDER BY gl_code ASC");
+      
+      $counter = count($array);
+      $rset = [];
 
-  $from=date('Y-m-d',strtotime($start));
-  $to=date('Y-m-d',strtotime($end));
-  $office_id=$_SESSION['office'];
-    //AND created_date between '".$from."' AND '".$to."'
-  $array=$this->db->selectData("SELECT * FROM acc_ledger_account where  sacco_id = $office_id and classification='Liabilities' order by gl_code ASC");
-  $counter=count($array);
-  for($t=0;$t<$counter;$t++) {
-    if(!empty($start)){
-      if ($_SESSION['Isheadoffice'] == 'Yes') { 
-        if ($data['branch'] == 'all') {
-          $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' and DATE(created_date) between '".$from."' AND '".$to."' ");
-        } else {
-          $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' AND branch_id = '".$data['branch']."' and DATE(created_date) between '".$from."' AND '".$to."' ");
-        }
-      } else {
-        $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' AND branch_id = '".$_SESSION['branchid']."' and DATE(created_date) between '".$from."' AND '".$to."' ");
+      for ($t = 0; $t < $counter; $t++) {
+          $glCode = $array[$t]['gl_code'];
+          $name = $array[$t]['name'];
+
+          if (!empty($start)) {
+              if ($Isheadoffice == 'Yes') {
+                  if ($data['branch'] == 'all') {
+                      $res = $this->db->selectData("SELECT * FROM acc_gl_journal_entry WHERE account_id='$glCode' AND office_id='$officeId' AND DATE(created_date) BETWEEN '$from' AND '$to'");
+                  } else {
+                      $res = $this->db->selectData("SELECT * FROM acc_gl_journal_entry WHERE account_id='$glCode' AND office_id='$officeId' AND branch_id='{$data['branch']}' AND DATE(created_date) BETWEEN '$from' AND '$to'");
+                  }
+              } else {
+                  $res = $this->db->selectData("SELECT * FROM acc_gl_journal_entry WHERE account_id='$glCode' AND office_id='$officeId' AND branch_id='$branchid' AND DATE(created_date) BETWEEN '$from' AND '$to'");
+              }
+          } else {
+              if ($Isheadoffice == 'Yes') {
+                  $res = $this->db->selectData("SELECT * FROM acc_gl_journal_entry WHERE account_id='$glCode' AND office_id='$officeId'");
+              } else {
+                  $res = $this->db->selectData("SELECT * FROM acc_gl_journal_entry WHERE account_id='$glCode' AND office_id='$officeId' AND branch_id='$branchid'");
+              }
+          }
+
+          $count = count($res);
+          $balance = 0;
+
+          if ($count > 0) {
+              foreach ($res as $key => $value) {
+                  $type = $res[$key]['transaction_type'];
+                  $amount = $res[$key]['amount'];
+                  if ($type == 'DR') {
+                      $balance -= $amount;
+                  } else {
+                      $balance += $amount;
+                  }
+              }
+          }
+
+          $rset[] = array(
+              'name' => $name,
+              'gl_code' => $glCode,
+              'balance' => $balance,
+          );
       }
-    }else{
-      if ($_SESSION['Isheadoffice'] == 'Yes') { 
-        $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' ");
-      } else {
-        $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' AND branch_id = '".$_SESSION['branchid']."'' ");
-      }
-    }
-    $count=count($res);
-     // print_r($count);
-         // die();
-    if($count==0){
-     $rset[$t]['name'] =$array[$t]['name']; 
-     $rset[$t]['gl_code'] =$array[$t]['gl_code']; 
-     $rset[$t]['balance'] ="-";       
 
-   }else{
-    $balance=0;
-    foreach ($res as $key => $value) {
+      return $rset;
 
-      $type = $res[$key]['transaction_type']; 
-      $amount = $res[$key]['amount']; 
-      if($type=='DR'){
-        $balance=$balance-$amount; 
-      }else{
-        $balance=$balance+$amount; 
-      }
-    }               
-    $rset[$t]['name'] =$array[$t]['name']; 
-    $rset[$t]['gl_code'] =$array[$t]['gl_code']; 
-    $rset[$t]['balance'] =$balance; 
-
+  } catch (Exception $e) {
+      throw $e;
   }
-}
-
-return $rset;
-}
-function getEquity($data=null){
-
-  $start=$data['startdon'];
-  $end=$data['endon'];
-
-  $from=date('Y-m-d',strtotime($start));
-  $to=date('Y-m-d',strtotime($end));
-  $office_id=$_SESSION['office'];
-    //AND created_date between '".$from."' AND '".$to."'
-  $array=$this->db->selectData("SELECT * FROM acc_ledger_account where sacco_id = $office_id and classification='Equity' order by gl_code ASC");
-  
-  $counter=count($array);
-  for($t=0;$t<$counter;$t++) {
-    if(!empty($start)){ 
-      if ($_SESSION['Isheadoffice'] == 'Yes') {
-        if ($data['branch'] == 'all') {
-          $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' and DATE(created_date) between '".$from."' AND '".$to."' ");
-        } else {          
-          $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' AND branch_id = '".$data['branch']."' and DATE(created_date) between '".$from."' AND '".$to."' ");
-        }
-      } else {
-        $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' AND branch_id = '".$_SESSION['branchid']."' and DATE(created_date) between '".$from."' AND '".$to."' ");
-      }
-    }else{
-      if ($_SESSION['Isheadoffice'] == 'Yes') {
-        $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' ");
-      } else {
-        $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' AND branch_id = '".$_SESSION['branchid']."'' ");
-      }
-    }
-    $count=count($res);
-     // print_r($count);
-         // die();
-    if($count==0){
-     $rset[$t]['name'] =$array[$t]['name']; 
-     $rset[$t]['gl_code'] =$array[$t]['gl_code']; 
-     $rset[$t]['balance'] ="-";       
-
-   }else{
-    $balance=0;
-    foreach ($res as $key => $value) {
-
-      $type = $res[$key]['transaction_type']; 
-      $amount = $res[$key]['amount']; 
-      if($type=='DR'){
-        $balance=$balance-$amount; 
-      }else{
-        $balance=$balance+$amount; 
-      }
-    }               
-    $rset[$t]['name'] =$array[$t]['name']; 
-    $rset[$t]['gl_code'] =$array[$t]['gl_code']; 
-    $rset[$t]['balance'] =$balance; 
-
-  }
-}
-
-return $rset;
 }
 
 function getRevenue($data=null){
