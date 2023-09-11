@@ -383,28 +383,55 @@ function getShareAccountByStatus($status){
   return $query;
 }
 
-function getSharesByStatus(){
- $array = array(
-  '0' =>'Active',
-  '1' =>'Closed',
-);
+// function getSharesByStatus(){
+//  $array = array(
+//   '0' =>'Active',
+//   '1' =>'Closed',
+// );
 
- $count=count($array);   
-   //print_r($array);die();
- if($count>0){
-   for($i=0;$i<$count; $i++) {
+//  $count=count($array);   
+//    //print_r($array);die();
+//  if($count>0){
+//    for($i=0;$i<$count; $i++) {
 
-    $status= $this->getShareAccountByStatus($array[$i]);
-    $rset[$i]['status'] =$array[$i]; 
-    $rset[$i]['no_of_accounts'] = $status[0]['number']; 
-    $rset[$i]['balance_of_account'] = $status[0]['balance'];
-  }      
-  return $rset;  
+//     $status= $this->getShareAccountByStatus($array[$i]);
+//     $rset[$i]['status'] =$array[$i]; 
+//     $rset[$i]['no_of_accounts'] = $status[0]['number']; 
+//     $rset[$i]['balance_of_account'] = $status[0]['balance'];
+//   }      
+//   return $rset;  
 
+// }
+
+
+// }
+function getSharesByStatus() {
+  try {
+      $array = array(
+          '0' =>'Active',
+          '1' =>'Closed',
+      );
+
+      $count = count($array);
+      $rset = array();
+
+      if ($count > 0) {
+          for ($i = 0; $i < $count; $i++) {
+              $status = $this->getShareAccountByStatus($array[$i]);
+              $rset[$i]['status'] = $array[$i];
+              $rset[$i]['no_of_accounts'] = $status[0]['number'];
+              $rset[$i]['balance_of_account'] = $status[0]['balance'];
+          }
+      }
+
+      return $rset;
+
+  } catch (Exception $e) {
+      throw $e;
+  }
 }
 
 
-}
 
 //GENEEAL LEGER Reports_model
 
