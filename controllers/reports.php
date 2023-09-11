@@ -1060,11 +1060,29 @@ function shareAccountsbyStatuspdf() {
     $pdf->Output();
 }
 
+function shareAccountsByProduct() {
+    try {
+        $headers = getallheaders();
+        $office = $headers['office'];
 
+        $sharesData = $this->model->getSharesByProduct($office);
 
-function shareAccountsByProduct(){
-$this->view->shares = $this->model->getSharesByProduct();	
-$this->view->render('reports/shares/sharesbyproduct');
+        if (empty($sharesData)) {
+            $response = array("status" => 404, "message" => "No share account data found.");
+        } else {
+            $response = array("status" => 200, "message" => "Share account data retrieved successfully.", "data" => $sharesData);
+        }
+
+        header('Content-Type: application/json');
+        http_response_code($response['status']);
+        echo json_encode($response);
+
+    } catch (Exception $e) {
+        $errorResponse = array("status" => 500, "message" => $e->getMessage());
+        header('Content-Type: application/json');
+        http_response_code($errorResponse['status']);
+        echo json_encode($errorResponse);
+    }
 }
 
 

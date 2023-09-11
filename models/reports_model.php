@@ -359,23 +359,29 @@ function getSharesProductAccount($id){
   return $query;
 }
 
-function getSharesByProduct(){
-  $office=$_SESSION['office'];
-  $result= $this->db->SelectData("SELECT * FROM share_products where office_id = $office");
-  $count=count($result);       
-  if($count>0){
-   foreach ( $result as $key => $value) {
-    $accounts=$this->getSharesProductAccount($value['id']); 
-    $rset[$key]['product_type'] = $value['share_name']; 
-    $rset[$key]['no_of_accounts'] = $accounts[0]['number']; 
-    $rset[$key]['balance_of_account'] = $accounts[0]['balance'];
-  }      
-  return $rset;  
+function getSharesByProduct($office) {
+  try {
+      $result = $this->db->SelectData("SELECT * FROM share_products where office_id = $office");
+      $count = count($result);
+      $rset = array();
 
+      if ($count > 0) {
+          foreach ($result as $key => $value) {
+              $accounts = $this->getSharesProductAccount($value['id']);
+              $rset[$key]['product_type'] = $value['share_name'];
+              $rset[$key]['no_of_accounts'] = $accounts[0]['number'];
+              $rset[$key]['balance_of_account'] = $accounts[0]['balance'];
+          }
+      }
+
+      return $rset;
+
+  } catch (Exception $e) {
+      throw $e;
+  }
 }
 
 
-}
 function getShareAccountByStatus($status){
   $query= $this->db->SelectData("SELECT count(s.account_status) as number,sum(running_balance) as balance FROM share_account s  JOIN (members m  JOIN m_branch b ON m.office_id=b.id)
     ON  s.member_id  = m.c_id where m.office_id='".$_SESSION['office']."' and s.account_status='".$status."'");
