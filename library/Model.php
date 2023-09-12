@@ -364,17 +364,20 @@ function checkProductLoanExists($pname){
 		return $result;
 	}
 
-	function getSaccoBranches(){
-
-		$office = $_SESSION['office'];
-		$results =  $this->db->SelectData("SELECT * FROM m_branch WHERE parent_id = '".$office."' AND b_status = 'Active' AND head_office = 'No'");
-
-		if (!empty($results)) {
-			return $results;
-		} else {
-			return NULL;
+	function getSaccoBranches($office) {
+		try {
+			$results = $this->db->SelectData("SELECT * FROM m_branch WHERE parent_id = '$office' AND b_status = 'Active' AND head_office = 'No'");
+	
+			if (!empty($results)) {
+				return $results;
+			} else {
+				return NULL;
+			}
+	
+		} catch (Exception $e) {
+			throw $e;
 		}
-	}
+	}	
 	
 	function getDefaultWalletDetails($type){
 

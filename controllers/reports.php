@@ -15,8 +15,8 @@ parent::__construct();
 // Auth::CheckSession();
 // Auth::CheckAuthorization();
 // $_SESSION['timeout'] = time(); 
-// error_reporting(E_ALL);
-// ini_set('display_errors', 1);
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 }
 function index(){
 
@@ -1197,7 +1197,7 @@ function runbalanceSheet() {
     try {
         $headers = getallheaders();
         $office_id = $headers['office'];
-        $Isheadoffice = $headers['isheadoffice'];
+        $Isheadoffice = $headers['Isheadoffice'];
         $branchid = $headers['branchid'];
 
         $data = json_decode(file_get_contents('php://input'), true);
@@ -1238,22 +1238,72 @@ function runbalanceSheet() {
     }
 }
 
-function incomeStatement(){
-	if ($_SESSION['Isheadoffice'] == 'Yes') {
-		$this->view->saccobranches = $this->model->getSaccoBranches();
-	}
-	$this->view->render('reports/incomestatementreport');
+// function incomeStatement(){
+// 	if ($_SESSION['Isheadoffice'] == 'Yes') {
+// 		$this->view->saccobranches = $this->model->getSaccoBranches();
+// 	}
+// 	$this->view->render('reports/incomestatementreport');
+// }
+function incomeStatement() {
+    try {
+        // Get the 'office' and 'Isheadoffice' values from headers
+        $headers = getallheaders();
+        $office = $headers['office']; // Assuming the header key is 'office'
+        $isHeadOffice = $headers['Isheadoffice']; // Assuming the header key is 'Isheadoffice'
+
+        // Check if the user is from the head office
+        if ($isHeadOffice == 'Yes') {
+            $this->view->saccobranches = $this->model->getSaccoBranches($office);
+        }
+
+        $this->view->render('reports/incomestatementreport');
+
+    } catch (Exception $e) {
+        // Handle any exceptions (e.g., invalid headers or data) and return an error response
+        $errorResponse = array("status" => 500, "message" => $e->getMessage());
+        header('Content-Type: application/json');
+        http_response_code($errorResponse['status']);
+        echo json_encode($errorResponse);
+    }
 }
 
-function runIncomeStatement(){
-	$data=$_POST;
-	if (empty($data)) {
-		header('Location: ' . URL."reports/incomestatement"); 
-	} else {
-		$this->view->incomes=$this->model->getIncomeAccounts($data);
-		$this->view->expenses=$this->model->getExpenseAccounts($data);
-		$this->view->render('reports/incomestatement_output');
-	}
+function runIncomeStatement() {
+    try {
+        $headers = getallheaders();
+        $office_id = $headers['office'];
+        $Isheadoffice = $headers['Isheadoffice'];
+        $branchid = $headers['branchid'];
+
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        if (empty($data)) {
+            $response = array("status" => 400, "message" => "No data provided.");
+        } else {
+            $incomeAccounts = $this->model->getIncomeAccounts($office_id, $Isheadoffice, $branchid, $data);
+            $expenses = $this->model->getExpenseAccounts($office_id, $Isheadoffice, $branchid, $data);
+
+            $response_data = array(
+                "incomeAccounts" => $incomeAccounts,
+                "expenses" => $expenses
+            );
+
+            if (empty($response_data)) {
+                $response = array("status" => 404, "message" => "No assets data found.");
+            } else {
+                $response = array("status" => 200, "message" => "Assets data retrieved successfully.", "data" => $response_data);
+            }
+        }
+
+        header('Content-Type: application/json');
+        http_response_code($response['status']);
+        echo json_encode($response);
+
+    } catch (Exception $e) {
+        $errorResponse = array("status" => 500, "message" => $e->getMessage());
+        header('Content-Type: application/json');
+        http_response_code($errorResponse['status']);
+        echo json_encode($errorResponse);
+    }
 }
 
 /* GL TRANSACTIONS   */

@@ -876,12 +876,14 @@ return $rset;
 
 /* CONTAINS  EQUITY OR SHARES,INCOMES */
 
+
 function getIncomeAccounts($office_id, $Isheadoffice, $branchid, $data) {
   try {
       $start=$data['startdon'];
       $end=$data['endon'];
       $from = date('Y-m-d', strtotime($start));
       $to = date('Y-m-d', strtotime($end));
+      $office = $office_id;
 
       $array = $this->db->selectData("SELECT * FROM acc_ledger_account WHERE sacco_id = $office_id AND classification='Incomes' ORDER BY gl_code ASC");
       $counter = count($array);
@@ -889,7 +891,7 @@ function getIncomeAccounts($office_id, $Isheadoffice, $branchid, $data) {
       if($counter>0){           
         for($t=0;$t<$counter;$t++) {
           if(!empty($start)){ 
-            $branches = $this->getSaccoBranches();
+            $branches = $this->getSaccoBranches($office);
             if ($Isheadoffice == 'Yes') {
               if ((isset($data['branch']) && $data['branch'] == 'all') || empty($branches)) { 
                 $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' and DATE(created_date) between '".$from."' AND '".$to."' ");
@@ -947,6 +949,7 @@ function getExpenseAccounts($office_id, $Isheadoffice, $branchid, $data){
   try {
     $start=$data['startdon'];
     $end=$data['endon'];
+    $office = $office_id;
 
     $from=date('Y-m-d',strtotime($start));
     $to=date('Y-m-d',strtotime($end));
@@ -957,7 +960,7 @@ function getExpenseAccounts($office_id, $Isheadoffice, $branchid, $data){
     if($counter>0){      
       for($t=0;$t<$counter;$t++) {
         if(!empty($start)){    
-          $branches = $this->getSaccoBranches();
+          $branches = $this->getSaccoBranches($office);
           if ($Isheadoffice == 'Yes') {
             if ((isset($data['branch']) && $data['branch'] == 'all') || empty($branches)) {  
               $res=$this->db->selectData("SELECT * FROM acc_gl_journal_entry where account_id='".$array[$t]['id']."' AND office_id='".$office_id."' and DATE(created_date) between '".$from."' AND '".$to."' ");
