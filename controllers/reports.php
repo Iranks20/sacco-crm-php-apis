@@ -11,12 +11,9 @@ class Reports extends Controller{
 	
 public function __construct(){
 parent::__construct();
-// Auth::handleSignin();
-// Auth::CheckSession();
-// Auth::CheckAuthorization();
-// $_SESSION['timeout'] = time(); 
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+
+// error_reporting(E_ALL);
+// ini_set('display_errors', 1);
 }
 function index(){
 
@@ -1110,20 +1107,72 @@ function accounting(){
 $this->view->render('reports/accounting_reports');
 }
 function cashFlowStatement(){
-	if ($_SESSION['Isheadoffice'] == 'Yes') {
-		$this->view->saccobranches = $this->model->getSaccoBranches();
-	}
-	$this->view->render('reports/cashflowstatementreport');
+    try {
+        $headers = getallheaders();
+        $isHeadOffice = $headers['Isheadoffice'];
+        $office = $headers['office'];
+
+        if ($isHeadOffice == 'Yes') {
+            $saccobranches = $this->model->getSaccoBranches($office);
+        } else {
+            $saccobranches = null;
+        }
+
+        $response = array(
+            "status" => 200,
+            "message" => "Cash flow statement data retrieved successfully.",
+            "saccobranches" => $saccobranches
+        );
+
+        header('Content-Type: application/json');
+        http_response_code($response['status']);
+        echo json_encode($response);
+
+    } catch (Exception $e) {
+        $errorResponse = array("status" => 500, "message" => $e->getMessage());
+        header('Content-Type: application/json');
+        http_response_code($errorResponse['status']);
+        echo json_encode($errorResponse);
+    }
 }
-function runcashFlowStatement(){
-	$data=$_POST;
-	if (empty($data)) {
-		header('Location: ' . URL."reports/cashFlowStatement"); 
-	} else {
-		$this->view->incomes=$this->model->getIncomeAccounts($data);
-		$this->view->expenses=$this->model->getExpenseAccounts($data);
-		$this->view->render('reports/cashflowstatement_output');
-	}
+
+function runcashFlowStatement() {
+    try {
+        $headers = getallheaders();
+        $office_id = $headers['office'];
+        $Isheadoffice = $headers['Isheadoffice'];
+        $branchid = $headers['branchid'];
+
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        if (empty($data)) {
+            $response = array("status" => 400, "message" => "No data provided.");
+        } else {
+            $incomeAccounts = $this->model->getIncomeAccounts($office_id, $Isheadoffice, $branchid, $data);
+            $expenses = $this->model->getExpenseAccounts($office_id, $Isheadoffice, $branchid, $data);
+
+            $response_data = array(
+                "incomeAccounts" => $incomeAccounts,
+                "expenses" => $expenses
+            );
+
+            if (empty($response_data)) {
+                $response = array("status" => 404, "message" => "No assets data found.");
+            } else {
+                $response = array("status" => 200, "message" => "Assets and Income data retrieved successfully.", "data" => $response_data);
+            }
+        }
+
+        header('Content-Type: application/json');
+        http_response_code($response['status']);
+        echo json_encode($response);
+
+    } catch (Exception $e) {
+        $errorResponse = array("status" => 500, "message" => $e->getMessage());
+        header('Content-Type: application/json');
+        http_response_code($errorResponse['status']);
+        echo json_encode($errorResponse);
+    }
 }
 
 
@@ -1185,13 +1234,36 @@ $this->view->balance_shares = $this->model->balance_shares();
 $this->view->render('reports/portifolioreport');
 }
 
-
 function balanceSheet(){
-	if ($_SESSION['Isheadoffice'] == 'Yes') {
-		$this->view->saccobranches = $this->model->getSaccoBranches();
-	}
-	$this->view->render('reports/balancesheetreport');
+    try {
+        $headers = getallheaders();
+        $isHeadOffice = $headers['Isheadoffice'];
+        $office = $headers['office'];
+
+        if ($isHeadOffice == 'Yes') {
+            $saccobranches = $this->model->getSaccoBranches($office);
+        } else {
+            $saccobranches = null;
+        }
+
+        $response = array(
+            "status" => 200,
+            "message" => "Balance sheet data retrieved successfully.",
+            "saccobranches" => $saccobranches
+        );
+
+        header('Content-Type: application/json');
+        http_response_code($response['status']);
+        echo json_encode($response);
+
+    } catch (Exception $e) {
+        $errorResponse = array("status" => 500, "message" => $e->getMessage());
+        header('Content-Type: application/json');
+        http_response_code($errorResponse['status']);
+        echo json_encode($errorResponse);
+    }
 }
+
 
 function runbalanceSheet() {
     try {
@@ -1238,34 +1310,36 @@ function runbalanceSheet() {
     }
 }
 
-// function incomeStatement(){
-// 	if ($_SESSION['Isheadoffice'] == 'Yes') {
-// 		$this->view->saccobranches = $this->model->getSaccoBranches();
-// 	}
-// 	$this->view->render('reports/incomestatementreport');
-// }
 function incomeStatement() {
     try {
-        // Get the 'office' and 'Isheadoffice' values from headers
         $headers = getallheaders();
-        $office = $headers['office']; // Assuming the header key is 'office'
-        $isHeadOffice = $headers['Isheadoffice']; // Assuming the header key is 'Isheadoffice'
+        $office = $headers['office'];
+        $isHeadOffice = $headers['Isheadoffice'];
 
-        // Check if the user is from the head office
         if ($isHeadOffice == 'Yes') {
-            $this->view->saccobranches = $this->model->getSaccoBranches($office);
+            $saccobranches = $this->model->getSaccoBranches($office);
+        } else {
+            $saccobranches = null;
         }
 
-        $this->view->render('reports/incomestatementreport');
+        $response = array(
+            "status" => 200,
+            "message" => "Income statement data retrieved successfully.",
+            "saccobranches" => $saccobranches
+        );
+
+        header('Content-Type: application/json');
+        http_response_code($response['status']);
+        echo json_encode($response);
 
     } catch (Exception $e) {
-        // Handle any exceptions (e.g., invalid headers or data) and return an error response
         $errorResponse = array("status" => 500, "message" => $e->getMessage());
         header('Content-Type: application/json');
         http_response_code($errorResponse['status']);
         echo json_encode($errorResponse);
     }
 }
+
 
 function runIncomeStatement() {
     try {
