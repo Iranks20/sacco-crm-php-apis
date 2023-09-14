@@ -4,31 +4,82 @@ class Wallets extends Controller{
 
 	public function __construct(){
 		parent::__construct();
-		Auth::handleSignin();
-		Auth::CheckSession();
-		Auth::CheckAuthorization();
-		$_SESSION['timeout'] = time(); 
 	}
 
-	function index(){
-		$this->view->wallets = $this->model->getWallets();
-		$this->view->render('forms/wallets/viewwallets');
+	function index()
+	{
+		try {
+			$office = $_SERVER['HTTP_OFFICE'];
+
+			$wallets = $this->model->getWallets($office);
+
+			$response = array(
+				"status" => 200,
+				"message" => "Wallets retrieved successfully.",
+				"wallets" => $wallets
+			);
+
+			header('Content-Type: application/json');
+			http_response_code($response['status']);
+			echo json_encode($response);
+		} catch (Exception $e) {
+			$errorResponse = array("status" => 500, "message" => $e->getMessage());
+			header('Content-Type: application/json');
+			http_response_code($errorResponse['status']);
+			echo json_encode($errorResponse);
+		}
 	}
-	
+
 	function transactions()
 	{
-	    $this->view->start = date("Ymd", strtotime("-1 months"));
-	    $this->view->end = date("Ymd");
-		$this->view->wallet_transactions = $this->model->getWalletTransactions();
-    	$this->view->render('forms/wallets/wallet_transactions');
+		try {
+			$start = date("Ymd", strtotime("-1 months"));
+			$end = date("Ymd");
+
+			$transactions = $this->model->getWalletTransactions($start, $end);
+
+			$response = array(
+				"status" => 200,
+				"message" => "Wallet transactions retrieved successfully.",
+				"transactions" => $transactions
+			);
+
+			header('Content-Type: application/json');
+			http_response_code($response['status']);
+			echo json_encode($response);
+		} catch (Exception $e) {
+			$errorResponse = array("status" => 500, "message" => $e->getMessage());
+			header('Content-Type: application/json');
+			http_response_code($errorResponse['status']);
+			echo json_encode($errorResponse);
+		}
 	}
 	
 	function rangetransactions()
 	{
-	    $this->view->start = $_POST['start'];
-	    $this->view->end = $_POST['end'];
-		$this->view->wallet_transactions = $this->model->getWalletRangeTransactions();
-    	$this->view->render('forms/wallets/wallet_transactions');
+		try {
+			$requestData = json_decode(file_get_contents('php://input'), true);
+			$start = $requestData['start'];
+			$end = $requestData['end'];
+
+			$transactions = $this->model->getWalletRangeTransactions($start, $end);
+
+			$response = array(
+				"status" => 200,
+				"message" => "Wallet transactions retrieved successfully.",
+				"transactions" => $transactions
+			);
+
+			header('Content-Type: application/json');
+			http_response_code($response['status']);
+			echo json_encode($response);
+		} catch (Exception $e) {
+			$errorResponse = array("status" => 500, "message" => $e->getMessage());
+			header('Content-Type: application/json');
+			http_response_code($errorResponse['status']);
+			echo json_encode($errorResponse);
+		}
 	}
+
 
 }
