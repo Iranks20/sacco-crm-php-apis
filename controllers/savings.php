@@ -695,16 +695,47 @@ class Savings extends Controller{
 			
 		}	
 	}
-
-	function submitapplication(){
-		$data = $_POST;
-		if(!empty($data)){ 
-			$this->model->submitapplication($data);
-		}else{
-			header('Location: ' . URL . 'members'); 					
-			
-		}	
+	
+	function submitapplication() {
+		try {
+			$headers = getallheaders();
+            $office = $headers['office'];
+	
+			$jsonInput = file_get_contents('php://input');
+			$data = json_decode($jsonInput, true);
+	
+			if (!empty($data)) {
+				$result = $this->model->submitapplication($data, $office);
+	
+				$response = [
+					"status" => 200,
+					"message" => "Success",
+					"data" => $result,
+				];
+	
+				header('Content-Type: application/json');
+				echo json_encode($response);
+			} else {
+				$errorResponse = [
+					"status" => 400,
+					"message" => "Bad Request",
+				];
+	
+				header('Content-Type: application/json');
+				http_response_code($errorResponse['status']);
+				echo json_encode($errorResponse);
+			}
+		} catch (Exception $e) {
+			$errorResponse = [
+				"status" => 500,
+				"message" => $e->getMessage(),
+			];
+			header('Content-Type: application/json');
+			http_response_code($errorResponse['status']);
+			echo json_encode($errorResponse);
+		}
 	}
+
 	function getSavingsProducttoapply($id){
 		if(!empty($id)){ 
 			$this->model->getSavingsProducttoapply($id);

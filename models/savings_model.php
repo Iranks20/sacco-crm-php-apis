@@ -281,40 +281,42 @@ function getCharges($id){
 
 }
 
-function submitapplication($data){
+function submitapplication($data, $office_id) {
+    try {
+        $client_details = $this->getMember($data['cid']);
+        $str = date('isH') . rand();
+        $acc_no = $office_id . substr($str, 0, 7);
 
-	$client_details = $this->getMember($data['cid']);
-	$office_id = $_SESSION['office'];
-	$str=date('isH').rand();		
-	$acc_no= $office_id .substr($str,0,7);
-	if(empty($client_details[0]['company_name'])){
-					$name = $client_details[0]['firstname']." ".$client_details[0]['middlename']." ".$client_details[0]['lastname']; 	
-				}else{
-					$name = $client_details[0]['company_name'];		
-				}
-	///transactions tracking
-	$this->db->beginTransaction();
-	try{
-		$postData = array(
-    'account_name' => $name,
-'account_no' => $acc_no,
-			'member_id' => $data['cid'],
-			'submittedon_userid' => $_SESSION['user_id'],
-			'office_id' => $_SESSION['office'],
-			'account_status' =>'Active',
-			'product_id' => $data['product_id'],
-        );
+        if (empty($client_details[0]['company_name'])) {
+            $name = $client_details[0]['firstname'] . " " . $client_details[0]['middlename'] . " " . $client_details[0]['lastname'];
+        } else {
+            $name = $client_details[0]['company_name'];
+        }
 
-        $clientsaving_id= $this->db->InsertData('m_savings_account', $postData);
+        $this->db->beginTransaction();
+
+        $postData = [
+            'account_name' => $name,
+            'account_no' => $acc_no,
+            'member_id' => $data['cid'],
+            'submittedon_userid' => $_SESSION['user_id'],
+            'office_id' => $office_id,
+            'account_status' => 'Active',
+            'product_id' => $data['product_id'],
+        ];
+
+        $clientsaving_id = $this->db->InsertData('m_savings_account', $postData);
+
         $this->db->commit();
-    }catch(Exception $e){
-    	$this->db->rollBack();
-    	$error=$e->getMessage();
-    	header('Location: ' . URL . 'members/newsavingapplication?acc=fail&error='.$error); 	  
-    	exit();
-    }
 
+        return ["clientsaving_id" => $clientsaving_id];
+
+    } catch (Exception $e) {
+        $this->db->rollBack();
+        throw $e;
+    }
 }
+
 
 
 
