@@ -63,22 +63,24 @@ class Loans_Model extends Model
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    function loansList()
-    {
-        $office = $_SESSION['office'];
-        $results = $this->db->SelectData("SELECT * FROM m_loan JOIN members ON m_loan.member_id=members.c_id where /*loan_status='Disbursed' and */ members.office_id='" . $office . "' order by loan_id DESC");
-
-        $grp_results = $this->db->SelectData("SELECT * FROM m_loan JOIN m_group ON m_loan.group_id = m_group.id where /*loan_status='Disbursed' and */ m_group.office_id='" . $office . "' order by loan_id DESC");
-
-        $new_results = array_merge($results, $grp_results);
-
-        if (empty($new_results)) {
-            return '';
-        } else {
-            return $new_results;
+    
+    function loansList($office) {
+        try {
+            $results = $this->db->SelectData("SELECT * FROM m_loan JOIN members ON m_loan.member_id = members.c_id WHERE members.office_id = '$office' order by loan_id DESC");
+    
+            $grp_results = $this->db->SelectData("SELECT * FROM m_loan JOIN m_group ON m_loan.group_id = m_group.id WHERE m_group.office_id = '$office' order by loan_id DESC");
+    
+            $new_results = array_merge($results, $grp_results);
+    
+            if (empty($new_results)) {
+                return '';
+            } else {
+                return $new_results;
+            }
+        } catch (Exception $e) {
+            throw $e;
         }
-    }
+    }    
 
     function pendingLoans()
     {
@@ -147,10 +149,8 @@ class Loans_Model extends Model
         }
     }
 
-    function getloanProducts($id = null)
+    function getloanProducts($id, $office)
     {
-        $office = $_SESSION['office'];
-
         if (!empty($id)) {
             return $this->db->SelectData("SELECT * FROM m_product_loan where office_id = '" . $office . "' AND  id='" . $id . "' AND status='open'");
         } else {
@@ -228,27 +228,198 @@ class Loans_Model extends Model
         );
     }
 
-    function applyLoan($data){
+    // function applyLoan($data){
 		
+    //     try {
+    //         if (empty($data['cid']) || empty($data['product_id']) || empty($data['loanofficer']) || empty($data['principal']) || empty($data['guarantor1'])) {
+    //             return $this->MakeJsonResponse(206, "fill all required fields", "");
+    //         }
+
+    //         $rs = $this->GetClientDetails($data['cid']);
+    //         if (sizeof($rs) == 0) {
+    //             return $this->MakeJsonResponse(404, "client not found", "");
+    //         }
+
+    //         $loan_acc = $this->LoanAccount();
+    //         $loan_product = $this->getloanProducts($data['product_id']);
+    //         $loan_productid = $loan_product[0]['id'];
+    //         $rsInfo = $this->GetClientLoanProduct($data['cid'], $loan_productid);
+    //         if (sizeof($rsInfo) > 0) {
+    //             return $this->MakeJsonResponse(200, "member has pending loan product", "");
+    //         }
+    //         if (sizeof($loan_product) == 0) {
+    //             return $this->MakeJsonResponse(204, "loan product not found", "");
+    //         }
+
+    //         $principal = str_replace(',', '', $data['principal']);
+
+    //         $min_principal_amount = $loan_product[0]['min_principal_amount'];
+    //         $max_principal_amount = $loan_product[0]['max_principal_amount'];
+
+    //         if ($principal < $min_principal_amount || $principal > $max_principal_amount) {
+    //             return $this->MakeJsonResponse(205, "loan out of range", "");
+    //         }
+			
+	// 		$this->db->beginTransaction();
+
+    //         if (isset($data['group_id'])) {
+    //             $group_id = $data['group_id'];
+    //         } else {
+    //             $group_id = null;
+    //         }
+
+    //         $submit_date = date('Y-m-d');
+
+    //         $s_date = date('Y-m-d');
+    //         $created_by = $_SESSION['user_id'];
+
+    //         $application_fee = $data['application_fee'];
+    //         $disbursement_date = date('Y-m-d', strtotime($data['disbursement_date']));
+	// 		$rate = str_replace(',', '', $loan_product[0]['nominal_interest_rate_per_period']);
+			
+	// 		$annualRate = $this->val->getAnnualInterest($loan_product[0]['interest_period'], $rate, $days_in_year=null);
+			
+			
+			
+    //         $postData = [
+    //             'sacco_id' => $_SESSION['office'],
+    //             'product_id' => $data['product_id'],
+    //             'account_no' => $loan_acc,
+    //             'member_id' => $data['cid'],
+    //             'group_id' => $group_id,
+    //             'submittedon_date' => $submit_date,
+    //             'created_by' => $created_by,
+    //             'submittedon_userid' => $_SESSION['user_id'],
+    //             'loan_officer_id' => $data['loanofficer'],
+    //             'principal_amount_proposed' => $principal,
+    //             'number_of_installments' => str_replace(',', '', $data['duration']),
+    //             'disbursedon_date' => $disbursement_date,
+    //             'nominal_interest_rate_per_period' => $rate,
+    //             'annual_nominal_interest_rate' => $annualRate,
+    //             'loanpurpose' => $loan_product[0]['description'],
+    //             'interest_period' => $loan_product[0]['interest_period'],
+    //             'product_name' => $loan_product[0]['name'],
+    //             'days_in_year' => $loan_product[0]['days_in_year'],
+    //             'installment_option' => $loan_product[0]['installment_option'],
+    //             'interest_method' => $loan_product[0]['interest_method'],
+    //             'duration' => $loan_product[0]['duration'],
+    //             'duration_value' => $data['duration'],
+    //             'grace_period' => $loan_product[0]['grace_period'],
+    //             'grace_period_value' => $loan_product[0]['grace_period_value'],
+    //             'insurance' => $loan_product[0]['insurance'],
+    //             'stamp_duty' => $loan_product[0]['stamp_duty'],
+    //             'guarantor_1' => $data['guarantor1'],
+    //             'guarantor_1_Amount' => $data['guarantor1_amount'],
+    //             'guarantor_2' => $data['guarantor2'],
+    //             'guarantor_2_Amount' => $data['guarantor2_amount'],
+    //             's_consent' => $data['s_consent'],
+    //             'witness' => $data['witnsess'],
+    //             'loan_purpose' => $data['loan_purpose'],
+    //             'frequency' => $loan_product[0]['interest_period'],
+    //         ];
+
+    //         $prodType = 2;
+    //         $transactionType = 'Loan Application';
+    //         $tran_id = $this->getTransactionID($transactionType);
+    //         $transaction_charges = $this->getTransactionCharges($tran_id);
+    //         $exemptions = $this->getMemberChargeExemptions($data['cid']);
+    //         $total_charge_amount = 0;
+
+    //         if (!empty($transaction_charges)) {
+    //             foreach ($transaction_charges as $key => $value) {
+    //                 if (is_null($exemptions) || !in_array($value, $exemptions)) {
+    //                     $mapping_charges = $this->GetGLChargePointers($value['id'], $prodType, $transactionType, $tran_id);
+
+    //                     if (!empty($mapping_charges)) {
+    //                         $debt_id = $mapping_charges[0]["debit_account"];
+    //                         $credit_id = $mapping_charges[0]["credit_account"];
+
+    //                         $sideA = $this->getAccountSide($debt_id);
+    //                         $sideB = $this->getAccountSide($credit_id);
+
+    //                         $description = ucfirst($value['name']) . " Charge";
+
+    //                         $uniq_id = $_SESSION['user_id'] . uniqid();
+    //                         $transaction_id = "L" . $uniq_id;
+
+    //                         $amount = $value['amount'];
+
+    //                         $this->makeJournalEntry($debt_id, $_SESSION['office'], $_SESSION['user_id'], $uniq_id, $transaction_id, $amount, 'DR', $sideA, $description); //DR
+    //                         $this->makeJournalEntry($credit_id, $_SESSION['office'], $_SESSION['user_id'], $uniq_id, $transaction_id, $amount, 'CR', $sideB, $description); //CR
+
+    //                         $postCharges = [
+    //                             'account_no' => $loan_acc,
+    //                             'charge_id' => $value['id'],
+    //                             'charge_name' => $value['name'],
+    //                             'amount' => $value['amount'],
+    //                         ];
+
+    //                         $this->db->InsertData('m_loan_charge', $postCharges);
+
+    //                         $postTransCharges = [
+    //                             'transaction_id' => $transaction_id,
+    //                             'charge_id' => $value['id'],
+    //                             'trans_amount' => $amount,
+    //                             'date' => date("Y-m-d H:i:s"),
+    //                         ];
+
+    //                         $this->db->InsertData('m_charge_transaction', $postTransCharges);
+    //                     }
+    //                 }
+    //             }
+    //         }
+
+    //         $loan_id = $this->db->InsertData('m_loan', $postData);
+
+    //         if (isset($data['collateral'])) {
+    //             $num_collateral = count($data['collateral']);
+    //             $num_collaterals = $data['collateral'];
+
+    //             if ($num_collateral > 0) {
+    //                 for ($i = 0; $i < $num_collateral; $i++) {
+    //                     if (!empty($num_collaterals[$i])) {
+    //                         $collateral = [
+    //                             'account_no' => $loan_acc,
+    //                             'name' => $num_collaterals[$i],
+    //                         ];
+    //                         $this->db->InsertData('m_loan_collateral', $collateral);
+    //                     }
+    //                 }
+    //             }
+    //         }
+	// 		$this->db->commit();
+
+    //         if (empty($data['group_id']) || is_null($data['group_id']) || $data['group_id'] == "") {
+    //             return $this->MakeJsonResponse(100, "success " . $loan_acc, URL . "loans/loanAccountEquiry/" . $loan_acc);
+    //         } else {
+    //             return $this->MakeJsonResponse(100, "success", URL . 'groups/viewgroup/' . $data["group_id"] . '?actno=' . $loan_acc);
+    //         }
+    //     } catch (Exception $r) {
+	// 		$this->db->rollBack();
+    //         return $this->MakeJsonResponse(203, "unknown error", "");
+    //     }
+    // }
+    function applyLoan($data, $office) {
         try {
             if (empty($data['cid']) || empty($data['product_id']) || empty($data['loanofficer']) || empty($data['principal']) || empty($data['guarantor1'])) {
-                return $this->MakeJsonResponse(206, "fill all required fields", "");
+                return $this->MakeJsonResponse(206, "Fill all required fields", "");
             }
 
             $rs = $this->GetClientDetails($data['cid']);
             if (sizeof($rs) == 0) {
-                return $this->MakeJsonResponse(404, "client not found", "");
+                return $this->MakeJsonResponse(404, "Client not found", "");
             }
 
-            $loan_acc = $this->LoanAccount();
-            $loan_product = $this->getloanProducts($data['product_id']);
+            // $loan_acc = $this->LoanAccount();
+            $id = $data['product_id'];
+            $loan_product = $this->getloanProducts($id, $office);
             $loan_productid = $loan_product[0]['id'];
             $rsInfo = $this->GetClientLoanProduct($data['cid'], $loan_productid);
             if (sizeof($rsInfo) > 0) {
-                return $this->MakeJsonResponse(200, "member has pending loan product", "");
+                return $this->MakeJsonResponse(200, "Member has pending loan product", "");
             }
             if (sizeof($loan_product) == 0) {
-                return $this->MakeJsonResponse(204, "loan product not found", "");
+                return $this->MakeJsonResponse(204, "Loan product not found", "");
             }
 
             $principal = str_replace(',', '', $data['principal']);
@@ -257,10 +428,10 @@ class Loans_Model extends Model
             $max_principal_amount = $loan_product[0]['max_principal_amount'];
 
             if ($principal < $min_principal_amount || $principal > $max_principal_amount) {
-                return $this->MakeJsonResponse(205, "loan out of range", "");
+                return $this->MakeJsonResponse(205, "Loan out of range", "");
             }
-			
-			$this->db->beginTransaction();
+
+            $this->db->beginTransaction();
 
             if (isset($data['group_id'])) {
                 $group_id = $data['group_id'];
@@ -275,14 +446,12 @@ class Loans_Model extends Model
 
             $application_fee = $data['application_fee'];
             $disbursement_date = date('Y-m-d', strtotime($data['disbursement_date']));
-			$rate = str_replace(',', '', $loan_product[0]['nominal_interest_rate_per_period']);
-			
-			$annualRate = $this->val->getAnnualInterest($loan_product[0]['interest_period'], $rate, $days_in_year=null);
-			
-			
-			
+            $rate = str_replace(',', '', $loan_product[0]['nominal_interest_rate_per_period']);
+
+            $annualRate = $this->val->getAnnualInterest($loan_product[0]['interest_period'], $rate, $days_in_year=null);
+
             $postData = [
-                'sacco_id' => $_SESSION['office'],
+                'sacco_id' => $office, // Get 'office' from function parameter
                 'product_id' => $data['product_id'],
                 'account_no' => $loan_acc,
                 'member_id' => $data['cid'],
@@ -344,8 +513,8 @@ class Loans_Model extends Model
 
                             $amount = $value['amount'];
 
-                            $this->makeJournalEntry($debt_id, $_SESSION['office'], $_SESSION['user_id'], $uniq_id, $transaction_id, $amount, 'DR', $sideA, $description); //DR
-                            $this->makeJournalEntry($credit_id, $_SESSION['office'], $_SESSION['user_id'], $uniq_id, $transaction_id, $amount, 'CR', $sideB, $description); //CR
+                            $this->makeJournalEntry($debt_id, $office, $_SESSION['user_id'], $uniq_id, $transaction_id, $amount, 'DR', $sideA, $description); // DR
+                            $this->makeJournalEntry($credit_id, $office, $_SESSION['user_id'], $uniq_id, $transaction_id, $amount, 'CR', $sideB, $description); // CR
 
                             $postCharges = [
                                 'account_no' => $loan_acc,
@@ -371,32 +540,25 @@ class Loans_Model extends Model
 
             $loan_id = $this->db->InsertData('m_loan', $postData);
 
-            if (isset($data['collateral'])) {
-                $num_collateral = count($data['collateral']);
-                $num_collaterals = $data['collateral'];
-
-                if ($num_collateral > 0) {
-                    for ($i = 0; $i < $num_collateral; $i++) {
-                        if (!empty($num_collaterals[$i])) {
-                            $collateral = [
-                                'account_no' => $loan_acc,
-                                'name' => $num_collaterals[$i],
-                            ];
-                            $this->db->InsertData('m_loan_collateral', $collateral);
-                        }
-                    }
-                }
-            }
-			$this->db->commit();
-
             if (empty($data['group_id']) || is_null($data['group_id']) || $data['group_id'] == "") {
-                return $this->MakeJsonResponse(100, "success " . $loan_acc, URL . "loans/loanAccountEquiry/" . $loan_acc);
+                return [
+                    "status" => 100, // Your desired success status code
+                    "message" => "Success " . $loan_acc,
+                    "redirect_url" => URL . "loans/loanAccountEquiry/" . $loan_acc,
+                ];
             } else {
-                return $this->MakeJsonResponse(100, "success", URL . 'groups/viewgroup/' . $data["group_id"] . '?actno=' . $loan_acc);
+                return [
+                    "status" => 100, // Your desired success status code
+                    "message" => "Success",
+                    "redirect_url" => URL . 'groups/viewgroup/' . $data["group_id"] . '?actno=' . $loan_acc,
+                ];
             }
         } catch (Exception $r) {
-			$this->db->rollBack();
-            return $this->MakeJsonResponse(203, "unknown error", "");
+            $this->db->rollBack();
+            return [
+                "status" => 203, // Your desired error status code
+                "message" => "Unknown error",
+            ];
         }
     }
 

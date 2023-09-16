@@ -22,11 +22,15 @@ return $this->db->SelectData("SELECT * FROM share_account s INNER JOIN  share_pr
 
 }
 
-function getEmployees(){
+function getEmployees() {
+    try {
+        return $this->db->SelectData("SELECT * FROM m_staff");
 
-   return $this->db->SelectData("SELECT * FROM m_staff");
-
+    } catch (Exception $e) {
+        throw new Exception("Unknown error: " . $e->getMessage());
+    }
 }
+
 function member_details($actno){
 
  	$rset=array();
@@ -1085,12 +1089,16 @@ $accno=$data['account_no'];
 	
 }
 
-function savingslist(){
-	  $query= $this->db->SelectData("SELECT * FROM m_savings_account s  JOIN (members m  JOIN m_branch b ON m.office_id=b.id)
-	  ON  s.member_id  = m.c_id where m.office_id='".$_SESSION['office']."'");
-//print_r($query);die();
-   return $query;
-  
+function savingslist($office) {
+    try {
+        $query = $this->db->SelectData("SELECT * FROM m_savings_account s  JOIN (members m  JOIN m_branch b ON m.office_id=b.id)
+        ON  s.member_id  = m.c_id where m.office_id='$office'");
+
+        return $query;
+
+    } catch (Exception $e) {
+        throw new Exception("Unknown error: " . $e->getMessage());
+    }
 }
 
 

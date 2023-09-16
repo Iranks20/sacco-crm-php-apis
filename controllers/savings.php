@@ -5,11 +5,6 @@ class Savings extends Controller{
 	public function __construct(){
 		parent::__construct();
 		$this->post= new SavingsPostings();
-
-		Auth::handleSignin();
-		Auth::CheckSession();
-		Auth::CheckAuthorization();
-		$_SESSION['timeout'] = time(); 
 	}
 
 	/********************  Members  *******************************/
@@ -91,11 +86,33 @@ class Savings extends Controller{
 		}		
 	}
 
-	function savingsaccount(){	
-		$this->view->savings = $this->model->savingslist();	
-		$this->view->render('forms/savings/savings_account');
+	function savingsaccount(){
+		try {
+			$headers = getallheaders();
+			$office = $headers['office'];
+	
+			$savingsData = $this->model->savingslist($office);
+	
+			$response = [
+				"status" => 200,
+				"message" => "Success",
+				"data" => $savingsData,
+			];
 
-	}
+			header('Content-Type: application/json');
+			echo json_encode($response);
+	
+		} catch (Exception $e) {
+
+			$errorResponse = [
+				"status" => 500,
+				"message" => $e->getMessage(),
+			];
+			header('Content-Type: application/json');
+			http_response_code($errorResponse['status']);
+			echo json_encode($errorResponse);
+		}
+	}	
 
 	function fixeddeposits(){
 		$this->view->fixedlist = $this->model->fixeddepositList();		
@@ -629,15 +646,30 @@ class Savings extends Controller{
 		}	
 	}	
 
-///savings application
-	function newsavingApplication($acc=null){
-
-		if($acc!=null){
-			$this->view->savingsAcc = $acc;
+	function newsavingApplication($acc = null) {
+		try {
+			$employees = $this->model->getEmployees();
+	
+			$response = [
+				"status" => 200,
+				"message" => "Success",
+				"employees" => $employees,
+			];
+	
+			header('Content-Type: application/json');
+			echo json_encode($response);
+	
+		} catch (Exception $e) {
+			$errorResponse = [
+				"status" => 500,
+				"message" => $e->getMessage(),
+			];
+			header('Content-Type: application/json');
+			http_response_code($errorResponse['status']);
+			echo json_encode($errorResponse);
 		}
-		$this->view->employee = $this->model->getEmployees();	
-		$this->view->render('forms/savings/newsavingsapplication');	
 	}
+	
 	function modifysavings(){
 		$this->view->render('forms/savings/editsavingsapplication');
 

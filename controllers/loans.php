@@ -5,11 +5,6 @@ class Loans extends Controller{
 	public function __construct(){
 		parent::__construct();
 		$this->loans_calculations = new LoanCalculations(); 
-
-		Auth::handleSignin();
-		Auth::CheckSession();
-		Auth::CheckAuthorization();
-		$_SESSION['timeout'] = time(); 
 	}
 
 
@@ -39,9 +34,30 @@ class Loans extends Controller{
 	}
 
 	function index(){
-		$this->view->loan = $this->model->loansList();
-		$this->view->render('forms/loans/loans_account');
-	}
+		try {
+			$headers = getallheaders();
+			$office = $headers['office'];
+	
+			$loanData = $this->model->loansList($office);
+	
+			$response = array(
+				"status" => 200,
+				"message" => "Loan data retrieved successfully.",
+				"loan_data" => $loanData
+			);
+	
+			header('Content-Type: application/json');
+			http_response_code($response['status']);
+			echo json_encode($response);
+	
+		} catch (Exception $e) {
+			$errorResponse = array("status" => 500, "message" => $e->getMessage());
+			header('Content-Type: application/json');
+			http_response_code($errorResponse['status']);
+			echo json_encode($errorResponse);
+		}
+	}	
+
 	function newloanapplication($id=null, $grp=null){
 
 
@@ -66,12 +82,32 @@ class Loans extends Controller{
 
 	}
 
+	// function applyLoan(){
+
+	// 	$rs = $this->model->applyLoan($_POST);
+	// 	echo json_encode($rs);
+
+	// }
 	function applyLoan(){
-
-		$rs = $this->model->applyLoan($_POST);
-		echo json_encode($rs);
-
-	}
+		try {
+			$headers = getallheaders();
+			$office = $headers['office'];
+	
+			$json = file_get_contents('php://input');
+			$data = json_decode($json, true);
+	
+			$response = $this->model->applyLoan($data, $office);
+	
+			header('Content-Type: application/json');
+			echo json_encode($response);
+	
+		} catch (Exception $e) {
+			$errorResponse = array("status" => 500, "message" => $e->getMessage());
+			header('Content-Type: application/json');
+			http_response_code($errorResponse['status']);
+			echo json_encode($errorResponse);
+		}
+	}	
 
 	function getApplicationFees($id){
 		$this->model->getApplicationFees($id);
