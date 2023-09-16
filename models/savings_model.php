@@ -1112,69 +1112,60 @@ function getOffice($id){
 return $results;
 		}
 
-
-function getsavingsAccountData($actno){
-
-	$result=  $this->db->selectData("SELECT * FROM m_savings_account WHERE account_no='".$actno."'");
-
-	if(count($result)>0){
-	$product=  $this->db->selectData("SELECT * FROM m_savings_product WHERE id='".$result[0]['product_id']."'");		
-	$max_id= $this->db->selectData("SELECT max(id) as id FROM m_savings_account_transaction WHERE savings_account_no='".$actno."'");
-	$r_balance= $this->db->selectData("SELECT * FROM m_savings_account_transaction WHERE id='".$max_id[0]['id']."'");
-//print_r($r_balance);
-//die();
-	if(count($r_balance)==0){
-	$rbalance=0;
-	$actualbalance=0;
-	}else{
-	$rbalance=($result[0]['running_balance'])-($product[0]['min_required_balance']);
-		$actualbalance=$result[0]['running_balance'];	
-	}
-	//print_r($result[0]['id']);
-//die();
-	$cid=$result[0]['member_id'];
-	$client=$this->getMember($cid);
-	$rset=array();
-	if(!empty($client[0]['company_name'])){
-	$displayname=$client[0]['company_name'];	 
-	 }else{
-	$displayname=$client[0]['firstname']." ".$client[0]['middlename']." ".$client[0]['lastname'];
-	 }
-	foreach ($result as $key => $value) {
-		array_push($rset,array(
-		'member_id'=>$result[$key]['member_id'],
-		'displayname'=>$displayname,
-		'dob'=>date('d-m-Y',strtotime($client[0]['date_of_birth'])),
-		'national_id'=>$client[0]['national_id'],
-		'address'=>$client[0]['address'],
-		'product'=>$product[0]['name'],
-		'last_trans_amount'=>$result[$key]['running_balance'],
-		'account_opened'=>$result[$key]['submittedon_date'],
-		'status'=>$result[$key]['account_status'],
-		'actualbalance'=>$actualbalance,		
-		'acc_update_date'=>date('M j Y g:i A',strtotime($result[0]['last_updated_on'])),
-		'rbalance'=>$rbalance,		
-		));
-          }
-echo json_encode(array("result" =>$rset));
-die();		  
-
-}else{
-		$rset=array();
-		array_push($rset,array(
-		'member_id'=>'0',
-		'rbalance'=>'0',		
-		));
-echo json_encode(array("result" =>$rset));		
-	die();
+function getsavingsAccountData($id){
+	$actno = $id;
+    try {
+        $result = $this->db->selectData("SELECT * FROM m_savings_account WHERE account_no='".$actno."'");
+        
+        if(count($result)>0){
+			$product=  $this->db->selectData("SELECT * FROM m_savings_product WHERE id='".$result[0]['product_id']."'");		
+			$max_id= $this->db->selectData("SELECT max(id) as id FROM m_savings_account_transaction WHERE savings_account_no='".$actno."'");
+			$r_balance= $this->db->selectData("SELECT * FROM m_savings_account_transaction WHERE id='".$max_id[0]['id']."'");
+			if(count($r_balance)==0){
+			$rbalance=0;
+			$actualbalance=0;
+			}else{
+			$rbalance=($result[0]['running_balance'])-($product[0]['min_required_balance']);
+				$actualbalance=$result[0]['running_balance'];	
+			}
+			$cid=$result[0]['member_id'];
+			$client=$this->getMember($cid);
+			$rset=array();
+			if(!empty($client[0]['company_name'])){
+			$displayname=$client[0]['company_name'];	 
+			 }else{
+			$displayname=$client[0]['firstname']." ".$client[0]['middlename']." ".$client[0]['lastname'];
+			 }
+			foreach ($result as $key => $value) {
+				array_push($rset,array(
+				'member_id'=>$result[$key]['member_id'],
+				'displayname'=>$displayname,
+				'dob'=>date('d-m-Y',strtotime($client[0]['date_of_birth'])),
+				'national_id'=>$client[0]['national_id'],
+				'address'=>$client[0]['address'],
+				'product'=>$product[0]['name'],
+				'last_trans_amount'=>$result[$key]['running_balance'],
+				'account_opened'=>$result[$key]['submittedon_date'],
+				'status'=>$result[$key]['account_status'],
+				'actualbalance'=>$actualbalance,		
+				'acc_update_date'=>date('M j Y g:i A',strtotime($result[0]['last_updated_on'])),
+				'rbalance'=>$rbalance,		
+				));
+			}
+            
+            return array("result" => $rset);
+        } else {
+            $rset = array();
+            array_push($rset, array(
+                'member_id' => '0',
+                'rbalance' => '0',        
+            ));
+            return array("result" => $rset);
+        }
+    } catch (Exception $e) {
+        throw new Exception("Failed to fetch savings account data: " . $e->getMessage());
+    }
 }
-	
-
-
-}
-
-
-
 
 function getMember($id){
 

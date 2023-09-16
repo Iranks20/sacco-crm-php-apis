@@ -192,12 +192,32 @@ class Savings extends Controller{
 		}
 	}
 	function getmemberimage($id){
-		if(!empty($id)){		
-			$this->model->getmemberimage($id); 
-		}else{
-			header('Location: ' . URL . 'members'); 					
+		try {
+			if (!empty($id)) {        
+				$imageData = $this->model->getmemberimage($id);
+				
+				if (!empty($imageData)) {
+					header('Content-Type: image/jpeg');
+					echo $imageData;
+				} else {
+					$errorResponse = array("status" => 404, "message" => "Image not found for ID: $id");
+					header('Content-Type: application/json');
+					http_response_code($errorResponse['status']);
+					echo json_encode($errorResponse);
+				}
+			} else {
+				$errorResponse = array("status" => 400, "message" => "Invalid input. 'id' parameter is empty.");
+				header('Content-Type: application/json');
+				http_response_code($errorResponse['status']);
+				echo json_encode($errorResponse);
+			}
+		} catch (Exception $e) {
+			$errorResponse = array("status" => 500, "message" => $e->getMessage());
+			header('Content-Type: application/json');
+			http_response_code($errorResponse['status']);
+			echo json_encode($errorResponse);
 		}
-	}
+	}	
 
 	function getmemberFixedPhoto($id){
 		if(!empty($id)){		
@@ -207,13 +227,27 @@ class Savings extends Controller{
 		}
 	}
 
-	function getsavingsaccountdata($id){
-		if(!empty($id)){		
-			$this->model->getsavingsaccountdata($id); 
-		}else{
-			header('Location: ' . URL . 'members'); 					
+    function getsavingsaccountdata($id){
+		try {
+			if(!empty($id)){        
+				$data = $this->model->getsavingsaccountdata($id);
+				
+				header('Content-Type: application/json');
+				echo json_encode($data);
+			} else {
+				$errorResponse = array("status" => 400, "message" => "Invalid input. 'id' parameter is empty.");
+				header('Content-Type: application/json');
+				http_response_code($errorResponse['status']);
+				echo json_encode($errorResponse);
+			}
+		} catch (Exception $e) {
+			$errorResponse = array("status" => 500, "message" => $e->getMessage());
+			header('Content-Type: application/json');
+			http_response_code($errorResponse['status']);
+			echo json_encode($errorResponse);
 		}
-	}
+	}	
+
 	function getwithdrawnbalance($id){
 		if(!empty($id)){	
 			$this->model->getwithdrawnbalance($id); 
