@@ -2128,7 +2128,6 @@ function depositaccount($data, $office, $user_id, $branch)
 		$update_time = date('Y-m-d H:i:s');
 		$acc = $data['accountno'];
 		$result = $this->db->selectData("SELECT * FROM m_savings_account WHERE account_no = '".$acc."' ");
-		// echo json_encode($result);
 
 		$amount = str_replace(",", "", $data['amount']);
 		$balance = $result[0]['running_balance'];
@@ -2139,7 +2138,7 @@ function depositaccount($data, $office, $user_id, $branch)
 
 		$new_total_deposits = $availabledeposit + $amount;
 		$new_balance = $amount + $balance;
-		$office_id = $office; // Use the passed office value
+		$office_id = $office;
 
 		$prodType = 3;
 		$transactionName = 'Deposit on Savings';
@@ -2148,7 +2147,6 @@ function depositaccount($data, $office, $user_id, $branch)
 		$transtype = $transactionName;
 
 		$mapping = $this->GetGLPointers($id, $prodType, $transtype, $office);
-		// echo json_encode($mapping);
 
 		if (empty($mapping)) {
 			throw new Exception("GL Pointers not found.");
@@ -3223,20 +3221,29 @@ function openclosedfixedaccount($data){
 }
 
 
-function deletesavingsaccount($data){
-	$acc=$data['account_no'];
-	$date=date('Y-m-d');
+function deletesavingsaccount($data, $user_id) {
+    try {
+        $acc = $data['account_no'];
+        $date = date('Y-m-d');
 
-	$postData = array(
-		'closedon_date' =>$date,
-		'closedon_userid' =>$_SESSION['user_id'],
-		'closesure_reason' =>$data['reason'],
-		'account_status' =>'Closed',
-		);
+        $postData = array(
+            'closedon_date' => $date,
+            'closedon_userid' => $user_id,
+            'closesure_reason' => $data['reason'],
+            'account_status' => 'Closed',
+        );
 
-	$this->db->UpdateData('m_savings_account', $postData,"`account_no` = '{$acc}'");
-	header('Location: ' . URL . 'members/savingsaccount?closed='.$acc.''); 
-	
+        $this->db->UpdateData('m_savings_account', $postData, "`account_no` = '{$acc}'");
+
+        $resultData = array(
+            'account_status' => 'Closed',
+        );
+
+        return $resultData;
+
+    } catch (Exception $e) {
+        throw new Exception("Failed to delete savings account: " . $e->getMessage());
+    }
 }
 function OpenclosedSavings($acc){
 
@@ -3253,53 +3260,67 @@ function OpenclosedSavings($acc){
 	
 }
 
-function getMemberaccount($acc){
-	
-	$result= $this->db->SelectData("SELECT * FROM m_savings_account JOIN members on m_savings_account.member_id=members.c_id where  m_savings_account.account_no='".$acc."' ");
-
-	if(count($result)>0){
-		foreach ($result as $key => $value) {  
-			if(empty($result[$key]['firstname'])){
-				$rset[$key]['name'] =$result[$key]['company_name'];  
-			}else{
-				$rset[$key]['name'] = $result[$key]['firstname']." ".$result[$key]['middlename']." ".$result[$key]['lastname'];
-			}		  
-			$rset[$key]['member'] = $result[$key]['member_id'];
-			$rset[$key]['account'] = $result[$key]['account_no'];
-			$rset[$key]['office_id'] = $result[$key]['office_id']; 
-			$rset[$key]['office'] = $this->getoffice($result[$key]['office_id']); 
-			$rset[$key]['amount'] = $result[$key]['running_balance'];
-			$rset[$key]['status'] = $result[$key]['account_status'];
-			$rset[$key]['image'] = $result[$key]['image'];
-		}
-		return $rset;
-	}
-	
+function getMemberaccount($account) {
+    try {
+        $result = $this->db->SelectData("SELECT * FROM m_savings_account JOIN members ON m_savings_account.member_id = members.c_id WHERE m_savings_account.account_no='".$account."' ");
+        
+        if (count($result) > 0) {
+            foreach ($result as $key => $value) {  
+                if (empty($result[$key]['firstname'])) {
+                    $rset[$key]['name'] = $result[$key]['company_name'];  
+                } else {
+                    $rset[$key]['name'] = $result[$key]['firstname']." ".$result[$key]['middlename']." ".$result[$key]['lastname'];
+                }		  
+                $rset[$key]['member'] = $result[$key]['member_id'];
+                $rset[$key]['account'] = $result[$key]['account_no'];
+                $rset[$key]['office_id'] = $result[$key]['office_id']; 
+                $rset[$key]['office'] = $this->getoffice($result[$key]['office_id']); 
+                $rset[$key]['amount'] = $result[$key]['running_balance'];
+                $rset[$key]['status'] = $result[$key]['account_status'];
+                $rset[$key]['image'] = $result[$key]['image'];
+            }
+            
+            return $rset;
+        } else {
+            return array();
+        }
+    } catch (Exception $e) {
+        return array(
+            'error' => 'An error occurred while fetching member account details: ' . $e->getMessage()
+        );
+    }
 }
 
-function getSavingsAccountTransactions($acc){
-	$office=$_SESSION['office'];
-	$result =  $this->db->SelectData("SELECT * FROM m_savings_account_transaction WHERE savings_account_no='$acc' ORDER BY id DESC LIMIT 20 ");
-	if(count($result)>0){
-		foreach ($result as $key => $value) {  
-			$rset[$key]['amount'] = $result[$key]['amount'];
-			$rset[$key]['transaction_type'] = ucfirst($result[$key]['transaction_type']);
-			$rset[$key]['balance'] = $result[$key]['running_balance'];
-			$rset[$key]['depositor'] = $result[$key]['depositor_name'];
-			$rset[$key]['trans_date'] = $result[$key]['transaction_date'];
-			$rset[$key]['op_type'] = $result[$key]['op_type'];
-			$rset[$key]['payment_detail_id'] = ucfirst(strtolower($result[$key]['payment_detail_id']));
-		}
-		return $rset;
-		//$reversed_array = array_reverse($rset);
-        //return $reversed_array;
-	}
-	
+
+function getSavingsAccountTransactions($account) {
+    try {
+        $result =  $this->db->SelectData("SELECT * FROM m_savings_account_transaction WHERE savings_account_no='$account' ORDER BY id DESC LIMIT 20 ");
+        
+        if (count($result) > 0) {
+            foreach ($result as $key => $value) {  
+                $rset[$key]['amount'] = $result[$key]['amount'];
+                $rset[$key]['transaction_type'] = ucfirst($result[$key]['transaction_type']);
+                $rset[$key]['balance'] = $result[$key]['running_balance'];
+                $rset[$key]['depositor'] = $result[$key]['depositor_name'];
+                $rset[$key]['trans_date'] = $result[$key]['transaction_date'];
+                $rset[$key]['op_type'] = $result[$key]['op_type'];
+                $rset[$key]['payment_detail_id'] = ucfirst(strtolower($result[$key]['payment_detail_id']));
+            }
+            
+            return $rset;
+        } else {
+            return array();
+        }
+    } catch (Exception $e) {
+        return array(
+            'error' => 'An error occurred while fetching transactions: ' . $e->getMessage()
+        );
+    }
 }
 
-function getAllSavingsAccountTransactions($acc){
-	$office=$_SESSION['office'];
-	$result =  $this->db->SelectData("SELECT * FROM m_savings_account_transaction WHERE savings_account_no='".$acc."' ");
+function getAllSavingsAccountTransactions($account, $office){
+	$office=$office;
+	$result =  $this->db->SelectData("SELECT * FROM m_savings_account_transaction WHERE savings_account_no='".$account."' ");
 
 	if(count($result)>0){
 		foreach ($result as $key => $value) {  
@@ -3317,12 +3338,18 @@ function getAllSavingsAccountTransactions($acc){
 	
 }
 
-function getAccountMemberID($acc){
-	$office=$_SESSION['office'];
-	
-	$member_details =  $this->db->SelectData("SELECT * FROM m_savings_account WHERE account_no='$acc' AND office_id = '$office' ");
-
-	return $member_details[0]['member_id'];
+function getAccountMemberID($account, $office) {
+    try {
+        $member_details =  $this->db->SelectData("SELECT * FROM m_savings_account WHERE account_no='$account' AND office_id = '$office' ");
+        
+        if (!empty($member_details) && count($member_details) > 0) {
+            return $member_details[0]['member_id'];
+        } else {
+            return null;
+        }
+    } catch (Exception $e) {
+        return null;
+    }
 }
 
 
@@ -3389,21 +3416,31 @@ function getpendingsaving($acc,$transno,$tdate){
 	}
 	
 }
-function approvesavings($data){
 
-	$tansno=$data['tnumber'];
-	$tansamount=$data['tamount'];
-	$accno=$data['account_no'];
+function approvesavings($data, $user_id) {
+    try {
+        $tansno = $data['tnumber'];
+        $tansamount = $data['tamount'];
+        $accno = $data['account_no'];
 
-	$postData = array(
-		'approved_by' =>$_SESSION['user_id'],
-		'transaction_status' =>'Approved',
-	);
+        $postData = array(
+            'approved_by' => $user_id,
+            'transaction_status' => 'Approved',
+        );
 
-	$this->db->UpdateData('m_savings_account_transaction', $postData,"`id` = '{$tansno}'");
-	header('Location: ' . URL . 'members/approvependingsavings?trans=approved'); 
-	
+        $this->db->UpdateData('m_savings_account_transaction', $postData, "`id` = '{$tansno}'");
+
+        $resultData = array(
+            'transaction_status' => 'Approved',
+        );
+
+        return $resultData;
+
+    } catch (Exception $e) {
+        throw new Exception("Failed to approve savings: " . $e->getMessage());
+    }
 }
+
 
 function reversesavings($data){
 

@@ -742,7 +742,7 @@ class Members extends Controller{
 			echo json_encode($errorResponse);
 		}
 	}
-	
+
 	function withdrawaccount(){
 		try {
 			$headers = getallheaders();
@@ -1121,14 +1121,28 @@ class Members extends Controller{
 	}
 
 	function deletesavingsaccount(){
-		$data=$_POST;
-		if(!empty($data)){ 
-			$this->model->deletesavingsaccount($data);
-		}else{
-			
-			
-		}	
-	}
+		try {
+			$headers = getallheaders();
+			$user_id = $headers['user_id'];
+	
+			$data = json_decode(file_get_contents('php://input'), true);
+	
+			if (empty($data)) {
+				throw new Exception("Invalid JSON data received.");
+			}
+	
+			$result = $this->model->deletesavingsaccount($data, $user_id);
+	
+			header('Content-Type: application/json');
+			echo json_encode(array("status" => 200, "message" => "Savings account deleted successfully", "result" => $result));
+	
+		} catch (Exception $e) {
+			$errorResponse = array("status" => 500, "message" => $e->getMessage());
+			header('Content-Type: application/json');
+			http_response_code($errorResponse['status']);
+			echo json_encode($errorResponse);
+		}
+	}	
 	function savingsStatement($acc=null){
 		if(!empty($acc)){
 			$this->view->savingsAcc= $acc;
@@ -1136,30 +1150,61 @@ class Members extends Controller{
 		$this->view->render('forms/savings/savings_statement_form');
 
 	}
-	function SavingsAccountDetails($acc=null, $id=null, $all=null){
-		$account=null;
-		if($acc!=null){
-			$this->view->memberid = $id;
-			$account=$acc;	   
-		}else{
-			$account=$_POST['accno'];   
-		}
 
-		$this->view->memberzid = $this->model->getAccountMemberID($account);
-
-		if(!empty($account)){
-			$this->view->savingsAcc = $acc;
-			$this->view->accountholder = $this->model->getMemberaccount($account);
-			$this->view->transactions = $this->model->getSavingsAccountTransactions($account);
-			if ($all != NULL) {
-				$this->view->alltransactions=$this->model->getAllSavingsAccountTransactions($account);
+	function SavingsAccountDetails($acc = null, $id = null, $all = null) {
+		try {
+			$headers = getallheaders();
+			$office = $headers['office'];
+	
+			$account = null;
+			if ($acc != null) {
+				$memberid = $id;
+				$account = $acc;
+			} else {
+				$data = json_decode(file_get_contents('php://input'), true);
+	
+				if (empty($data) || empty($data['accno'])) {
+					throw new Exception("Invalid JSON data received.");
+				}
+	
+				$account = $data['accno'];
 			}
-			$this->view->render('forms/savings/savings_accountstatement');
-		}else{
-			header('Location: ' . URL . 'members/savingsaccount/');    
+	
+			$memberzid = $this->model->getAccountMemberID($account, $office);
+	
+			if (!empty($account)) {
+				$savingsAcc = $account;
+				$accountholder = $this->model->getMemberaccount($account);
+				$transactions = $this->model->getSavingsAccountTransactions($account);
+	
+				if ($all != null) {
+					$alltransactions = $this->model->getAllSavingsAccountTransactions($account);
+				}
+	
+				header('Content-Type: application/json');
+				echo json_encode(array("status" => 200, "message" => "Savings account details retrieved successfully", "data" => array(
+					"memberid" => $memberid,
+					"memberzid" => $memberzid,
+					"savingsAcc" => $savingsAcc,
+					"accountholder" => $accountholder,
+					"transactions" => $transactions,
+					"alltransactions" => $alltransactions
+				)));
+	
+			} else {
+				$errorResponse = array("status" => 400, "message" => "Invalid account number.");
+				header('Content-Type: application/json');
+				http_response_code($errorResponse['status']);
+				echo json_encode($errorResponse);
+			}
+		} catch (Exception $e) {
+			$errorResponse = array("status" => 500, "message" => $e->getMessage());
+			header('Content-Type: application/json');
+			http_response_code($errorResponse['status']);
+			echo json_encode($errorResponse);
 		}
-
 	}
+	
 	function Fixedstatement(){
 
 		$this->view->render('forms/fixeddeposit/fixed_statement_form');
@@ -1212,18 +1257,6 @@ class Members extends Controller{
 		}	
 	}
 
-
-	function approvependingsavings($acc=null,$id=null){
-
-		if($acc!=null){
-			$this->view->savingsAcc = $acc;		
-		}	
-
-		if($id!=null){
-			$this->view->memberid = $id;		
-		}
-		$this->view->render('forms/savings/approvesavingtransaction');
-	}
 	function getpendingsaving($acc,$transno,$tdate=null){
 		if(!empty($acc)&&!empty($transno)){ 
 			$this->model->getpendingsaving($acc,$transno,$tdate);
@@ -1240,15 +1273,30 @@ class Members extends Controller{
 			
 		}	
 	}
+
 	function approvesavings(){
-		$data=$_POST;
-		if(!empty($data)){ 
-			$this->model->approvesavings($data);
-		}else{
-			
-			
+		try {
+			$headers = getallheaders();
+			$user_id = $headers['user_id'];
+	
+			$data = json_decode(file_get_contents('php://input'), true);
+	
+			if (empty($data)) {
+				throw new Exception("Invalid JSON data received.");
+			}
+	
+			$result = $this->model->approvesavings($data, $user_id);
+	
+			header('Content-Type: application/json');
+			echo json_encode(array("status" => 200, "message" => "Savings approved successfully", "result" => $result));
+	
+		} catch (Exception $e) {
+			$errorResponse = array("status" => 500, "message" => $e->getMessage());
+			header('Content-Type: application/json');
+			http_response_code($errorResponse['status']);
+			echo json_encode($errorResponse);
 		}
-	}
+	}	
 	function reversesavingstransaction($acc=null, $id=null, $desc=null){
 		if($id!=null){
 			$this->view->memberid =$id;	
