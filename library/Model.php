@@ -756,9 +756,8 @@ function checkProductLoanExists($pname){
 
 	}
 
-	function getUserCashBalance(){
-		$office=$_SESSION['office'];
-		$results = $this->db->selectData("SELECT * FROM m_staff WHERE id = '".$_SESSION['user_id']."' AND office_id='".$office."'");
+	function getUserCashBalance($office, $user_id){
+		$results = $this->db->selectData("SELECT * FROM m_staff WHERE id = '".$user_id."' AND office_id='".$office."'");
 
 		return $results[0]['account_balance'];
 	}
@@ -2279,8 +2278,8 @@ function GetStaffDetails($cid){
 
 // ACCOUNTING PART AND GL ENTRY
 
-	function GetGLPointers($id,$prodType,$transtype) {
-		$parent_office =$_SESSION['office'];
+	function GetGLPointers($id,$prodType,$transtype, $office) {
+		$parent_office =$office;
 		return $this->db->SelectData("SELECT * FROM  acc_gl_pointers JOIN transaction_type ON transaction_type.transaction_type_id=acc_gl_pointers.transaction_type_id where acc_gl_pointers.product_type_id='".$prodType."' AND sacco_id = '".$parent_office."' and product_id = '".$id."'  AND transaction_type.transaction_type_name='".$transtype."' ");   
 	}
 

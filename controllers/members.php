@@ -5,11 +5,6 @@ class Members extends Controller{
 	public function __construct(){
 		parent::__construct();
 		$this->post= new SavingsPostings();
-
-		Auth::handleSignin();
-		Auth::CheckSession();
-		Auth::CheckAuthorization();
-		$_SESSION['timeout'] = time(); 
 	}
 	
 	function checkNIN(){
@@ -722,26 +717,58 @@ class Members extends Controller{
 		}
 	}
 
-	function depositsavingsaccount(){
-		$data = $_POST;
-		if(!empty($data)){ 
-			$this->model->depositaccount($data);
-		}else{
-			
-
+    function depositsavingsaccount(){
+		try {
+			$headers = getallheaders();
+			$office = $headers['office'];
+			$user_id = $headers['user_id'];
+			$branch = $headers['branch'];
+	
+			$data = json_decode(file_get_contents('php://input'), true);
+	
+			if (empty($data)) {
+				throw new Exception("Invalid JSON data received.");
+			}
+	
+			$result = $this->model->depositaccount($data, $office, $user_id, $branch);
+	
+			header('Content-Type: application/json');
+			echo json_encode(array("status" => 200, "message" => "Deposit successful", "result" => $result));
+	
+		} catch (Exception $e) {
+ 			$errorResponse = array("status" => 500, "message" => $e->getMessage());
+			header('Content-Type: application/json');
+			http_response_code($errorResponse['status']);
+			echo json_encode($errorResponse);
 		}
 	}
-
-
-function withdrawaccount(){
-		$data = $_POST;
-		if(!empty($data)){ 
-			$this->model->withdrawaccount($data);
-		}else{
-			
-			
+	
+	function withdrawaccount(){
+		try {
+			$headers = getallheaders();
+			$office = $headers['office'];
+			$user_id = $headers['user_id'];
+			$branch = $headers['branch'];
+	
+			$data = json_decode(file_get_contents('php://input'), true);
+	
+			if (empty($data)) {
+				throw new Exception("Invalid JSON data received.");
+			}
+	
+			$result = $this->model->withdrawaccount($data, $office, $user_id, $branch);
+	
+			header('Content-Type: application/json');
+			echo json_encode(array("status" => 200, "message" => "Withdrawal successful", "result" => $result));
+	
+		} catch (Exception $e) {
+			$errorResponse = array("status" => 500, "message" => $e->getMessage());
+			header('Content-Type: application/json');
+			http_response_code($errorResponse['status']);
+			echo json_encode($errorResponse);
 		}
 	}
+	
 
 
 	function statementform(){

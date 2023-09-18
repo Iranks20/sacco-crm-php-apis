@@ -359,24 +359,28 @@ $acc = $data['account_no'];
 
 }
 
-function  GetPayment($id){
- $result= $this->db->SelectData("SELECT * FROM m_savings_account_transaction where id='".$id."' ");
-	$account_details = $this->getClientAccount($result[0]['savings_account_no']);
-$currency=$this->db->SelectData("SELECT * FROM m_currency");
-	$client_details = $this->getMember($account_details[0]['member_id']);
-	//print_r($result);
-	//die();
-	foreach ($result as $key => $value) {
-                $rset[$key]['account_name'] = $client_details[0]['firstname']." ".$client_details[0]['middlename']." ".$client_details[0]['lastname']; 
-                $rset[$key]['account_number'] = $account_details[0]['account_no']; 
-				$rset[$key]['transaction_date'] = $result[$key]['transaction_date'];
-				$rset[$key]['amount_deposited'] = $result[$key]['amount'];
-				$rset[$key]['currency'] = $currency[0]['code'];
-				$rset[$key]['new_balance'] = $result[$key]['running_balance'];
-          }
+function GetPayment($id) {
+    try {
+        $result = $this->db->SelectData("SELECT * FROM m_savings_account_transaction WHERE id = '$id'");
+        $account_details = $this->getClientAccount($result[0]['savings_account_no']);
+        $currency = $this->db->SelectData("SELECT * FROM m_currency");
+        $client_details = $this->getMember($account_details[0]['member_id']);
+
+        foreach ($result as $key => $value) {
+            $rset[$key]['account_name'] = $client_details[0]['firstname']." ".$client_details[0]['middlename']." ".$client_details[0]['lastname'];
+            $rset[$key]['account_number'] = $account_details[0]['account_no'];
+            $rset[$key]['transaction_date'] = $result[$key]['transaction_date'];
+            $rset[$key]['amount_deposited'] = $result[$key]['amount'];
+            $rset[$key]['currency'] = $currency[0]['code'];
+            $rset[$key]['new_balance'] = $result[$key]['running_balance'];
+        }
         return $rset;
-		
- }
+
+    } catch (Exception $e) {
+        throw new Exception("Failed to fetch payment data: " . $e->getMessage());
+    }
+}
+
 function getClientAccount($id){
 
  return $this->db->SelectData("SELECT * FROM m_savings_account where account_no='".$id."' ");

@@ -155,13 +155,27 @@ class Savings extends Controller{
 			header('Location: ' . URL . 'members'); 					
 		}
 	}
-	function newsaving($id=null){
-		if($id!=null){
-			$this->view->data= $this->model->GetPayment($id);		
-		}	
-		$this->view->paymenttype = $this->model->paymentType();
-		$this->view->render('forms/savings/newsaving');
 
+	function newsaving($id=null){
+		try {
+			if ($id != null) {
+				$data = $this->model->GetPayment($id);
+	
+				header('Content-Type: application/json');
+				echo json_encode($data);
+	
+			} else {
+				$paymentTypes = $this->model->paymentType();
+				header('Content-Type: application/json');
+				echo json_encode($paymentTypes);
+			}
+	
+		} catch (Exception $e) {
+			$errorResponse = array("status" => 500, "message" => $e->getMessage());
+			header('Content-Type: application/json');
+			http_response_code($errorResponse['status']);
+			echo json_encode($errorResponse);
+		}
 	}
 
 	function savings(){

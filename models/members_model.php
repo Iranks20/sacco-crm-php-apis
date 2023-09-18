@@ -1775,11 +1775,11 @@ function getFixedDepositProducts($id){
 			
 		}
 		
-		function makeSavingsJournalEntry($acc_id,$office,$user,$savings_trans_id,$trans_id,$amount,$type,$side,$description){
+		function makeSavingsJournalEntry($acc_id,$office, $branch_id, $user,$savings_trans_id,$trans_id,$amount,$type,$side,$description){
 			$postData = array(
 				'account_id' =>$acc_id,
 				'office_id' => $office,
-				'branch_id' => $_SESSION['branchid'],
+				'branch_id' => $branch_id,
 				'createdby_id' =>$user,
 				'savings_transaction_id' =>$savings_trans_id,
 				'transaction_id' =>$trans_id,
@@ -2121,65 +2121,68 @@ function getFixedDepositProducts($id){
 			}
 		}
 
-function depositaccount($data){
+function depositaccount($data, $office, $user_id, $branch)
+{
+	try {
+		$this->db->beginTransaction();
+		$update_time = date('Y-m-d H:i:s');
+		$acc = $data['accountno'];
+		$result = $this->db->selectData("SELECT * FROM m_savings_account WHERE account_no = '".$acc."' ");
+		// echo json_encode($result);
 
-	$this->db->beginTransaction();//beginning transaction
-	$update_time=date('Y-m-d H:i:s');
-	$acc=$data['accountno'];
-	$result= $this->db->selectData("SELECT * FROM m_savings_account WHERE account_no='".$acc."' ");
+		$amount = str_replace(",", "", $data['amount']);
+		$balance = $result[0]['running_balance'];
+		$availabledeposit = $result[0]['total_deposits'];
 
-	$amount = str_replace(",","",$data['amount']);
-	$balance = $result[0]['running_balance'];
-	$availabledeposit = $result[0]['total_deposits'];
+		$product_id = $result[0]['product_id'];
+		$member_id = $result[0]['member_id'];
 
-	$product_id = $result[0]['product_id'];
-	$member_id =  $result[0]['member_id'];
+		$new_total_deposits = $availabledeposit + $amount;
+		$new_balance = $amount + $balance;
+		$office_id = $office; // Use the passed office value
 
-	$new_total_deposits = $availabledeposit + $amount;
-	$new_balance = $amount + $balance;
-	$office_id =  $_SESSION['office'];
+		$prodType = 3;
+		$transactionName = 'Deposit on Savings';
 
-	$prodType=3;
-	$transactionName = 'Deposit on Savings';
+		$id = $product_id;
+		$transtype = $transactionName;
 
-	$mapping = $this->GetGLPointers($product_id,$prodType,$transactionName);
+		$mapping = $this->GetGLPointers($id, $prodType, $transtype, $office);
+		// echo json_encode($mapping);
 
-	if (empty($mapping)) {
-		header('Location: ' . URL . 'products/savingsproducts?msg=dep'); 
-		die();
-	}
+		if (empty($mapping)) {
+			throw new Exception("GL Pointers not found.");
+		}
 
-	if(!empty($mapping[0]["debit_account"])&&!empty($mapping[0]["credit_account"])){
-	
-		try{
-           $transaction_id = "S".uniqid();
+		if (!empty($mapping[0]["debit_account"]) && !empty($mapping[0]["credit_account"])) {
 
+			$transaction_id = "S" . uniqid();
 			$transaction_postData = array(
 				'savings_account_no' => $acc,
-				'payment_detail_id' =>  "CASH",
+				'payment_detail_id' => "CASH",
 				'transaction_type' => "Deposit",
-				"op_type"=>'CR',
-				'amount' =>str_replace(",","",$data['amount']),
+				"op_type" => 'CR',
+				'amount' => str_replace(",", "", $data['amount']),
 				'running_balance' => $new_balance,
 				'depositor_name' => $data['depositor'],
 				'amount_in_words' => $data['amount_in_words'],
 				'telephone_no' => $data['tel'],
-				'branch' =>$_SESSION['office'],
+				'branch' => $office_id,
 				'transaction_id' => $transaction_id,
-				'user_id' => $_SESSION['user_id']
+				'user_id' => $user_id
 			);
 
-			//Add money to teller/users cash account
+			// Add money to teller/users cash account
 			if (isset($data['amount'])) {
 				$cashdata = array(
 					'account_balance' => $this->getUserCashBalance() + $data['amount'],
 				);
-				$this->db->UpdateData('m_staff', $cashdata,"`id` = '{$_SESSION['user_id']}'"); 
+				$this->db->UpdateData('m_staff', $cashdata, "`id` = '{$user_id}'");
 			}
 
 			$deposit_transaction_id = $this->db->InsertData('m_savings_account_transaction', $transaction_postData);
-           
-			$charge_results = $this->MakeSavingsDepChargeTransaction($prodType,$transactionName,$acc,$new_balance,$new_total_deposits,$name,$member_id);
+
+			$charge_results = $this->MakeSavingsDepChargeTransaction($prodType, $transactionName, $acc, $new_balance, $new_total_deposits, $name, $member_id);
 
 			$new_balance = $charge_results['balance'];
 			$new_total_deposits = $charge_results['new_total_deposits'];
@@ -2187,225 +2190,250 @@ function depositaccount($data){
 			$depositstatus = array(
 				'total_deposits' => $new_total_deposits,
 				'running_balance' => $new_balance,
-				'last_updated_on' =>$update_time,
+				'last_updated_on' => $update_time,
 			);
 
-			$this->db->UpdateData('m_savings_account', $depositstatus,"`account_no` = '{$acc}'");
+			$this->db->UpdateData('m_savings_account', $depositstatus, "`account_no` = '{$acc}'");
 
-  
-			
-			$debt_id =$mapping[0]["debit_account"]; //debit savings  Control account
-			$credit_id =$mapping[0]["credit_account"]; //credit cash savings reference	
-			$sideA=$this->getAccountSide($debt_id);
-			$sideB=$this->getAccountSide($credit_id);
+			$debt_id = $mapping[0]["debit_account"]; // debit savings Control account
+			$credit_id = $mapping[0]["credit_account"]; // credit cash savings reference
+			$sideA = $this->getAccountSide($debt_id);
+			$sideB = $this->getAccountSide($credit_id);
 
-			///JOURNAL ENTRY POSTINGS
-			
-           $client = $this->getClientSaveddetails($acc);
-			$name=null;
-			if(empty($client[0]['company_name'])){
-				$name=$client[0]['firstname']." ".$client[0]['middlename']." ".$client[0]['lastname'];	
-			}else{
-				$name=$client[0]['company_name'];	
+			// JOURNAL ENTRY POSTINGS
+			$client = $this->getClientSaveddetails($acc);
+			$name = null;
+			if (empty($client[0]['company_name'])) {
+				$name = $client[0]['firstname'] . " " . $client[0]['middlename'] . " " . $client[0]['lastname'];
+			} else {
+				$name = $client[0]['company_name'];
 			}
-            $mobile_number = $client[0]['mobile_no'];	
+			$mobile_number = $client[0]['mobile_no'];
+			$description = "Savings Deposit for " . $name;
+			$acc_id = $debt_id;
+			$branch_id = $branch;
+			$user = $user_id;
+			$savings_trans_id = $deposit_transaction_id;
+			$trans_id = $transaction_id;
+			$amount =  $data['amount'];
+			$side = $sideA;
+
+			$this->makeSavingsJournalEntry($acc_id, $office, $branch_id, $user, $savings_trans_id, $trans_id, str_replace(",", "", $amount), 'DR', $side, $description); // DR
+			$acc_id = $credit_id;
+			$branch_id = $branch;
+			$user = $user_id;
+			$savings_trans_id = $deposit_transaction_id;
+			$trans_id = $transaction_id;
+			$amount =  $data['amount'];
+			$side = $sideB;
+			$this->makeSavingsJournalEntry($acc_id, $office, $branch_id, $user, $savings_trans_id, $trans_id, str_replace(",", "", $amount), 'CR', $side, $description); // CR
 			
-			$description="Savings Deposit for ".$name;
-
-
-			$this->makeSavingsJournalEntry($debt_id,$office_id,$_SESSION['user_id'],$deposit_transaction_id,$transaction_id,str_replace(",","",$data['amount']),'DR',$sideA,$description);//DR
-			$this->makeSavingsJournalEntry($credit_id,$office_id,$_SESSION['user_id'],$deposit_transaction_id,$transaction_id,str_replace(",","",$data['amount']),'CR',$sideB,$description);//CR
-
+            
+			$smsNumber = $mobile_no;
+			$curr = $this->getThisSaccoCurrency();
+			$nodeName = $branch;
+			$message = "Hello, Your " . $nodeName . " Savings account has been credited with " . $curr . " " . number_format($amount, 2) . ". Your new balance is " . $curr . " " . number_format($new_balance, 2) . " Txn ID " . $transaction_id;
 			
-			        $smsNumber = $mobile_no;
-					$curr = $this->getThisSaccoCurrency();
-					$nodeName = $_SESSION['branch'];
-					$message = "Hello, Your ".$nodeName." Savings account has been credited with ".$curr. " ". number_format($amount,2). ". Your new balance is ".$curr." ".number_format($new_balance,2)." Txn ID ".$transaction_id;
-				    $this->SendSMS($smsNumber,$message);
-					$this->sendPushNotification($mobile_no,$message);
-					
-					
+			$this->SendSMS($smsNumber, $message);
+			
+			// $this->sendPushNotification($mobile_no, $message);
+			// echo 'ddnd';
+			$resultData = array(
+				'total_deposits' => $new_total_deposits,
+				'running_balance' => $new_balance,
+				'last_updated_on' => $update_time,
+			);
+
 			$this->db->commit();
+			return $resultData; // Return the transaction ID
 
-			header('Location:'.URL.'members/newsaving/'.$acc.'/'.$client[0]['c_id'].'/'.$deposit_transaction_id.'?msg=receipt');
+		} else {
+			throw new Exception("Debit and credit accounts not found.");
+		}
 
-		}catch(Exception $e){
-			$this->db->rollBack();
-			$error=$e->getMessage();
-			header('Location:'.URL.'members/newsaving?msg=fail&error='.$error);
-			exit(); 	  
-		}	
-
-	}else{
-		header('Location:'.URL.'members/newsaving?msg=fail');
+	} catch (Exception $e) {
+		$this->db->rollBack(); // Rollback the transaction in case of failure
+		throw new Exception("Failed to deposit: " . $e->getMessage());
 	}
 }
 
-function withdrawaccount($data){
+function withdrawaccount($data, $office, $user_id, $branch) {
+    try {
+        $this->db->beginTransaction(); // Beginning transaction
+        $charge = 0;
+        $update_time = date('Y-m-d H:i:s');
+        $acc = stripslashes($data['accountno']);
+        $result = $this->db->selectData("SELECT * FROM m_savings_account WHERE account_no = '".$acc."' ");
 
-	$this->db->beginTransaction();//beginning transaction
-	$charge=0;
-	$update_time=date('Y-m-d H:i:s');	
-	$acc=stripslashes($data['accountno']);
-	$result= $this->db->selectData("SELECT * FROM m_savings_account WHERE account_no='".$acc."' ");
+        $product_id = $result[0]['product_id'];
+        $product =  $this->db->selectData("SELECT * FROM m_savings_product WHERE id = '".$result[0]['product_id']."'");
 
-	$product_id = $result[0]['product_id'];
-	$product=  $this->db->selectData("SELECT * FROM m_savings_product WHERE id='".$result[0]['product_id']."'");
-	
-	$amount = str_replace(",","",$data['amount']);
+        $amount = str_replace(",","",$data['amount']); 
 
-	if ($amount <= 0) {
-		header('Location: ' . URL . 'members/withdraw?amt=' . $amount); 
-		die();
-	}
+        if ($amount <= 0) {
+            throw new Exception("Invalid withdrawal amount.");
+        }
 
-	$results = $this->db->selectData("SELECT * FROM m_savings_account WHERE account_no='".$acc."' AND withdraw_status = 'Inactive' ");
+        $results = $this->db->selectData("SELECT * FROM m_savings_account WHERE account_no = '".$acc."' AND withdraw_status = 'Inactive' ");
 
-	if (count($results) > 0) {
-		header('Location: ' . URL . 'members/withdraw?act=inactive'); 
-		die();
-	}
-	$balance = $result[0]['running_balance'];
-	$availablewithdraw = $result[0]['total_withdrawals'];
+        if (count($results) > 0) {
+            throw new Exception("Account is inactive for withdrawal.");
+        }
 
-	$new_total_withdraws = $availablewithdraw + $amount ;
+        $balance = $result[0]['running_balance'];
+        $availablewithdraw = $result[0]['total_withdrawals'];
 
-	$office_id =  $_SESSION['office'];
+        $new_total_withdraws = $availablewithdraw + $amount ;
 
-	$prodType=3;
-	$transactionName = 'Withdraw on Savings';
+        $prodType = 3;
+        $transactionName = 'Withdraw on Savings';
 
-	$tran_id = $this->getTransactionID($transactionName);
-	$transaction_charges = $this->getTransactionCharges($tran_id);
-	$total_charge_amount = 0;
-	if (!empty($transaction_charges)) {
-		foreach ($transaction_charges as $key => $value) {
-			$mappingCharges = $this->GetGLChargePointers($value['id'],$prodType,$transactionName,$tran_id);
-			if (!empty($mappingCharges)) {
-				$total_charge_amount += $value['amount'];
-			}
-		}
-	}
+        $tran_id = $this->getTransactionID($transactionName);
+		
+        $transaction_charges = $this->getTransactionCharges($tran_id);
+        $total_charge_amount = 0;
+        if (!empty($transaction_charges)) {
+            foreach ($transaction_charges as $key => $value) {
+                $mappingCharges = $this->GetGLChargePointers($value['id'],$prodType,$transactionName,$tran_id);
+                if (!empty($mappingCharges)) {
+                    $total_charge_amount += $value['amount'];
+                }
+            }
+        }
+        $charge = $total_charge_amount;
+        $balance_before_charge =  $balance-($amount);
+        $new_balance =  $balance-($amount+$charge);
+        $actualbalance = $new_balance;
+        $min_balance = $product[0]['min_required_balance'];
+        $data['amount_in_words'] = $this->convertNumber($data['amount']);    
+        $data['charge_amount_in_words'] = $this->convertNumber($charge);
 
-	$charge = $total_charge_amount;
-	$balance_before_charge =  $balance-($amount);
-	$new_balance =  $balance-($amount+$charge);
-	$actualbalance = $new_balance;
-	$min_balance = $product[0]['min_required_balance'];
-	$data['amount_in_words']=$this->convertNumber($data['amount']);	
-	$data['charge_amount_in_words']=$this->convertNumber($charge);	
-	if($actualbalance>=$min_balance){
+        if ($actualbalance >= $min_balance) {
+			$id = $product_id;
+			$transtype =$transactionName;
+            $mapping = $this->GetGLPointers($id, $prodType, $transtype, $office);
 
-		$mapping = $this->GetGLPointers($product_id,$prodType,$transactionName);
+            if (empty($mapping)) {
+                throw new Exception("Failed to get GL pointers for withdrawal.");
+            }
 
-		if (empty($mapping)) {
-			header('Location: ' . URL . 'products/savingsproducts?msg=with'); 
-			die();
-		}
+            $current_cash = $this->getUserCashBalance($office, $user_id);
+			
 
-		$current_cash = $this->getUserCashBalance();
+            if ($current_cash <= 0) {
+                throw new Exception("Teller's cash balance is insufficient.");
+            } 
 
-		if ($current_cash <= 0) {
-			header('Location: ' . URL . 'members/withdraw?msg=currentcash'); 
-			die();
-		} 
+            if ($current_cash < $amount) {
+                throw new Exception("Teller's cash balance is insufficient for withdrawal.");
+            }
 
-		if ($current_cash < $amount) {
-			header('Location: ' . URL . 'members/withdraw?msg=tellerbalance'); 
-			die();
-		}
-
-		if(!empty($mapping[0]["debit_account"])&&!empty($mapping[0]["credit_account"])){
-			try{
-				//withdraw
-
-				//subtract money from teller/users cash account
-				if (isset($amount)) {
-					$cashdata = array(
-						'account_balance' => $this->getUserCashBalance() - $amount,
-					);
-					$this->db->UpdateData('m_staff', $cashdata,"`id` = '{$_SESSION['user_id']}'"); 
-				}
-
-				$client = $this->getClientSaveddetails($acc);
-				$name=null;
-				if(empty($client[0]['company_name'])){
-					$name=$client[0]['firstname']." ".$client[0]['middlename']." ".$client[0]['lastname'];	
-				}else{
-					$name=$client[0]['company_name'];	
-				}
-
-				$transaction_postData = array(
-					'savings_account_no' =>$acc,
-					'amount' =>$amount,
-					'transaction_type' =>'Withdraw',
-					'depositor_name' => $name,
-					'running_balance' =>$balance_before_charge,
-					'amount_in_words' =>$data['amount_in_words'],
-					'branch' =>$_SESSION['office'],
-					'user_id' => $_SESSION['user_id'],
-				);
-
-				$withdraw_transaction_id = $this->db->InsertData('m_savings_account_transaction', $transaction_postData);
-
-				$charge_results = $this->MakeSavingsChargeTransaction($prodType,$transactionName,$acc,$balance_before_charge,$new_total_withdraws,$name, $client[0]['c_id']);
-
-				$actualbalance = $charge_results['balance'];
-				$new_total_withdraws = $charge_results['withdraws'];
-
-				$withdrawstatus = array(
-					'total_withdrawals' => $new_total_withdraws,
-					'running_balance' => $actualbalance,
-					'last_updated_on' =>$update_time,
-				);
-
-				$this->db->UpdateData('m_savings_account', $withdrawstatus,"`account_no` = '{$acc}'");
-
-				$transaction_uniqid=uniqid();
-				$deposit_transaction_uniqid = $withdraw_transaction_id."".$transaction_uniqid;
-
-				$transaction_id = "S".$deposit_transaction_uniqid;
-				$debt_id =$mapping[0]["debit_account"]; //debit cash savings reference	
-				$credit_id =$mapping[0]["credit_account"]; //credit savings control account
-
-				$sideA=$this->getAccountSide($debt_id);
-				$sideB=$this->getAccountSide($credit_id);
-				$description="Savings Withdraw by ".$name;
-
-				$new_data['transaction_id'] = $transaction_id;
-				$this->db->UpdateData('m_savings_account_transaction', $new_data,"`id` = '{$withdraw_transaction_id}'");
-				$this->db->UpdateData('m_savings_account_transaction', $new_data,"`id` = '{$chargeID}'");
-
-				$this->makeSavingsJournalEntry($debt_id,$office_id,$_SESSION['user_id'],$withdraw_transaction_id,$transaction_id,$amount,'DR',$sideA,$description);//DR
-				$this->makeSavingsJournalEntry($credit_id,$office_id,$_SESSION['user_id'],$withdraw_transaction_id,$transaction_id,$amount,'CR',$sideB,$description);//CR
-
-				$this->db->commit();
-				$mmID = $client[0]['c_id'];
+            if (!empty($mapping[0]["debit_account"]) && !empty($mapping[0]["credit_account"])) {
+                // Withdrawal logic
+                // Subtract money from teller/user's cash account
+                if (isset($amount)) {
+                    $cashdata = array(
+                        'account_balance' => $this->getUserCashBalance($office, $user_id) - $amount,
+                    );
+                    $this->db->UpdateData('m_staff', $cashdata,"`id` = '{$user_id}'"); 
+                }
 				
-				    $smsNumber = $client[0]['mobile_no'];
-					$curr = $this->getThisSaccoCurrency();
-					$nodeName = $_SESSION['branch'];
-					$message = "Hello, Your ".$nodeName." Savings account has been debited with ".$curr. " ". number_format($amount,2). ". Your new balance is ".$curr." ".number_format($actualbalance,2)." Txn ID ".$transaction_id;
-				    $this->SendSMS($smsNumber,$message);
-					$this->sendPushNotification($smsNumber,$message);
-					
-					
-				header('Location:'.URL.'members/withdraw/'.$acc.'/'.$mmID.'/'.$withdraw_transaction_id.'?msg=success');
 
-			}catch(Exception $e){
-				$this->db->rollBack();
-				$error=$e->getMessage();
-				header('Location:'.URL.'members/withdraw/'.$acc.'/?msg=transactionfailed&error='.$error);
-				exit(); 	  
-			}	
+                $client = $this->getClientSaveddetails($acc);
+                $name = null;
 
-		}else{
-			header('Location:'.URL.'members/withdraw/'.$acc.'?msg=transactionfailed');
-		}
+                if (empty($client[0]['company_name'])){
+                    $name = $client[0]['firstname']." ".$client[0]['middlename']." ".$client[0]['lastname'];    
+                } else {
+                    $name = $client[0]['company_name'];    
+                }
+                $transaction_postData = array(
+                    'savings_account_no' =>$acc,
+                    'amount' =>$amount,
+                    'transaction_type' =>'Withdraw',
+                    'depositor_name' => $name,
+                    'running_balance' =>$balance_before_charge,
+                    'amount_in_words' =>$data['amount_in_words'],
+                    'branch' =>$office,
+                    'user_id' => $user_id,
+                );
 
-	}else{
-		header('Location:'.URL.'members/withdraw/'.$acc.'?msg=insuffient funds');
-	}
+                $withdraw_transaction_id = $this->db->InsertData('m_savings_account_transaction', $transaction_postData);
+
+                $charge_results = $this->MakeSavingsChargeTransaction($prodType,$transactionName,$acc,$balance_before_charge,$new_total_withdraws,$name, $client[0]['c_id']);
+
+                $actualbalance = $charge_results['balance'];
+                $new_total_withdraws = $charge_results['withdraws'];
+
+                $withdrawstatus = array(
+                    'total_withdrawals' => $new_total_withdraws,
+                    'running_balance' => $actualbalance,
+                    'last_updated_on' =>$update_time,
+                );
+
+                $this->db->UpdateData('m_savings_account', $withdrawstatus,"`account_no` = '{$acc}'");
+
+                $transaction_uniqid = uniqid();
+                $deposit_transaction_uniqid = $withdraw_transaction_id."".$transaction_uniqid;
+
+                $transaction_id = "S".$deposit_transaction_uniqid;
+                $debt_id =$mapping[0]["debit_account"]; // Debit cash savings reference    
+                $credit_id =$mapping[0]["credit_account"]; // Credit savings control account
+
+                $sideA = $this->getAccountSide($debt_id);
+                $sideB = $this->getAccountSide($credit_id);
+                $description = "Savings Withdraw by ".$name;
+
+                $new_data['transaction_id'] = $transaction_id;
+                $this->db->UpdateData('m_savings_account_transaction', $new_data,"`id` = '{$withdraw_transaction_id}'");
+				
+                $this->db->UpdateData('m_savings_account_transaction', $new_data,"`id` = '{$chargeID}'");
+
+				$acc_id = $debt_id;
+				$branch_id = $branch;
+				$user = $user_id;
+				$savings_trans_id = $withdraw_transaction_id;
+				$trans_id = $transaction_id;
+				$amount =  $data['amount'];
+				$side = $sideA;
+
+				$this->makeSavingsJournalEntry($acc_id, $office, $branch_id, $user, $savings_trans_id, $trans_id, str_replace(",", "", $amount), 'DR', $side, $description); // DR
+
+				$acc_id = $debt_id;
+				$branch_id = $branch;
+				$user = $user_id;
+				$savings_trans_id = $withdraw_transaction_id;
+				$trans_id = $transaction_id;
+				$amount =  $data['amount'];
+				$side = $sideB;
+
+				$this->makeSavingsJournalEntry($acc_id, $office, $branch_id, $user, $savings_trans_id, $trans_id, str_replace(",", "", $amount), 'CR', $side, $description); // CR
+				
+                $this->db->commit();
+                $mmID = $client[0]['c_id'];
+
+                // Send SMS or push notification
+
+                $smsNumber = $client[0]['mobile_no'];
+				echo $smsNumber;
+                $curr = $this->getThisSaccoCurrency();
+                $nodeName = $branch;
+                $message = "Hello, Your ".$nodeName." Savings account has been debited with ".$curr. " ". number_format($amount,2). ". Your new balance is ".$curr." ".number_format($actualbalance,2)." Txn ID ".$transaction_id;
+                $this->SendSMS($smsNumber,$message);
+                // $this->sendPushNotification($smsNumber,$message);
+
+                return array("status" => 200, "message" => "Withdrawal successful", "transaction_id" => $transaction_id);
+
+            } else {
+                throw new Exception("Failed to get GL pointers for withdrawal.");
+            }
+        } else {
+            throw new Exception("Insufficient funds for withdrawal.");
+        }
+    } catch (Exception $e) {
+        $this->db->rollBack(); // Rollback the transaction in case of failure
+        throw new Exception("Failed to withdraw: " . $e->getMessage());
+    }
 }
 
 function MakeSavingsChargeTransaction($prodType,$transactionName,$acc,$actualbalance,$new_total_withdraws,$name, $member_id){
