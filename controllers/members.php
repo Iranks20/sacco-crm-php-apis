@@ -167,12 +167,23 @@ class Members extends Controller{
 		$this->view->render('forms/savings/savings_account');
 
 	}
-
 	function fixeddeposits(){
-		$this->view->fixedlist = $this->model->fixeddepositList();		
-		$this->view->render('forms/fixeddeposit/fixed_deposit_account');
-
-	}
+		try {
+			$headers = getallheaders();
+			$office = $headers['office'];
+	
+			$fixedDepositData = $this->model->fixeddepositList($office);
+	
+			header('Content-Type: application/json');
+			echo json_encode(array("status" => 200, "message" => "Fixed deposit data retrieved successfully", "result" => $fixedDepositData));
+	
+		} catch (Exception $e) {
+			$errorResponse = array("status" => 500, "message" => $e->getMessage());
+			header('Content-Type: application/json');
+			http_response_code($errorResponse['status']);
+			echo json_encode($errorResponse);
+		}
+	}	
 
 	function statusone($id){
 		if(!empty($id)){
@@ -1106,20 +1117,6 @@ class Members extends Controller{
 		}		
 	}
 
-	function closesavings($tel = NULL, $id = NULL, $from_wallet = NULL){
-		if ($tel != NULL) {
-			$this->view->telephone = $tel;
-			$this->view->savingsAcc = $tel;
-		}
-		if ($id != NULL) {
-			$this->view->memberid = $id;
-		}
-		if ($from_wallet != NULL) {
-			$this->view->from_wallet = TRUE;
-		}
-		$this->view->render('forms/savings/closesavingsaccount');
-	}
-
 	function deletesavingsaccount(){
 		try {
 			$headers = getallheaders();
@@ -1247,15 +1244,29 @@ class Members extends Controller{
 
 		$this->view->render('forms/savings/openclosed_savings');
 	}
-	function OpenclosedSavings(){
-		$data=$_POST['accno'];
-		if(!empty($data)){ 
-			$this->model->OpenclosedSavings($data);
-		}else{
-			
-			
-		}	
-	}
+	function OpenclosedSavings() {
+		try {
+			$headers = getallheaders();
+			$office = $headers['office'];
+	
+			$data = json_decode(file_get_contents('php://input'), true);
+	
+			if (empty($data) || empty($data['accno'])) {
+				throw new Exception("Invalid JSON data received.");
+			}
+	
+			$result = $this->model->OpenclosedSavings($data, $office);
+	
+			header('Content-Type: application/json');
+			echo json_encode(array("status" => 200, "message" => "Savings account status updated successfully", "result" => $result));
+	
+		} catch (Exception $e) {
+			$errorResponse = array("status" => 500, "message" => $e->getMessage());
+			header('Content-Type: application/json');
+			http_response_code($errorResponse['status']);
+			echo json_encode($errorResponse);
+		}
+	}	
 
 	function getpendingsaving($acc,$transno,$tdate=null){
 		if(!empty($acc)&&!empty($transno)){ 

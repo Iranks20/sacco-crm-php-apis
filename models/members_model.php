@@ -3245,19 +3245,43 @@ function deletesavingsaccount($data, $user_id) {
         throw new Exception("Failed to delete savings account: " . $e->getMessage());
     }
 }
-function OpenclosedSavings($acc){
+// function OpenclosedSavings($acc){
 
-	$date=date('Y-m-d');
+// 	$date=date('Y-m-d');
 
-	$postData = array(
-		're_activatedon_date' =>$date,
-		're_activatedon_userid' =>$_SESSION['user_id'],
-		'account_status' =>'Active',
-		);
+// 	$postData = array(
+// 		're_activatedon_date' =>$date,
+// 		're_activatedon_userid' =>$_SESSION['user_id'],
+// 		'account_status' =>'Active',
+// 		);
 
-	$this->db->UpdateData('m_savings_account', $postData,"`account_no` = '{$acc}'");
-	header('Location: ' . URL . 'members/reopensavingsaccount?activated='.$acc.''); 
+// 	$this->db->UpdateData('m_savings_account', $postData,"`account_no` = '{$acc}'");
+// 	header('Location: ' . URL . 'members/reopensavingsaccount?activated='.$acc.''); 
 	
+// }
+function OpenclosedSavings($data, $user_id) {
+    try {
+		$acc = $data['accno'];
+        $date = date('Y-m-d');
+
+        $postData = array(
+            're_activatedon_date' => $date,
+            're_activatedon_userid' => $user_id,
+            'account_status' => 'Active',
+        );
+
+        $this->db->UpdateData('m_savings_account', $postData, "`account_no` = '{$acc}'");
+
+        // After the status update is successfully completed, you can return a success message or necessary data.
+        $resultData = array(
+            'account_status' => 'Active',
+        );
+
+        return $resultData;
+
+    } catch (Exception $e) {
+        throw new Exception("Failed to update savings account status: " . $e->getMessage());
+    }
 }
 
 function getMemberaccount($account) {
@@ -3682,13 +3706,19 @@ function savingslist(){
 	return $query;
 	
 }
-function fixeddepositList(){
-	$query= $this->db->SelectData("SELECT * FROM fixed_deposit_account f JOIN (members m  JOIN m_branch b ON m.office_id=b.id)
-		ON  f.member_id  = m.c_id where m.office_id='".$_SESSION['office']."'");
 
-	return $query;
-	
+function fixeddepositList($office) {
+    try {
+        $query = $this->db->SelectData("SELECT * FROM fixed_deposit_account f JOIN (members m  JOIN m_branch b ON m.office_id=b.id)
+            ON  f.member_id  = m.c_id WHERE m.office_id='$office'");
+
+        return $query;
+
+    } catch (Exception $e) {
+        throw new Exception("Failed to retrieve fixed deposit data: " . $e->getMessage());
+    }
 }
+
 
 function getmemberFixedPhoto($actno){
 
