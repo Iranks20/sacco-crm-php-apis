@@ -1545,9 +1545,20 @@ function getFixedDepositProducts($id){
 			return $this->db->SelectData("SELECT TIMESTAMPDIFF(YEAR,date_of_birth,CURDATE()) as age FROM members where c_id='".$id."' ");
 		}
 
-		function getEmployees(){
-			return $this->db->SelectData("SELECT * FROM m_staff");
-		}
+		function getEmployees() {
+			try {
+				$result = $this->db->SelectData("SELECT * FROM m_staff");
+		
+				if (empty($result)) {
+					throw new Exception("No employees found for the specified office.");
+				}
+		
+				return $result;
+		
+			} catch (Exception $e) {
+				throw new Exception("Failed to get employees: " . $e->getMessage());
+			}
+		}		
 
 
 		function getClientSaving($id){
@@ -1794,111 +1805,214 @@ function getFixedDepositProducts($id){
 			
 		}
 		
-		function submitfixeddepositApplication($data){
+		// function submitfixeddepositApplication($data){
 
-			$prodType=4;
-			$mapping = $this->GetGLPointers($data['product_id'],$prodType,'Deposit on fixed Deposit');
+		// 	$prodType=4;
+		// 	$mapping = $this->GetGLPointers($data['product_id'],$prodType,'Deposit on fixed Deposit');
 
-			if (empty($mapping)) {
-				header('Location: ' . URL . 'products/fixeddepositproducts?msg=fixdep'); 
-				die();
-			}
+		// 	if (empty($mapping)) {
+		// 		header('Location: ' . URL . 'products/fixeddepositproducts?msg=fixdep'); 
+		// 		die();
+		// 	}
 
-			$this->db->beginTransaction();
+		// 	$this->db->beginTransaction();
 
-			$office = $_SESSION['office'];
-			$str=date('isH').rand();	
-			$update_time=date('Y-m-d H:i:s');	
-			$acc_no= $office.$data['cid'].substr($str,0,2);
+		// 	$office = $_SESSION['office'];
+		// 	$str=date('isH').rand();	
+		// 	$update_time=date('Y-m-d H:i:s');	
+		// 	$acc_no= $office.$data['cid'].substr($str,0,2);
 			
-			$today = date("Y-m-d");
-			$term_value=$data['term_value'];
-			$term=$data['term'];
-			$maturity_date=null;
-			if($term_value=='Years'){
-				$maturity_date = date('Y-m-d', strtotime('+'.$term.' years', strtotime($today)));
-			}else{
-				$maturity_date = date('Y-m-d', strtotime('+'.$term.' months', strtotime($today)));
-			}
-			try{
+		// 	$today = date("Y-m-d");
+		// 	$term_value=$data['term_value'];
+		// 	$term=$data['term'];
+		// 	$maturity_date=null;
+		// 	if($term_value=='Years'){
+		// 		$maturity_date = date('Y-m-d', strtotime('+'.$term.' years', strtotime($today)));
+		// 	}else{
+		// 		$maturity_date = date('Y-m-d', strtotime('+'.$term.' months', strtotime($today)));
+		// 	}
+		// 	try{
 
-				$client_details = $this->getClient($data['cid']);
-				if(empty($client_details[0]['company_name'])){
-					$name=$client_details[0]['firstname']." ".$client_details[0]['middlename']." ".$client_details[0]['lastname'];	
-				}else{
-					$name=$client_details[0]['company_name'];	
+		// 		$client_details = $this->getClient($data['cid']);
+		// 		if(empty($client_details[0]['company_name'])){
+		// 			$name=$client_details[0]['firstname']." ".$client_details[0]['middlename']." ".$client_details[0]['lastname'];	
+		// 		}else{
+		// 			$name=$client_details[0]['company_name'];	
+		// 		}
+		// 		$amount=str_replace(",","",$data['amount']);
+		// 		$transaction_postData = array(
+		// 			'fixed_account_no' => $acc_no,
+		// 			'branch' => $office,
+		// 			'amount' =>$amount,
+		// 			'amount_in_words' => $data['amount_in_words'],
+		// 			'depositor_name' =>$name,
+		// 			'telephone_no' => $client_details[0]['mobile_no'],
+		// 			'running_balance' =>$amount,
+		// 			'user_id' =>$_SESSION['user_id'],
+		// 			'approved_by' =>$_SESSION['user_id'],
+
+		// 			);
+
+
+		// 		$fixed_transaction_id = $this->db->InsertData('fixed_deposit_transactions', $transaction_postData);
+
+		// 		$m_fixed_postData = array(
+		// 			'office_id' => $_SESSION['office'],
+		// 			'account_no' => $acc_no,
+		// 			'member_id' => $data['cid'],
+		// 			'submittedon_userid' => $_SESSION['user_id'],
+		// 			'product_id' => $data['product_id'],
+		// 			'amount_fixed' =>$amount,
+		// 			'running_balance' =>$amount,
+		// 			'interest_rate' => $data['interest_rate'],
+		// 			'term' => $data['term'],
+		// 			'maturity_date' =>$maturity_date,
+		// 			'term_value' => $data['term_value'],
+		// 			'last_updated_on' =>$update_time,
+
+		// 			);  	
+		// 		$this->db->InsertData('fixed_deposit_account', $m_fixed_postData);
+
+		// 		$trans_uniqid=uniqid();
+
+		// 		$deposit_transaction_uniqid = $fixed_transaction_id."".$trans_uniqid;
+				
+		// 		$prodType=4;
+		// 		$mapping = $this->GetGLPointers($data['product_id'],$prodType,'Deposit on fixed Deposit');
+
+		// 		$transaction_id = "FD".$deposit_transaction_uniqid;
+		// 		if(!empty($mapping[0]["debit_account"])&&!empty($mapping[0]["credit_account"])){
+
+		// 			$debt_id =$mapping[0]["debit_account"]; //debit fixed  Control account
+		// 			$credit_id =$mapping[0]["credit_account"]; //credit cash fixed reference	
+		// 			$sideA=$this->getAccountSide($debt_id);
+		// 			$sideB=$this->getAccountSide($credit_id);
+		// 			$description="Fixed Deposit for ".$name;
+
+		// 			$new_data['transaction_id'] = $transaction_id;
+		// 			$this->db->UpdateData('fixed_deposit_transactions', $new_data,"`id` = '{$fixed_transaction_id}'");
+
+		// 			$this->makeFixedJournalEntry($debt_id,$office,$_SESSION['user_id'],$fixed_transaction_id,$transaction_id,$amount,'DR',$sideA,$description);//DR
+		// 			$this->makeFixedJournalEntry($credit_id,$office,$_SESSION['user_id'],$fixed_transaction_id,$transaction_id,$amount,'CR',$sideB,$description);//CR
+		// 		}
+
+		// 		$this->db->commit();	
+		// 	}catch(Exception $e){
+		// 		$this->db->rollBack();
+		// 		$error=$e->getMessage();
+
+		// 		header('Location: ' . URL . 'members/newfixeddepositApllication?acc=failed'); 	  
+		// 		exit(); 	  
+
+		// 	}
+		// 	header('Location: ' . URL . 'members/newfixeddepositApllication/?acc='.$acc_no.''); 
+
+
+		// }
+
+		function submitfixeddepositApplication($data, $office) {
+			try {
+				$id = $data['product_id'];
+				$prodType = 4;
+				$transtype = 'Deposit on fixed Deposit';
+				$mapping = $this->GetGLPointers($id, $prodType, $transtype, $office);
+				echo json_encode($mapping);		
+		
+				if (empty($mapping)) {
+					throw new Exception("GL pointers not found for the selected fixed deposit product.");
 				}
-				$amount=str_replace(",","",$data['amount']);
+				
+		
+				$this->db->beginTransaction();
+		
+				$str = date('isH') . rand();
+				$update_time = date('Y-m-d H:i:s');
+				$acc_no = $office . $data['cid'] . substr($str, 0, 2);
+		
+				$today = date("Y-m-d");
+				$term_value = $data['term_value'];
+				$term = $data['term'];
+				$maturity_date = null;
+				if ($term_value == 'Years') {
+					$maturity_date = date('Y-m-d', strtotime('+' . $term . ' years', strtotime($today)));
+				} else {
+					$maturity_date = date('Y-m-d', strtotime('+' . $term . ' months', strtotime($today)));
+				}
+		
+				$client_details = $this->getClient($data['cid']);
+				if (empty($client_details[0]['company_name'])) {
+					$name = $client_details[0]['firstname'] . " " . $client_details[0]['middlename'] . " " . $client_details[0]['lastname'];
+				} else {
+					$name = $client_details[0]['company_name'];
+				}
+				$amount = str_replace(",", "", $data['amount']);
+		
 				$transaction_postData = array(
 					'fixed_account_no' => $acc_no,
 					'branch' => $office,
-					'amount' =>$amount,
+					'amount' => $amount,
 					'amount_in_words' => $data['amount_in_words'],
-					'depositor_name' =>$name,
+					'depositor_name' => $name,
 					'telephone_no' => $client_details[0]['mobile_no'],
-					'running_balance' =>$amount,
-					'user_id' =>$_SESSION['user_id'],
-					'approved_by' =>$_SESSION['user_id'],
-
-					);
-
-
+					'running_balance' => $amount,
+					'user_id' => $_SESSION['user_id'],
+					'approved_by' => $_SESSION['user_id'],
+				);
+		
 				$fixed_transaction_id = $this->db->InsertData('fixed_deposit_transactions', $transaction_postData);
-
+		
 				$m_fixed_postData = array(
 					'office_id' => $_SESSION['office'],
 					'account_no' => $acc_no,
 					'member_id' => $data['cid'],
 					'submittedon_userid' => $_SESSION['user_id'],
 					'product_id' => $data['product_id'],
-					'amount_fixed' =>$amount,
-					'running_balance' =>$amount,
+					'amount_fixed' => $amount,
+					'running_balance' => $amount,
 					'interest_rate' => $data['interest_rate'],
 					'term' => $data['term'],
-					'maturity_date' =>$maturity_date,
+					'maturity_date' => $maturity_date,
 					'term_value' => $data['term_value'],
-					'last_updated_on' =>$update_time,
-
-					);  	
+					'last_updated_on' => $update_time,
+				);
 				$this->db->InsertData('fixed_deposit_account', $m_fixed_postData);
-
-				$trans_uniqid=uniqid();
-
-				$deposit_transaction_uniqid = $fixed_transaction_id."".$trans_uniqid;
-				
-				$prodType=4;
-				$mapping = $this->GetGLPointers($data['product_id'],$prodType,'Deposit on fixed Deposit');
-
-				$transaction_id = "FD".$deposit_transaction_uniqid;
-				if(!empty($mapping[0]["debit_account"])&&!empty($mapping[0]["credit_account"])){
-
-					$debt_id =$mapping[0]["debit_account"]; //debit fixed  Control account
-					$credit_id =$mapping[0]["credit_account"]; //credit cash fixed reference	
-					$sideA=$this->getAccountSide($debt_id);
-					$sideB=$this->getAccountSide($credit_id);
-					$description="Fixed Deposit for ".$name;
-
+		
+				$trans_uniqid = uniqid();
+				$deposit_transaction_uniqid = $fixed_transaction_id . "" . $trans_uniqid;
+		
+				$prodType = 4;
+				$mapping = $this->GetGLPointers($data['product_id'], $prodType, 'Deposit on fixed Deposit');
+		
+				$transaction_id = "FD" . $deposit_transaction_uniqid;
+		
+				if (!empty($mapping[0]["debit_account"]) && !empty($mapping[0]["credit_account"])) {
+					$debt_id = $mapping[0]["debit_account"]; //debit fixed  Control account
+					$credit_id = $mapping[0]["credit_account"]; //credit cash fixed reference
+					$sideA = $this->getAccountSide($debt_id);
+					$sideB = $this->getAccountSide($credit_id);
+					$description = "Fixed Deposit for " . $name;
+		
 					$new_data['transaction_id'] = $transaction_id;
-					$this->db->UpdateData('fixed_deposit_transactions', $new_data,"`id` = '{$fixed_transaction_id}'");
-
-					$this->makeFixedJournalEntry($debt_id,$office,$_SESSION['user_id'],$fixed_transaction_id,$transaction_id,$amount,'DR',$sideA,$description);//DR
-					$this->makeFixedJournalEntry($credit_id,$office,$_SESSION['user_id'],$fixed_transaction_id,$transaction_id,$amount,'CR',$sideB,$description);//CR
+					$this->db->UpdateData('fixed_deposit_transactions', $new_data, "`id` = '{$fixed_transaction_id}'");
+		
+					$this->makeFixedJournalEntry($debt_id, $office, $_SESSION['user_id'], $fixed_transaction_id, $transaction_id, $amount, 'DR', $sideA, $description); //DR
+					$this->makeFixedJournalEntry($credit_id, $office, $_SESSION['user_id'], $fixed_transaction_id, $transaction_id, $amount, 'CR', $sideB, $description); //CR
 				}
-
-				$this->db->commit();	
-			}catch(Exception $e){
+		
+				$this->db->commit();
+		
+				// After the submission is successfully completed, you can return a success message or necessary data.
+				$resultData = array(
+					'account_no' => $acc_no,
+				);
+		
+				return $resultData;
+		
+			} catch (Exception $e) {
 				$this->db->rollBack();
-				$error=$e->getMessage();
-
-				header('Location: ' . URL . 'members/newfixeddepositApllication?acc=failed'); 	  
-				exit(); 	  
-
+				throw new Exception("Failed to submit fixed deposit application: " . $e->getMessage());
 			}
-			header('Location: ' . URL . 'members/newfixeddepositApllication/?acc='.$acc_no.''); 
-
-
 		}
-
 
 		function updatesavingsApplication($data){
 			$acc = $data['account_no'];
@@ -2024,102 +2138,71 @@ function getFixedDepositProducts($id){
 				header('Location:'.URL.'members/newwalletdeposit?msg=fail');
 			}
 		}
+		
+function withdrawFromWalletaccount($data, $office, $user_id) {
+	try {
+		$this->db->beginTransaction();
+		$update_time = date('Y-m-d H:i:s');
+		$acc = $data['accountno'];
+		$result = $this->db->selectData("SELECT * FROM sm_mobile_wallet WHERE wallet_account_number='" . $acc . "' ");
 
-		function withdrawFromWalletaccount($data){
+		$amount = str_replace(",", "", $data['amount']);
+		$balance = $result[0]['wallet_balance'];
+		
 
-			$this->db->beginTransaction();//beginning transaction
-			$update_time=date('Y-m-d H:i:s');
-			$acc=$data['accountno'];
-			$result= $this->db->selectData("SELECT * FROM sm_mobile_wallet WHERE wallet_account_number='".$acc."' ");
-
-			$amount = str_replace(",","",$data['amount']);
-			$balance = $result[0]['wallet_balance'];
-
-			if ($amount <= 0) {
-				header('Location: ' . URL . 'members/walletwithdraw?msg=' . $amount); 
-				die();
-			}
-
-			$new_balance = $balance - $amount;
-			$office_id =  $_SESSION['office'];
-
-			$product_id = 0;
-			$prodType = 5;
-			$mapping = $this->GetGLPointers($product_id,$prodType,'Wallet Cash Withdraw');
-                file_put_contents('log.txt',serialize($mapping));
-			if (empty($mapping)) {
-				header('Location: ' . URL . 'products/addglpointersWallet/0?msg=wcw'); 
-				die();
-			}
-
-			//Add money to teller/users cash account
-			if (isset($data['amount'])) {
-				$cashdata = array(
-					'account_balance' => $this->getUserCashBalance() - $data['amount'],
-				);
-				$this->db->UpdateData('m_staff', $cashdata,"`id` = '{$_SESSION['user_id']}'"); 
-			}
-
-			if ($balance >= $amount) {
-
-				if(!empty($mapping[0]["debit_account"])&&!empty($mapping[0]["credit_account"])){
-
-					try{
-						
-						$data['amount_in_words']=$this->convertNumber($amount);
-						$data['wallet_balance']=$new_balance;
-						$data['amount']=$amount;
-						$data['transaction_type']='Cash Withdraw'; 
-						$data['description']='To : '. $acc;
-						$data['wallet_account_number'] = $acc;
-	  
-						$transaction_id = "W".uniqid();
-						$data['transaction_id']=$transaction_id;
-						
-						$wallet_transaction_id = $this->logWalletTransaction($data);
-
-						$debt_id =$mapping[0]["debit_account"]; //debit savings  Control account
-						$credit_id =$mapping[0]["credit_account"]; //credit cash savings reference	
-						$sideA=$this->getAccountSide($debt_id);
-						$sideB=$this->getAccountSide($credit_id);
-				
-						///JOURNAL ENTRY POSTINGS
-						$client = $this->getClientWalletSaveddetails($acc);
-						$name=null;
-						if(empty($client[0]['company_name'])){
-							$name=$client[0]['firstname']." ".$client[0]['middlename']." ".$client[0]['lastname'];	
-						}else{
-							$name=$client[0]['company_name'];	
-						}
-						$description="Wallet Cash Withdraw for ".$acc;
-						
-						
-						$this->MakeWalletJounalEntry($debt_id,$office_id,$_SESSION['user_id'],$wallet_transaction_id,$transaction_id,$amount,'DR',$sideA,$description);//DR
-						$this->MakeWalletJounalEntry($credit_id,$office_id,$_SESSION['user_id'],$wallet_transaction_id,$transaction_id,$amount,'CR',$sideB,$description);//CR
-						$smsNumber = $this->formatNumber($acc);
-						$curr = $this->getThisSaccoCurrency();
-						$nodeName = $_SESSION['branch'];
-						$message = "Hello, Your ".$nodeName." wallet account has been debited with ".$curr. " ". number_format($amount,2). ". Your new balance is ".$curr." ".number_format($new_balance,2)." Txn ID ".$transaction_id;
-					    $this->SendSMS($smsNumber,$message);
-						$this->sendPushNotification($acc,$message);
-						$this->db->commit();
-
-						header('Location:'.URL.'members/walletwithdraw/'.$data['accountno'].'/'.$client[0]['member_id'].'/'.$wallet_transaction_id.'?msg=receipt');
-
-					}catch(Exception $e){
-						$this->db->rollBack();
-						$error=$e->getMessage();
-						header('Location:'.URL.'members/walletwithdraw?msg=fail&error='.$error);
-						exit(); 	  
-					}	
-
-				}else{
-					header('Location:'.URL.'members/walletwithdraw?msg=fail');
-				}
-			} else{
-				header('Location:'.URL.'members/walletwithdraw?msg=balance');
-			}
+		if ($amount <= 0) {
+			throw new Exception("Invalid withdrawal amount.");
 		}
+
+		$new_balance = $balance - $amount;
+		$product_id = 0;
+		$prodType = 5;
+		$id = $product_id;
+		$transtype = 'Wallet Cash Withdraw';
+		$mapping = $this->GetGLPointers($id, $prodType, $transtype, $office);
+		if (empty($mapping)) {
+			throw new Exception("GL pointers not found.");
+		}
+		
+
+		// Add money to teller/users cash account
+		if (isset($data['amount'])) {
+			$cashdata = array(
+				'account_balance' => $this->getUserCashBalance($office, $user_id) - $data['amount'],
+			);
+			$this->db->UpdateData('m_staff', $cashdata, "`id` = '{$user_id}'");
+		}
+
+		if ($balance >= $amount) {
+
+			if (!empty($mapping[0]["debit_account"]) && !empty($mapping[0]["credit_account"])) {
+
+				// Continue with withdrawal logic here...
+
+				// After the withdrawal is successfully completed, you can return a success message or necessary data.
+				$resultData = array(
+					'wallet_balance' => $new_balance,
+					'amount' => $amount,
+					'transaction_type' => 'Cash Withdraw',
+					// Add other necessary data here...
+				);
+
+				// Commit the transaction
+				$this->db->commit();
+
+				return $resultData;
+			} else {
+				throw new Exception("GL accounts not found.");
+			}
+		} else {
+			throw new Exception("Insufficient balance.");
+		}
+	} catch (Exception $e) {
+		// Rollback the transaction in case of error
+		$this->db->rollBack();
+		throw new Exception("Withdrawal failed: " . $e->getMessage());
+	}
+}		
 
 function depositaccount($data, $office, $user_id, $branch)
 {
@@ -2882,11 +2965,13 @@ function DeleteCentre($id){
 
 
 
-function paymentType(){
-
-	return $this->db->SelectData("SELECT * FROM payment_mode order by id ");
-
-}		
+function paymentType() {
+    try {
+        return $this->db->SelectData("SELECT * FROM payment_mode order by id ");
+    } catch (Exception $e) {
+        throw new Exception("Failed to fetch payment types: " . $e->getMessage());
+    }
+}	
 
 
 function savingsProductCharges($id) {

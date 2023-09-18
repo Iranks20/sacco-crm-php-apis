@@ -774,12 +774,15 @@ function checkProductLoanExists($pname){
 		return $total;
 	}
 
-	function getTellerAccountBalance($id){
-		
-		$result = $this->db->selectData("SELECT * FROM m_staff WHERE  id ='".$id."'");
-
-		return $result[0]['account_balance'];
-	}
+	function getTellerAccountBalance($id) {
+		try {
+			$result = $this->db->selectData("SELECT * FROM m_staff WHERE id = '".$id."'");
+			return $result[0]['account_balance'];
+		} catch (Exception $e) {
+			// Handle the exception here, for example, log the error or throw a custom exception
+			throw new Exception("Error fetching teller account balance: " . $e->getMessage());
+		}
+	}	
 
 	function getTellerAccountID(){
 		$office=$_SESSION['office'];

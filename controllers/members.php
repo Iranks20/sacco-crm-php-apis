@@ -334,24 +334,42 @@ class Members extends Controller{
 
 	}	
 
-	function walletwithdraw($id=null, $memId=null, $transID=null){ 
-		if($id!=null){
-			$this->view->savingsAcc = $id;		
+	function walletwithdraw($id = null, $memId = null, $transID = null) {
+		try {
+			$headers = getallheaders();
+			$id = $headers['user_id'];
+	
+			if ($id != null) {
+				$savingsAcc = $id;
+			}
+	
+			if ($transID != null) {
+				$data = $transID;
+			}
+	
+			if ($memId != null) {
+				$memberid = $memId;
+			}
+	
+			$teller_balance = $this->model->getTellerAccountBalance($id);
+	
+			$paymenttype = $this->model->paymentType();
+	
+			$responseData = array(
+				'teller_balance' => $teller_balance,
+				'paymenttype' => $paymenttype,
+			);
+	
+			header('Content-Type: application/json');
+			echo json_encode(array("status" => 200, "data" => $responseData));
+	
+		} catch (Exception $e) {
+			$errorResponse = array("status" => 500, "message" => $e->getMessage());
+			header('Content-Type: application/json');
+			http_response_code($errorResponse['status']);
+			echo json_encode($errorResponse);
 		}
-
-		if ($transID!=null) {
-			$this->view->data = $transID;
-		}
-
-		if($memId!=null){
-			$this->view->memberid = $memId;		
-		}
-		
-		$this->view->teller_balance = $this->model->getTellerAccountBalance($_SESSION['user_id']);
-		$this->view->paymenttype = $this->model->paymentType();
-		$this->view->render('forms/savings/walletwithdraw');
-
-	}
+	}	
 	
 	function newsaving($id=null, $memId=null, $data=null){
 
@@ -604,10 +622,18 @@ class Members extends Controller{
 	/* fixed deposit application */
 
 	function newfixeddepositApllication($id=null){
-		$this->view->employee = $this->model->getEmployees();	
-		$this->view->render('forms/fixeddeposit/fixeddepositapplication');
-
-	}
+		try {	
+			$result = $this->model->getEmployees();
+				header('Content-Type: application/json');
+			echo json_encode(array("status" => 200, "message" => "Employees retrieved successfully", "result" => $result));
+	
+		} catch (Exception $e) {
+			$errorResponse = array("status" => 500, "message" => $e->getMessage());
+			header('Content-Type: application/json');
+			http_response_code($errorResponse['status']);
+			echo json_encode($errorResponse);
+		}
+	}	
 	function fixedaccountenquiry(){
 		$this->view->render('forms/fixeddeposit/fixed_deposit_account_info');
 
@@ -664,16 +690,29 @@ class Members extends Controller{
 			
 		}	
 	}	
-
 	function submitfixeddepositApplication(){
-		$data = $_POST;
-		if(!empty($data)){ 
-			$this->model->submitfixeddepositApplication($data);
-		}else{
-			
-			
-		}	
-	}
+		try {
+			$headers = getallheaders();
+			$office = $headers['office'];
+	
+			$data = json_decode(file_get_contents('php://input'), true);
+	
+			if (empty($data)) {
+				throw new Exception("Invalid JSON data received.");
+			}
+	
+			$result = $this->model->submitfixeddepositApplication($data, $office);
+	
+			header('Content-Type: application/json');
+			echo json_encode(array("status" => 200, "message" => "Fixed deposit application submitted successfully", "result" => $result));
+	
+		} catch (Exception $e) {
+			$errorResponse = array("status" => 500, "message" => $e->getMessage());
+			header('Content-Type: application/json');
+			http_response_code($errorResponse['status']);
+			echo json_encode($errorResponse);
+		}
+	}	
 	function updatefixedDepositApplication(){
 		$data = $_POST;
 		if(!empty($data)){ 
@@ -720,13 +759,27 @@ class Members extends Controller{
 	}
 
 	function walletaccountwithdraw(){
-		$data = $_POST;
-		if(!empty($data)){ 
-			$this->model->withdrawFromWalletaccount($data);
-		}else{
-			
+		try {
+			$headers = getallheaders();
+			$office = $headers['office'];
+			$user_id = $headers['user_id'];
+	
+			$data = json_decode(file_get_contents('php://input'), true);
+	
+			if (empty($data)) {
+				throw new Exception("Invalid JSON data received.");
+			}	
+			$result = $this->model->withdrawFromWalletaccount($data, $office, $user_id);	
+			header('Content-Type: application/json');
+			echo json_encode(array("status" => 200, "message" => "Withdrawal successful", "result" => $result));
+	
+		} catch (Exception $e) {
+			$errorResponse = array("status" => 500, "message" => $e->getMessage());
+			header('Content-Type: application/json');
+			http_response_code($errorResponse['status']);
+			echo json_encode($errorResponse);
 		}
-	}
+	}	
 
     function depositsavingsaccount(){
 		try {
