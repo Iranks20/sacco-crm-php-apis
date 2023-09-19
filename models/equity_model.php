@@ -426,32 +426,45 @@ function sellshares($data){
 	}
 }
 
+function ShareHoldersLists($office) {
+    try {
+        $result = $this->db->SelectData("SELECT * FROM share_account JOIN members on share_account.member_id=members.c_id where members.office_id='" . $office . "' ");
+        $count = count($result);
 
-function ShareHoldersLists(){
-	
-  $result= $this->db->SelectData("SELECT * FROM share_account JOIN members on share_account.member_id=members.c_id where members.office_id='".$_SESSION['office']."' ");
-		 $count=count($result);
-	 if($count>0){
-               foreach ( $result as $key => $value) {
-                $rset[$key]['member'] = $value['c_id']; 
-                $rset[$key]['account_no'] = $value['share_account_no']; 
-				$rset[$key]['office_id'] = $value['office_id']; 
-				$rset[$key]['office'] = $this->getoffice($value['office_id']); 
-                $rset[$key]['shares'] = $result[$key]['total_shares'];
-                $rset[$key]['opened'] = $result[$key]['submittedon_date'];
-                $rset[$key]['amount'] = $result[$key]['running_balance'];
-                $rset[$key]['status'] = $result[$key]['account_status'];
-				if(empty($value['company_name'])){
-                $rset[$key]['name'] = $value['firstname']." ".$value['middlename']." ".$value['lastname'];
-                }else{
-			   $rset[$key]['name'] = $value['company_name'];
-			   }
-				 }
-							  
-			 return $rset;	
+        if ($count > 0) {
+            $shareholders = array();
 
-	 }
+            foreach ($result as $key => $value) {
+                $shareholder = array(
+                    'member' => $value['c_id'],
+                    'account_no' => $value['share_account_no'],
+                    'office_id' => $value['office_id'],
+                    'office' => $this->getoffice($value['office_id']),
+                    'shares' => $value['total_shares'],
+                    'opened' => $value['submittedon_date'],
+                    'amount' => $value['running_balance'],
+                    'status' => $value['account_status']
+                );
+
+                if (empty($value['company_name'])) {
+                    $shareholder['name'] = $value['firstname'] . " " . $value['middlename'] . " " . $value['lastname'];
+                } else {
+                    $shareholder['name'] = $value['company_name'];
+                }
+
+                $shareholders[] = $shareholder;
+            }
+
+            return $shareholders;
+        } else {
+            throw new Exception("No shareholders found.");
+        }
+
+    } catch (Exception $e) {
+        throw new Exception("Error retrieving shareholders: " . $e->getMessage());
+    }
 }
+
 
 function getShareHolder($acc){
 	

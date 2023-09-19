@@ -37,13 +37,20 @@ function getWalletMemberaccount($acc){
 	
 }
 
-function getWalletAccountMemberID($tel){
-	$office = $_SESSION['office'];
-	$result = $this->db->SelectData("SELECT * FROM sm_mobile_wallet WHERE wallet_account_number='$tel' AND bank_no = '$office' ");
+function getWalletAccountMemberID($account, $office){
+    try {
+        $result = $this->db->SelectData("SELECT * FROM sm_mobile_wallet WHERE wallet_account_number=$account AND bank_no = $office ");
 
-	return $result[0]['member_id'];
+        if (empty($result)) {
+            throw new Exception("Account not found.");
+        }
 
+        echo json_encode($result);
+    } catch (Exception $e) {
+        throw new Exception("Failed to retrieve member ID: " . $e->getMessage());
+    }
 }
+
 
 function getWalletAccountTransactions($acc){
 	$office=$_SESSION['office'];

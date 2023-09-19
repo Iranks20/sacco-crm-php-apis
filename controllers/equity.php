@@ -13,12 +13,24 @@ function index(){
 	echo "clic is running";
 }
 /* share capital    */
-//shares
-function sharesaccount(){	
-$this->view->shareholders = $this->model->ShareHoldersLists();	
-$this->view->render('forms/shares/shares_account');
+function sharesaccount() {
+    try {
+        $headers = getallheaders();
+        $office = $headers['office'];
 
+        $shareholders = $this->model->ShareHoldersLists($office);
+
+        header('Content-Type: application/json');
+        echo json_encode(array("status" => 200, "message" => "Shareholders retrieved successfully", "result" => $shareholders));
+
+    } catch (Exception $e) {
+        $errorResponse = array("status" => 500, "message" => $e->getMessage());
+        header('Content-Type: application/json');
+        http_response_code($errorResponse['status']);
+        echo json_encode($errorResponse);
+    }
 }
+
 function shareholdersinfo(){	
 $this->view->render('forms/shares/shareholdersinfo');
 
