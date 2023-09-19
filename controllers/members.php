@@ -314,24 +314,42 @@ class Members extends Controller{
 			
 		}
 	}
+
+	function newwalletdeposit($id = null, $memId = null, $transID = null) {
+		try {
+			$headers = getallheaders();
+			$id = $headers['user_id'];
 	
-	function newwalletdeposit($id=null, $memId=null, $transID=null){ 
-		if($id!=null){
-			$this->view->savingsAcc = $id;		
+			if ($id != null) {
+				$savingsAcc = $id;
+			}
+	
+			if ($transID != null) {
+				$data = $transID;
+			}
+	
+			if ($memId != null) {
+				$memberid = $memId;
+			}
+	
+			$teller_balance = $this->model->getTellerAccountBalance($id);
+	
+			$paymenttype = $this->model->paymentType();
+	
+			$responseData = array(
+				'teller_balance' => $teller_balance,
+				'paymenttype' => $paymenttype,
+			);
+	
+			header('Content-Type: application/json');
+			echo json_encode(array("status" => 200, "data" => $responseData));
+	
+		} catch (Exception $e) {
+			$errorResponse = array("status" => 500, "message" => $e->getMessage());
+			header('Content-Type: application/json');
+			http_response_code($errorResponse['status']);
+			echo json_encode($errorResponse);
 		}
-
-		if ($transID!=null) {
-			$this->view->data = $transID;
-		}
-
-		if($memId!=null){
-			$this->view->memberid = $memId;		
-		}
-		
-		$this->view->teller_balance = $this->model->getTellerAccountBalance($_SESSION['user_id']);
-		$this->view->paymenttype = $this->model->paymentType();
-		$this->view->render('forms/savings/newwalletdeposit');
-
 	}	
 
 	function walletwithdraw($id = null, $memId = null, $transID = null) {
@@ -749,14 +767,30 @@ class Members extends Controller{
 	}
 
 	function depositaccount(){
-		$data = $_POST;
-		if(!empty($data)){ 
-			$this->model->depositOnWalletaccount($data);
-		}else{
-			
-			
+		try {
+			$headers = getallheaders();
+			$office = $headers['office'];
+			$user_id = $headers['user_id'];
+			$branchid = $headers['branchid'];
+	
+			$data = json_decode(file_get_contents('php://input'), true);
+	
+			if (empty($data)) {
+				throw new Exception("Invalid JSON data received.");
+			}
+	
+			$result = $this->model->depositOnWalletaccount($data, $office, $user_id, $branchid);
+	
+			header('Content-Type: application/json');
+			echo json_encode(array("status" => 200, "message" => "Deposit successful", "result" => $result));
+	
+		} catch (Exception $e) {
+			$errorResponse = array("status" => 500, "message" => $e->getMessage());
+			header('Content-Type: application/json');
+			http_response_code($errorResponse['status']);
+			echo json_encode($errorResponse);
 		}
-	}
+	}	
 
 	function walletaccountwithdraw(){
 		try {

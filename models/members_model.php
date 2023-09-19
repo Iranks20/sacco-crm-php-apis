@@ -1767,11 +1767,11 @@ function getFixedDepositProducts($id){
 		}
 
 
-	function MakeWalletJounalEntry($acc_id,$office,$user,$wallet_transaction_id,$trans_id,$amount,$type,$side,$description){
+	function MakeWalletJounalEntry($acc_id,$office,$branchid,$user,$wallet_transaction_id,$trans_id,$amount,$type,$side,$description){
 			$postData = array(
 				'account_id' =>$acc_id,
 				'office_id' => $office,
-				'branch_id' => $_SESSION['branchid'],
+				'branch_id' => $branchid,
 				'createdby_id' =>$user,
 				'wallet_transaction_id' =>$wallet_transaction_id,
 				'transaction_id' =>$trans_id,
@@ -2053,92 +2053,110 @@ function getFixedDepositProducts($id){
 			return $this->db->SelectData("SELECT * FROM m_savings_account where id='".$id."' ");
 		}
 
-		function depositOnWalletaccount($data){
-
-			$this->db->beginTransaction();//beginning transaction
-			$update_time=date('Y-m-d H:i:s');
-			$acc=$data['accountno'];
-			$result= $this->db->selectData("SELECT * FROM sm_mobile_wallet WHERE wallet_account_number='".$acc."' ");
-
-			$amount = str_replace(",","",$data['amount']);
-			$balance = $result[0]['wallet_balance'];
-
-			$new_balance = $amount + $balance ;
-			$office_id =  $_SESSION['office'];
-
-			$product_id = 0;
-			$prodType = 5;
-			$mapping = $this->GetGLPointers($product_id,$prodType,'Wallet Cash Deposit');
-                file_put_contents('log.txt',serialize($mapping));
-			if (empty($mapping)) {
-				header('Location: ' . URL . 'products/addglpointersWallet/0?msg=wcd'); 
-				die();
-			}
-
-			//Add money to teller/users cash account
-			if (isset($data['amount'])) {
-				$cashdata = array(
-					'account_balance' => $this->getUserCashBalance() + $data['amount'],
-				);
-				$this->db->UpdateData('m_staff', $cashdata,"`id` = '{$_SESSION['user_id']}'"); 
-			}
-
-			if(!empty($mapping[0]["debit_account"])&&!empty($mapping[0]["credit_account"])){
-
-				try{
-					
-					$data['amount_in_words']=$this->convertNumber($amount);
-					$data['wallet_balance']=$new_balance;
-					$data['amount']=$amount;
-					$data['transaction_type']='Cash Deposit'; 
-					$data['description']='From : Cash Deposit';
+		function depositOnWalletaccount($data, $office, $user_id, $branchid) {
+			try {
+				$this->db->beginTransaction();
+				$update_time = date('Y-m-d H:i:s');
+				$acc = $data['accountno'];
+				$result = $this->db->selectData("SELECT * FROM sm_mobile_wallet WHERE wallet_account_number='" . $acc . "' ");
+		
+				$amount = str_replace(",", "", $data['amount']);
+				$balance = $result[0]['wallet_balance'];
+		
+				$new_balance = $amount + $balance ;
+		
+				$product_id = 0;
+				$prodType = 5;
+				$id = $product_id;
+				$transtype = 'Wallet Cash Deposit';
+				$mapping = $this->GetGLPointers($id, $prodType, $transtype, $office);
+		
+				if (empty($mapping)) {
+					throw new Exception("GL pointers not found.");
+				}
+		
+				// Add money to teller/users cash account
+				if (isset($data['amount'])) {
+					$cashdata = array(
+						'account_balance' => $this->getUserCashBalance($office, $user_id) + $data['amount'],
+					);
+					$this->db->UpdateData('m_staff', $cashdata, "`id` = '{$user_id}'");
+				}
+		
+				if (!empty($mapping[0]["debit_account"]) && !empty($mapping[0]["credit_account"])) {
+		
+					// Deposit Logic
+					$data['amount_in_words'] = $this->convertNumber($amount);
+					$data['wallet_balance'] = $new_balance;
+					$data['amount'] = $amount;
+					$data['transaction_type'] = 'Cash Deposit'; 
+					$data['description'] = 'From : Cash Deposit';
 					$data['wallet_account_number'] = $acc;
-  
-					$transaction_id = "W".uniqid();
-					$data['transaction_id']=$transaction_id;
-					
+		
+					$transaction_id = "W" . uniqid();
+					$data['transaction_id'] = $transaction_id;
+		
+					// Log Wallet Transaction
 					$wallet_transaction_id = $this->logWalletTransaction($data);
-
-					$debt_id =$mapping[0]["debit_account"]; //debit savings  Control account
-					$credit_id =$mapping[0]["credit_account"]; //credit cash savings reference	
-					$sideA=$this->getAccountSide($debt_id);
-					$sideB=$this->getAccountSide($credit_id);
-			
-					///JOURNAL ENTRY POSTINGS
+		
+					$debt_id = $mapping[0]["debit_account"]; // Debit savings control account
+					$credit_id = $mapping[0]["credit_account"]; // Credit cash savings reference
+					$sideA = $this->getAccountSide($debt_id);
+					$sideB = $this->getAccountSide($credit_id);
+		
+					// Journal Entry Postings
 					$client = $this->getClientWalletSaveddetails($acc);
-					$name=null;
-					if(empty($client[0]['company_name'])){
-						$name=$client[0]['firstname']." ".$client[0]['middlename']." ".$client[0]['lastname'];	
-					}else{
-						$name=$client[0]['company_name'];	
+					$name = null;
+					if (empty($client[0]['company_name'])) {
+						$name = $client[0]['firstname'] . " " . $client[0]['middlename'] . " " . $client[0]['lastname'];
+					} else {
+						$name = $client[0]['company_name'];
 					}
-					$description="Wallet deposit for ".$acc;
-					
-					
-					$this->MakeWalletJounalEntry($debt_id,$office_id,$_SESSION['user_id'],$wallet_transaction_id,$transaction_id,$amount,'DR',$sideA,$description);//DR
-					$this->MakeWalletJounalEntry($credit_id,$office_id,$_SESSION['user_id'],$wallet_transaction_id,$transaction_id,$amount,'CR',$sideB,$description);//CR
+					$description = "Wallet deposit for " . $acc;
+
+					$acc_id = $debt_id;
+					$trans_id = $transaction_id;
+					$type = 'DR';
+					$side = $sideA;
+					$user_id = $user;
+
+					$this->MakeWalletJounalEntry($acc_id, $office, $branchid, $user_id, $wallet_transaction_id, $trans_id, $amount, $type, $side, $description); // DR
+					$acc_id = $credit_id;
+					$trans_id = $transaction_id;
+					$type = 'CR';
+					$side = $sideB;
+					$user_id = $user;
+					$this->MakeWalletJounalEntry($credit_id, $office, $branchid, $user_id, $wallet_transaction_id, $transaction_id, $amount, $type, $side, $description); // CR
+		
+					// SMS Notification
 					$smsNumber = $this->formatNumber($acc);
 					$curr = $this->getThisSaccoCurrency();
-					$nodeName = $_SESSION['branch'];
-					$message = "Hello, Your ".$nodeName." wallet account has been credited with ".$curr. " ". number_format($amount,2). ". Your new balance is ".$curr." ".number_format($new_balance,2)." Txn ID ".$transaction_id;
-				    $this->SendSMS($smsNumber,$message);
-					$this->sendPushNotification($acc,$message);
-					$this->db->commit();
-
-					header('Location:'.URL.'members/newwalletdeposit/'.$data['accountno'].'/'.$client[0]['member_id'].'/'.$wallet_transaction_id.'?msg=receipt');
-
-				}catch(Exception $e){
-					$this->db->rollBack();
-					$error=$e->getMessage();
-					header('Location:'.URL.'members/newwalletdeposit?msg=fail&error='.$error);
-					exit(); 	  
-				}	
-
-			}else{
-				header('Location:'.URL.'members/newwalletdeposit?msg=fail');
-			}
-		}
+					$nodeName = $branchid;
+					$message = "Hello, Your " . $nodeName . " wallet account has been credited with " . $curr . " " . number_format($amount, 2) . ". Your new balance is " . $curr . " " . number_format($new_balance, 2) . " Txn ID " . $transaction_id;
+					$this->SendSMS($smsNumber, $message);
+					// $this->sendPushNotification($acc, $message);
 		
+					$this->db->commit();
+		
+					$resultData = array(
+						'message' => 'Deposit successful',
+						'transaction_id' => $transaction_id,
+						'new_balance' => $new_balance,
+					);
+		
+					return $resultData;
+				} else {
+					throw new Exception("GL accounts not found.");
+				}
+			} catch (Exception $e) {
+				$this->db->rollBack();				
+				$errorData = array(
+					'error' => 'Deposit failed: ' . $e->getMessage(),
+				);
+				
+				return $errorData;
+			}
+		}		
 function withdrawFromWalletaccount($data, $office, $user_id) {
 	try {
 		$this->db->beginTransaction();
