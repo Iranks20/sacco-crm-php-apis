@@ -39,15 +39,6 @@ function preparememberinfo($acc){
 $this->model->preparememberinfo($acc);
 	
 }
-function newshareapplication($id=null){
-	if($id != null){
-		$this->view->memberid = $id;
-	} else {
-		$this->view->memberid = null;
-	}
-	
-   $this->view->render('forms/shares/newshareapplication');	
-}
 
 function getshareProductstoapply($id){
 	$this->model->getshareProductstoapply($id);
@@ -58,10 +49,34 @@ function getshareproduct($id){
    $this->model->getshareproduct($id);	
 
 }
-function submitshareapplication(){
- $data=$_POST;
-   $this->model->submitshareapplication($data);	
+// function submitshareapplication(){
+//  $data=$_POST;
+//    $this->model->submitshareapplication($data);	
 
+// }
+function submitshareapplication() {
+    try {
+		$headers = getallheaders();
+        $office = $headers['office'];
+		$user_id = $headers['user_id'];
+		$branchid = $headers['branchid'];
+        // Get JSON input data
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        // Call the model function to submit share application
+        $result = $this->model->submitshareapplication($data, $office, $user_id, $branchid);
+
+        // Return JSON response with status and result
+        header('Content-Type: application/json');
+        echo json_encode(array("status" => 200, "message" => "Share application submitted successfully", "result" => $result));
+
+    } catch (Exception $e) {
+        // Handle any exceptions and return a JSON error response
+        $errorResponse = array("status" => 500, "message" => $e->getMessage());
+        header('Content-Type: application/json');
+        http_response_code($errorResponse['status']);
+        echo json_encode($errorResponse);
+    }
 }
 
 function buyshares($acc=null){

@@ -115,92 +115,190 @@ die();
 
 
 
-function submitshareapplication($data){
+// function submitshareapplication($data){
 
-	$name=null;
-	$office = $_SESSION['office'];
-	$str=date('isH').rand();		
-	$acc_no= substr($office.$data['cid'].$data['product_id'].substr($str,0,7),0,11);
-	$client_details = $this->getMember($data['cid']);
-	$share_product=$this->getProduct($data['product_id']);
-	$amount=str_replace(",","",$data['amount']);
+// 	$name=null;
+// 	$office = $_SESSION['office'];
+// 	$str=date('isH').rand();		
+// 	$acc_no= substr($office.$data['cid'].$data['product_id'].substr($str,0,7),0,11);
+// 	$client_details = $this->getMember($data['cid']);
+// 	$share_product=$this->getProduct($data['product_id']);
+// 	$amount=str_replace(",","",$data['amount']);
 
-	$prodType = 1;		 
-	$mapping = $this->GetGLPointers($data['product_id'],$prodType,'Purchase Shares');
+// 	$prodType = 1;		 
+// 	$mapping = $this->GetGLPointers($data['product_id'],$prodType,'Purchase Shares');
 
-	if (empty($mapping)) {
-		header('Location: ' . URL . 'products/shares?msg=pur'); 
-		die();
-	}
+// 	if (empty($mapping)) {
+// 		header('Location: ' . URL . 'products/shares?msg=pur'); 
+// 		die();
+// 	}
     
-    if(count($share_product)>0){
+//     if(count($share_product)>0){
 		
-		$share_cost=$share_product[0]['amount_per_share'];
-		$total_shares=($amount/$share_cost);
+// 		$share_cost=$share_product[0]['amount_per_share'];
+// 		$total_shares=($amount/$share_cost);
 
-		$transaction_postData = array(
-			'share_account_no' => $acc_no,
-			'branch' => $office,
-			'no_of_shares' => $data['total_shares'],			 
-			'amount' =>$amount,
-			'amount_in_words' => $data['amount_in_words'],
-			'running_balance' =>$amount,
-			'recorded_by' =>$_SESSION['user_id'],
-		);
+// 		$transaction_postData = array(
+// 			'share_account_no' => $acc_no,
+// 			'branch' => $office,
+// 			'no_of_shares' => $data['total_shares'],			 
+// 			'amount' =>$amount,
+// 			'amount_in_words' => $data['amount_in_words'],
+// 			'running_balance' =>$amount,
+// 			'recorded_by' =>$_SESSION['user_id'],
+// 		);
 
-		$updated_on=date('Y-m-d H:i:s');
+// 		$updated_on=date('Y-m-d H:i:s');
 
-		$share_transaction_id = $this->db->InsertData('share_account_transaction', $transaction_postData);
+// 		$share_transaction_id = $this->db->InsertData('share_account_transaction', $transaction_postData);
 
-		if(!empty($share_transaction_id)){
-			$share_postData = array(
-				'office_id' => $_SESSION['office'],
-				'share_account_no' => $acc_no,
-				'member_id' => $data['cid'],
-				'submittedon_userid' => $_SESSION['user_id'],
-				'account_status' =>'Active',
-				'product_id' => $data['product_id'],
-				'total_shares' =>$total_shares,
-				'running_balance' =>$amount,
-				'last_updated_on' => $updated_on,
-			);
+// 		if(!empty($share_transaction_id)){
+// 			$share_postData = array(
+// 				'office_id' => $_SESSION['office'],
+// 				'share_account_no' => $acc_no,
+// 				'member_id' => $data['cid'],
+// 				'submittedon_userid' => $_SESSION['user_id'],
+// 				'account_status' =>'Active',
+// 				'product_id' => $data['product_id'],
+// 				'total_shares' =>$total_shares,
+// 				'running_balance' =>$amount,
+// 				'last_updated_on' => $updated_on,
+// 			);
 			
-			$mapping = $this->GetGLPointers($data['product_id'],$prodType,'Purchase Shares'); 
+// 			$mapping = $this->GetGLPointers($data['product_id'],$prodType,'Purchase Shares'); 
 
-			$this->db->InsertData('share_account', $share_postData);
+// 			$this->db->InsertData('share_account', $share_postData);
 			
-			$trans_uniqid=uniqid();
-			$deposit_transaction_uniqid = $share_transaction_id."".$trans_uniqid;
-			$transaction_id = "SH".$deposit_transaction_uniqid;
+// 			$trans_uniqid=uniqid();
+// 			$deposit_transaction_uniqid = $share_transaction_id."".$trans_uniqid;
+// 			$transaction_id = "SH".$deposit_transaction_uniqid;
 
-			if(!empty($mapping[0]["debit_account"])&&!empty($mapping[0]["credit_account"])){
+// 			if(!empty($mapping[0]["debit_account"])&&!empty($mapping[0]["credit_account"])){
 			    
-				$debt_id=$mapping[0]["debit_account"];	
-				$credit_id=$mapping[0]["credit_account"];		
-				$sideA=$this->getAccountSide($debt_id);
-				$sideB=$this->getAccountSide($credit_id);
-				if(empty($client_details[0]['company_name'])){
-					$name=$client_details[0]['firstname']." ".$client_details[0]['middlename']." ".$client_details[0]['lastname']; 	
-				}else{
-					$name=$client_details[0]['company_name'];		
-				}
+// 				$debt_id=$mapping[0]["debit_account"];	
+// 				$credit_id=$mapping[0]["credit_account"];		
+// 				$sideA=$this->getAccountSide($debt_id);
+// 				$sideB=$this->getAccountSide($credit_id);
+// 				if(empty($client_details[0]['company_name'])){
+// 					$name=$client_details[0]['firstname']." ".$client_details[0]['middlename']." ".$client_details[0]['lastname']; 	
+// 				}else{
+// 					$name=$client_details[0]['company_name'];		
+// 				}
 
-				$description="Shares Bought by ".$name;	
-				$new_data['transaction_id'] = $transaction_id;
-				$this->db->UpdateData('share_account_transaction', $new_data,"`share_trans_id` = '{$share_transaction_id}'");
+// 				$description="Shares Bought by ".$name;	
+// 				$new_data['transaction_id'] = $transaction_id;
+// 				$this->db->UpdateData('share_account_transaction', $new_data,"`share_trans_id` = '{$share_transaction_id}'");
 				
-				$this->makeJournalEntry($debt_id,$office,$_SESSION['user_id'],$share_transaction_id,$transaction_id,$amount,'DR',$sideA,$description);
-				$this->makeJournalEntry($credit_id,$office,$_SESSION['user_id'],$share_transaction_id,$transaction_id,$amount,'CR',$sideB,$description);
-			}
+// 				$this->makeJournalEntry($debt_id,$office,$_SESSION['user_id'],$share_transaction_id,$transaction_id,$amount,'DR',$sideA,$description);
+// 				$this->makeJournalEntry($credit_id,$office,$_SESSION['user_id'],$share_transaction_id,$transaction_id,$amount,'CR',$sideB,$description);
+// 			}
 
-			header('Location: ' . URL . 'equity/newshareapplication?acc='.$acc_no);
-		}
-	}else{
-		header('Location: ' . URL . 'equity/newshareapplication?msg=fail');
-	}
+// 			header('Location: ' . URL . 'equity/newshareapplication?acc='.$acc_no);
+// 		}
+// 	}else{
+// 		header('Location: ' . URL . 'equity/newshareapplication?msg=fail');
+// 	}
+// }
+
+function submitshareapplication($data, $office, $user_id, $branchid) {
+    try {
+        $name = null;
+        $str = date('isH') . rand();
+        $acc_no = substr($office . $data['cid'] . $data['product_id'] . substr($str, 0, 7), 0, 11);
+        $client_details = $this->getMember($data['cid']);
+        $share_product = $this->getProduct($data['product_id']);
+        $amount = str_replace(",", "", $data['amount']);
+
+        $prodType = 1;
+		$id = $data['product_id'];
+		$transtype = 'Purchase Shares';
+        $mapping = $this->GetGLPointers($id,$prodType,$transtype, $office);
+		
+
+        if (empty($mapping)) {
+            throw new Exception("GL Pointers not found.");
+        }
+
+        if (count($share_product) > 0) {
+            $share_cost = $share_product[0]['amount_per_share'];
+            $total_shares = ($amount / $share_cost);
+
+            $transaction_postData = array(
+                'share_account_no' => $acc_no,
+                'branch' => $office,
+                'no_of_shares' => $data['total_shares'],
+                'amount' => $amount,
+                'amount_in_words' => $data['amount_in_words'],
+                'running_balance' => $amount,
+                'recorded_by' => $user_id,
+            );
+
+            $updated_on = date('Y-m-d H:i:s');
+            $share_transaction_id = $this->db->InsertData('share_account_transaction', $transaction_postData);
+
+            if (!empty($share_transaction_id)) {
+                $share_postData = array(
+                    'office_id' => $office,
+                    'share_account_no' => $acc_no,
+                    'member_id' => $data['cid'],
+                    'submittedon_userid' => $user_id,
+                    'account_status' => 'Active',
+                    'product_id' => $data['product_id'],
+                    'total_shares' => $total_shares,
+                    'running_balance' => $amount,
+                    'last_updated_on' => $updated_on,
+                );
+
+                $this->db->InsertData('share_account', $share_postData);
+
+                $trans_uniqid = uniqid();
+                $deposit_transaction_uniqid = $share_transaction_id . "" . $trans_uniqid;
+                $transaction_id = "SH" . $deposit_transaction_uniqid;
+
+                if (!empty($mapping[0]["debit_account"]) && !empty($mapping[0]["credit_account"])) {
+                    $debt_id = $mapping[0]["debit_account"];
+                    $credit_id = $mapping[0]["credit_account"];
+                    $sideA = $this->getAccountSide($debt_id);
+                    $sideB = $this->getAccountSide($credit_id);
+                    if (empty($client_details[0]['company_name'])) {
+                        $name = $client_details[0]['firstname'] . " " . $client_details[0]['middlename'] . " " . $client_details[0]['lastname'];
+                    } else {
+                        $name = $client_details[0]['company_name'];
+                    }
+
+                    $description = "Shares Bought by " . $name;
+                    $new_data['transaction_id'] = $transaction_id;
+                    $this->db->UpdateData('share_account_transaction', $new_data, "`share_trans_id` = '{$share_transaction_id}'");
+
+                    $acc_id = $debt_id;
+					$user = $user_id;
+					$share_trans_id = $share_transaction_id;
+					$trans_id = $transaction_id;
+					$type = 'DR';
+					$side = $sideA;
+
+                    $this->makeJournalEntry($acc_id, $office, $branchid, $user, $share_trans_id, $trans_id, $amount, $type, $side, $description);
+
+					$acc_id = $credit_id;
+					$user = $user_id;
+					$share_trans_id = $share_transaction_id;
+					$trans_id = $transaction_id;
+					$type = 'CR';
+					$side = $sideA;
+                    $this->makeJournalEntry($acc_id, $office, $branchid, $user, $share_trans_id, $trans_id, $amount, $type, $side, $description);
+                }
+
+                return array("transaction_id" => $transaction_id);
+            } else {
+                throw new Exception("Error submitting share application.");
+            }
+        } else {
+            throw new Exception("Share product not found.");
+        }
+    } catch (Exception $e) {
+        throw new Exception("Error submitting share application: " . $e->getMessage());
+    }
 }
-
-
  
 function addshares($data){
 
@@ -284,11 +382,11 @@ function addshares($data){
 		header('Location: ' . URL . 'equity/buyshares?msg=fail'); 		
 	}
 }
-function makeJournalEntry($acc_id,$office,$user,$share_trans_id,$trans_id,$amount,$type,$side,$description){
+function makeJournalEntry($acc_id,$office, $branchid, $user,$share_trans_id,$trans_id,$amount,$type,$side,$description){
 		$postData = array(
 			'account_id' =>$acc_id,
 			'office_id' => $office,
-			'branch_id' => $_SESSION['branchid'],
+			'branch_id' => $branchid,
 			'createdby_id' =>$user,
 			'share_capital_transaction_id' => $share_trans_id,
 			'transaction_id' =>$trans_id,
